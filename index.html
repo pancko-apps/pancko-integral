@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Pancko"/>
   <meta name="theme-color" content="#0a2a5e"/>
-  <title>Pancko Integral v0.7</title>
+  <title>Pancko Integral v0.7.1</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -786,6 +786,80 @@
     }
     .tile-lab{ background:linear-gradient(135deg,#0f6f88,#0b5367); }
 
+
+    .lab-suggest-box{
+      margin-top:8px;
+      max-height:260px;
+      overflow:auto;
+      border:1px solid var(--border);
+      border-radius:14px;
+      background:rgba(4,18,48,.96);
+      box-shadow:0 14px 26px rgba(0,0,0,.28);
+      display:none;
+    }
+    .lab-suggest-box.show{display:block;}
+    .lab-suggest-item{
+      padding:11px 12px;
+      border-bottom:1px solid rgba(255,255,255,.08);
+      cursor:pointer;
+    }
+    .lab-suggest-item:last-child{border-bottom:none;}
+    .lab-suggest-item:active{background:rgba(74,179,255,.16);}
+    .lab-suggest-title{
+      font-weight:800;
+      color:#fff;
+      font-size:.9rem;
+      line-height:1.25;
+    }
+    .lab-suggest-sub{
+      color:var(--text-muted);
+      font-size:.76rem;
+      margin-top:3px;
+    }
+    .lab-table{
+      margin-top:12px;
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:16px;
+      overflow:hidden;
+      background:rgba(255,255,255,.04);
+    }
+    .lab-table-row{
+      display:grid;
+      grid-template-columns:62px 1fr 1fr 1fr;
+      align-items:center;
+      min-height:54px;
+      border-bottom:1px solid rgba(255,255,255,.08);
+    }
+    .lab-table-row:last-child{border-bottom:none;}
+    .lab-table-head{
+      min-height:38px;
+      color:var(--text-muted);
+      font-size:.72rem;
+      text-transform:uppercase;
+      letter-spacing:.06em;
+      background:rgba(0,0,0,.16);
+    }
+    .lab-table-cell{
+      padding:8px 7px;
+      text-align:center;
+    }
+    .lab-table-color{
+      font-family:var(--font-head);
+      color:var(--accent);
+      font-size:1.35rem;
+      font-weight:900;
+    }
+    .lab-table-val{
+      color:#fff;
+      font-size:1.08rem;
+      font-weight:800;
+    }
+    .lab-table-total{
+      color:var(--text-muted);
+      font-size:.95rem;
+      font-weight:700;
+    }
+
   </style>
 </head>
 <body>
@@ -934,8 +1008,8 @@
     <div class="lab-hero">
       <div class="field">
         <label>Producto tintable</label>
-        <input id="labProductInput" list="labProductList" type="text" placeholder="Buscar producto o código..." onfocus="renderLabProductOptions()" oninput="renderLabProductOptions();selectLabProductFromInput()" />
-        <datalist id="labProductList"></datalist>
+        <input id="labProductInput" type="text" placeholder="Buscar producto o código..." autocomplete="off" onfocus="renderLabProductOptions(true)" oninput="renderLabProductOptions(true);selectLabProductFromInput(false)" />
+        <div id="labProductSuggest" class="lab-suggest-box"></div>
       </div>
 
       <div id="labProductInfo" class="muted" style="font-size:.86rem;line-height:1.4;margin-bottom:10px;"></div>
@@ -1173,7 +1247,7 @@
       <div class="divider"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.7</div>
+          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.7.1</div>
           <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">Lanzamiento: Abril 2026</div>
         </div>
         <div style="font-size:2rem;opacity:.25;">🚀</div>
@@ -1280,7 +1354,16 @@
   </div>
 </div>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js">
+document.addEventListener('click', function(e){
+  const box = document.getElementById('labProductSuggest');
+  const inp = document.getElementById('labProductInput');
+  if(box && inp && !box.contains(e.target) && e.target !== inp){
+    box.classList.remove('show');
+  }
+});
+
+</script><script>
 /* ═══════════════════════════════
    STATE
 ═══════════════════════════════ */
@@ -1535,6 +1618,17 @@ function pulseToOz(p){
   if(oz > 0) return `${oz} oz`;
   return `${fmtPulse(rem)} p`;
 }
+
+function pulseParts(p){
+  const total = roundPulse(p);
+  const oz = Math.floor(total / 48);
+  const pls = roundPulse(total - oz * 48);
+  return { oz, pls, total };
+}
+function fmtDashValue(v, suffix=''){
+  const n = Number(v) || 0;
+  return n ? `${fmtPulse(n)}${suffix}` : '—';
+}
 function extractColorId(value){
   const s=String(value||'').trim();
   if(s.includes(' — ')) return s.split(' — ')[0].trim();
@@ -1786,10 +1880,10 @@ function labProductLabel(p){
   return `${p.COD} — ${p.ARTIC}`;
 }
 
-function renderLabProductOptions(){
-  const list = document.getElementById('labProductList');
+function renderLabProductOptions(forceShow=false){
+  const box = document.getElementById('labProductSuggest');
   const input = document.getElementById('labProductInput');
-  if(!list || !input) return;
+  if(!box || !input) return;
 
   const q = normKey(input.value);
   const matches = products
@@ -1798,9 +1892,35 @@ function renderLabProductOptions(){
       if(!q) return true;
       return normKey(p.COD).includes(q) || normKey(p.ARTIC).includes(q);
     })
-    .slice(0, 120);
+    .slice(0, 45);
 
-  list.innerHTML = matches.map(p => `<option value="${esc(labProductLabel(p))}"></option>`).join('');
+  if(!forceShow || !matches.length){
+    box.classList.remove('show');
+    box.innerHTML = '';
+    return;
+  }
+
+  box.innerHTML = matches.map(p => `
+    <div class="lab-suggest-item" onclick="chooseLabProduct('${esc(String(p.COD))}')">
+      <div class="lab-suggest-title">${esc(p.ARTIC)}</div>
+      <div class="lab-suggest-sub">Código ${esc(p.COD)} · ${esc(p.tipo_tinto || 'TINTABLE')} · Base ${esc(p.base_tinto || '')} · Física ${esc(p.base_fisica_tinto || p.base_tinto || '')}</div>
+    </div>
+  `).join('');
+  box.classList.add('show');
+}
+
+function chooseLabProduct(cod){
+  const p = products.find(x => String(x.COD) === String(cod));
+  selectedLabProduct = p && isTintableProduct(p) ? p : null;
+
+  const input = document.getElementById('labProductInput');
+  const box = document.getElementById('labProductSuggest');
+  if(input && selectedLabProduct) input.value = labProductLabel(selectedLabProduct);
+  if(box){ box.classList.remove('show'); box.innerHTML=''; }
+
+  renderLabProductInfo();
+  renderLabColorOptions();
+  renderLabFormula();
 }
 
 function extractLabProductCode(value){
@@ -1810,16 +1930,17 @@ function extractLabProductCode(value){
   return s;
 }
 
-function selectLabProductFromInput(){
+function selectLabProductFromInput(strict=true){
   const input = document.getElementById('labProductInput');
   if(!input) return;
   const code = extractLabProductCode(input.value);
   const p = products.find(x => String(x.COD) === String(code));
   selectedLabProduct = p && isTintableProduct(p) ? p : null;
+
   if(selectedLabProduct){
     renderLabProductInfo();
     renderLabColorOptions();
-  }else{
+  }else if(strict){
     const info = document.getElementById('labProductInfo');
     if(info) info.innerHTML = '';
   }
@@ -1898,15 +2019,25 @@ function renderLabFormula(){
         Base fórmula: <b>${esc(res.base_formula)}</b> · Base física: <b>${esc(res.base_fisica)}</b> · Factor: <b>${Number(res.factor.toFixed(6))}</b><br>
         Redondeo: 0.125 pulso
       </div>
-      ${res.lines.map(x => `
-        <div class="lab-line">
-          <div class="lab-colorant">${esc(x.colorante)}</div>
-          <div>
-            <div class="lab-pulses">${fmtPulse(x.pulsos)} pulsos</div>
-            <div class="lab-oz">${pulseToOz(x.pulsos)}</div>
-          </div>
+      <div class="lab-table">
+        <div class="lab-table-row lab-table-head">
+          <div class="lab-table-cell">Tinta</div>
+          <div class="lab-table-cell">Oz.</div>
+          <div class="lab-table-cell">Pls.</div>
+          <div class="lab-table-cell">Tot.</div>
         </div>
-      `).join('')}
+        ${res.lines.map(x => {
+          const pp = pulseParts(x.pulsos);
+          return `
+            <div class="lab-table-row">
+              <div class="lab-table-cell lab-table-color">${esc(x.colorante)}</div>
+              <div class="lab-table-cell lab-table-val">${fmtDashValue(pp.oz)}</div>
+              <div class="lab-table-cell lab-table-val">${fmtDashValue(pp.pls)}</div>
+              <div class="lab-table-cell lab-table-total">(${fmtPulse(pp.total)})</div>
+            </div>
+          `;
+        }).join('')}
+      </div>
     </div>
   `;
 }
@@ -3488,6 +3619,80 @@ function buildA4HTML(payload){
     }
     .tile-lab{ background:linear-gradient(135deg,#0f6f88,#0b5367); }
 
+
+    .lab-suggest-box{
+      margin-top:8px;
+      max-height:260px;
+      overflow:auto;
+      border:1px solid var(--border);
+      border-radius:14px;
+      background:rgba(4,18,48,.96);
+      box-shadow:0 14px 26px rgba(0,0,0,.28);
+      display:none;
+    }
+    .lab-suggest-box.show{display:block;}
+    .lab-suggest-item{
+      padding:11px 12px;
+      border-bottom:1px solid rgba(255,255,255,.08);
+      cursor:pointer;
+    }
+    .lab-suggest-item:last-child{border-bottom:none;}
+    .lab-suggest-item:active{background:rgba(74,179,255,.16);}
+    .lab-suggest-title{
+      font-weight:800;
+      color:#fff;
+      font-size:.9rem;
+      line-height:1.25;
+    }
+    .lab-suggest-sub{
+      color:var(--text-muted);
+      font-size:.76rem;
+      margin-top:3px;
+    }
+    .lab-table{
+      margin-top:12px;
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:16px;
+      overflow:hidden;
+      background:rgba(255,255,255,.04);
+    }
+    .lab-table-row{
+      display:grid;
+      grid-template-columns:62px 1fr 1fr 1fr;
+      align-items:center;
+      min-height:54px;
+      border-bottom:1px solid rgba(255,255,255,.08);
+    }
+    .lab-table-row:last-child{border-bottom:none;}
+    .lab-table-head{
+      min-height:38px;
+      color:var(--text-muted);
+      font-size:.72rem;
+      text-transform:uppercase;
+      letter-spacing:.06em;
+      background:rgba(0,0,0,.16);
+    }
+    .lab-table-cell{
+      padding:8px 7px;
+      text-align:center;
+    }
+    .lab-table-color{
+      font-family:var(--font-head);
+      color:var(--accent);
+      font-size:1.35rem;
+      font-weight:900;
+    }
+    .lab-table-val{
+      color:#fff;
+      font-size:1.08rem;
+      font-weight:800;
+    }
+    .lab-table-total{
+      color:var(--text-muted);
+      font-size:.95rem;
+      font-weight:700;
+    }
+
   </style></head><body>
   <div class="print-a4">
     <div class="a4-header">
@@ -4286,6 +4491,15 @@ function useClientForBudget(id){
   showScreen('cartScreen');
   showToast('Cliente cargado en presupuesto');
 }
+
+
+document.addEventListener('click', function(e){
+  const box = document.getElementById('labProductSuggest');
+  const inp = document.getElementById('labProductInput');
+  if(box && inp && !box.contains(e.target) && e.target !== inp){
+    box.classList.remove('show');
+  }
+});
 
 </script>
 
