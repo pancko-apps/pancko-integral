@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Pancko"/>
   <meta name="theme-color" content="#0a2a5e"/>
-  <title>Pancko Integral v0.9.2.1</title>
+  <title>Pancko Integral v0.9.3</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -956,6 +956,185 @@
     .lab-manual-row select,.lab-manual-row input{padding:8px 9px;border-radius:10px;font-size:.86rem;border:1px solid var(--border);background:rgba(0,0,0,.12);color:var(--text);}
     .lab-manual-remove{width:34px;height:34px;border:none;border-radius:10px;background:rgba(200,60,60,.22);color:#ff9a9a;font-weight:900;cursor:pointer;}
     .lab-record-search{width:100%;border-radius:14px;padding:12px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:1rem;margin-bottom:10px;}
+
+    /* ── THEMES / ESTILO VISUAL ── */
+    :root{
+      --tile-search2:#135682;
+      --tile-budget2:#136845;
+      --tile-import2:#5e2e8a;
+      --tile-discount2:#9a6010;
+      --tile-config2:#12526a;
+      --tile-history2:#6b2b2b;
+      --tile-support2:#0b5f4c;
+      --tile-lab:#0f6f88;
+      --tile-lab2:#0b5367;
+      --paint-blob-opacity:0;
+      --theme-card-preview-bg:rgba(255,255,255,.08);
+    }
+
+    html[data-theme="pro"]{
+      --bg:#0d2f6b; --bg2:#0a2455; --accent:#4ab3ff;
+      --tile-search:#1d6fa8; --tile-search2:#135682;
+      --tile-budget:#1a8c5a; --tile-budget2:#136845;
+      --tile-lab:#0f6f88; --tile-lab2:#0b5367;
+      --tile-config:#1a6b8a; --tile-config2:#12526a;
+      --tile-discount:#c07a10; --tile-discount2:#9a6010;
+      --tile-history:#8b3a3a; --tile-history2:#6b2b2b;
+      --tile-support:#0f7a63; --tile-support2:#0b5f4c;
+    }
+
+    html[data-theme="vibrante"]{
+      --bg:#123b8f; --bg2:#092762; --accent:#6bd6ff;
+      --tile-search:#1e88e5; --tile-search2:#0d47a1;
+      --tile-budget:#21b96b; --tile-budget2:#087b45;
+      --tile-lab:#7b61ff; --tile-lab2:#4b32c3;
+      --tile-config:#00a2b8; --tile-config2:#006d7e;
+      --tile-discount:#ff9f1c; --tile-discount2:#c76a00;
+      --tile-history:#e45757; --tile-history2:#9f2d2d;
+      --tile-support:#00a878; --tile-support2:#006e52;
+    }
+
+    html[data-theme="premium"]{
+      --bg:#101828; --bg2:#080f1d; --surface:rgba(255,255,255,.065); --surface2:rgba(255,255,255,.11);
+      --border:rgba(229,197,122,.18); --text:#f3f0e8; --text-muted:rgba(245,235,210,.60); --accent:#d6b66d;
+      --tile-search:#1f4e79; --tile-search2:#173553;
+      --tile-budget:#1f7a52; --tile-budget2:#15563b;
+      --tile-lab:#50408f; --tile-lab2:#332663;
+      --tile-config:#53606b; --tile-config2:#37414b;
+      --tile-discount:#a66a20; --tile-discount2:#754614;
+      --tile-history:#70443e; --tile-history2:#4f2c29;
+      --tile-support:#216b63; --tile-support2:#164941;
+    }
+
+    html[data-theme="noche"]{
+      --bg:#050914; --bg2:#02050b; --surface:rgba(255,255,255,.055); --surface2:rgba(255,255,255,.10);
+      --border:rgba(125,170,255,.16); --text:#e9f1ff; --text-muted:rgba(190,210,245,.58); --accent:#76b7ff;
+      --tile-search:#153c6a; --tile-search2:#0b243f;
+      --tile-budget:#14583b; --tile-budget2:#0b3726;
+      --tile-lab:#3b2e78; --tile-lab2:#241950;
+      --tile-config:#25384c; --tile-config2:#172333;
+      --tile-discount:#6e4b13; --tile-discount2:#3d2a0d;
+      --tile-history:#5c262b; --tile-history2:#351519;
+      --tile-support:#0f4f46; --tile-support2:#092f2b;
+    }
+
+    html[data-theme="clasico-claro"]{
+      --bg:#e9f1fb; --bg2:#d9e7f7; --surface:rgba(20,55,95,.08); --surface2:rgba(20,55,95,.13);
+      --border:rgba(20,55,95,.16); --text:#10243f; --text-muted:rgba(16,36,63,.62); --accent:#006cc9;
+      --tile-search:#3d8bd2; --tile-search2:#2f6fac;
+      --tile-budget:#2fa363; --tile-budget2:#23804f;
+      --tile-lab:#6d65d9; --tile-lab2:#5048aa;
+      --tile-config:#78909c; --tile-config2:#607d8b;
+      --tile-discount:#d48a24; --tile-discount2:#a96616;
+      --tile-history:#c15c5c; --tile-history2:#994242;
+      --tile-support:#26967e; --tile-support2:#1b7563;
+    }
+
+    html[data-theme="clasico-oscuro"]{
+      --bg:#102b4e; --bg2:#071a31; --accent:#3fa9f5;
+      --tile-search:#225d90; --tile-search2:#154163;
+      --tile-budget:#27764f; --tile-budget2:#185538;
+      --tile-lab:#4757a8; --tile-lab2:#2e3978;
+      --tile-config:#37657a; --tile-config2:#294d5f;
+      --tile-discount:#9a6a25; --tile-discount2:#6f4b18;
+      --tile-history:#7a3838; --tile-history2:#562828;
+      --tile-support:#1b6d5d; --tile-support2:#124d42;
+    }
+
+    html[data-theme="industrial"]{
+      --bg:#17212b; --bg2:#0f1720; --surface:rgba(220,235,245,.07); --surface2:rgba(220,235,245,.12);
+      --border:rgba(180,205,220,.18); --text:#e6eef3; --text-muted:rgba(210,225,235,.58); --accent:#7dd3fc;
+      --tile-search:#2c6f8f; --tile-search2:#204e66;
+      --tile-budget:#37785f; --tile-budget2:#285842;
+      --tile-lab:#4d5b73; --tile-lab2:#333f52;
+      --tile-config:#64748b; --tile-config2:#475569;
+      --tile-discount:#9a6b2f; --tile-discount2:#704e23;
+      --tile-history:#7c4a4a; --tile-history2:#553333;
+      --tile-support:#2f766d; --tile-support2:#24534e;
+    }
+
+    html[data-theme="pintura"]{
+      --bg:#102c78; --bg2:#061b4c; --accent:#ffcf33;
+      --tile-search:#1687e0; --tile-search2:#0b52b2;
+      --tile-budget:#16b75f; --tile-budget2:#087a35;
+      --tile-lab:#9a4dff; --tile-lab2:#5726b8;
+      --tile-config:#00a6b7; --tile-config2:#006d78;
+      --tile-discount:#ffb000; --tile-discount2:#f06a00;
+      --tile-history:#ff4d6d; --tile-history2:#a91f3a;
+      --tile-support:#00a883; --tile-support2:#006b57;
+      --paint-blob-opacity:.22;
+    }
+
+    /* Re-aplica fondos usando segundo color variable */
+    .tile-search  { background: linear-gradient(135deg, var(--tile-search), var(--tile-search2)); }
+    .tile-budget  { background: linear-gradient(135deg, var(--tile-budget), var(--tile-budget2)); }
+    .tile-import  { background: linear-gradient(135deg, var(--tile-import), var(--tile-import2)); }
+    .tile-discount{ background: linear-gradient(135deg, var(--tile-discount), var(--tile-discount2)); }
+    .tile-config  { background: linear-gradient(135deg, var(--tile-config), var(--tile-config2)); }
+    .tile-history { background: linear-gradient(135deg, var(--tile-history), var(--tile-history2)); }
+    .tile-support { background: linear-gradient(135deg, var(--tile-support), var(--tile-support2)); }
+    .tile-lab     { background: linear-gradient(135deg, var(--tile-lab), var(--tile-lab2)); }
+
+    html[data-theme="pintura"] body{
+      background-image:
+        radial-gradient(circle at 13% 18%, rgba(255,207,51,.22) 0 42px, transparent 43px),
+        radial-gradient(circle at 82% 12%, rgba(255,77,109,.20) 0 50px, transparent 51px),
+        radial-gradient(circle at 72% 82%, rgba(0,168,131,.20) 0 60px, transparent 61px),
+        radial-gradient(ellipse at 20% 0%, rgba(74,179,255,0.16) 0%, transparent 60%);
+    }
+    html[data-theme="pintura"] .tile::before{
+      content:'';
+      position:absolute;
+      inset:auto auto -34px -28px;
+      width:132px;
+      height:96px;
+      border-radius:58% 42% 50% 50%;
+      background:
+        radial-gradient(circle at 30% 35%, rgba(255,255,255,var(--paint-blob-opacity)) 0 16px, transparent 17px),
+        radial-gradient(circle at 62% 42%, rgba(255,255,255,.14) 0 12px, transparent 13px),
+        radial-gradient(circle at 48% 70%, rgba(255,255,255,.10) 0 18px, transparent 19px);
+      transform:rotate(-12deg);
+      pointer-events:none;
+    }
+
+    .style-grid{display:grid;gap:10px;}
+    .theme-card{
+      border:1px solid var(--border);
+      background:var(--surface);
+      border-radius:16px;
+      padding:12px;
+      cursor:pointer;
+      position:relative;
+      overflow:hidden;
+    }
+    .theme-card.active{
+      outline:2px solid var(--accent);
+      background:var(--surface2);
+    }
+    .theme-card-title{
+      font-family:var(--font-head);
+      font-size:1.05rem;
+      font-weight:800;
+      color:var(--text);
+    }
+    .theme-card-desc{
+      color:var(--text-muted);
+      font-size:.78rem;
+      margin-top:2px;
+      line-height:1.25;
+    }
+    .theme-preview{
+      display:flex;
+      gap:6px;
+      margin-top:10px;
+    }
+    .theme-dot{
+      width:32px;
+      height:22px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.18);
+    }
+
   </style>
 </head>
 <body>
@@ -1282,6 +1461,13 @@
           <div class="tile-desc">Configurar listas y porcentajes</div>
         </div>
       </div>
+      <div class="tile tile-import" onclick="showScreen('styleScreen')">
+        <div class="tile-icon">🎨</div>
+        <div class="tile-copy">
+          <div class="tile-name">Estilo visual</div>
+          <div class="tile-desc">Temas, colores y modo noche</div>
+        </div>
+      </div>
       <div class="tile tile-import" onclick="showScreen('importScreen')">
         <div class="tile-icon">📂</div>
         <div class="tile-copy">
@@ -1303,6 +1489,22 @@
           <div class="tile-desc">Crear, editar o eliminar artículos manualmente</div>
         </div>
       </div>
+    </div>
+  </section>
+
+
+  <!-- ESTILO VISUAL -->
+  <section class="screen" id="styleScreen">
+    <div class="top-bar">
+      <button class="btn btn-back" onclick="showScreen('configScreen')">← Parámetros</button>
+      <button class="btn btn-primary" onclick="resetTheme()">Restaurar Pro</button>
+    </div>
+    <div class="sec-title">Estilo visual</div>
+    <div class="card">
+      <div class="muted" style="line-height:1.4;margin-bottom:12px;">
+        Elegí un look para la app. Se guarda en este dispositivo.
+      </div>
+      <div id="themeList" class="style-grid"></div>
     </div>
   </section>
 
@@ -1360,7 +1562,7 @@
       <div class="divider"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.9.2.1</div>
+          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.9.3</div>
           <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">Lanzamiento: Abril 2026</div>
         </div>
         <div style="font-size:2rem;opacity:.25;">🚀</div>
@@ -1647,6 +1849,52 @@ function save(){
 /* ═══════════════════════════════
    NAVIGATION
 ═══════════════════════════════ */
+
+const THEMES = [
+  {key:'pro', name:'Pancko Pro', desc:'Equilibrado, sobrio y cómodo para uso diario.', colors:['#1d6fa8','#1a8c5a','#0f6f88','#8b3a3a']},
+  {key:'vibrante', name:'Pancko Vibrante', desc:'Más contraste entre módulos, más punch visual.', colors:['#1e88e5','#21b96b','#7b61ff','#ff9f1c']},
+  {key:'premium', name:'Pancko Premium', desc:'Oscuro elegante, más corporativo/franquicia.', colors:['#1f4e79','#1f7a52','#50408f','#d6b66d']},
+  {key:'noche', name:'Noche', desc:'Muy oscuro, ideal para laboratorio o uso prolongado.', colors:['#153c6a','#14583b','#3b2e78','#76b7ff']},
+  {key:'clasico-claro', name:'Clásico Claro', desc:'Más tradicional, limpio y usable en PC.', colors:['#e9f1fb','#3d8bd2','#2fa363','#d48a24']},
+  {key:'clasico-oscuro', name:'Clásico Oscuro', desc:'Azul clásico, más serio y parejo.', colors:['#102b4e','#225d90','#27764f','#9a6a25']},
+  {key:'industrial', name:'Industrial', desc:'Acero, grises técnicos y sensación herramienta.', colors:['#17212b','#2c6f8f','#64748b','#9a6b2f']},
+  {key:'pintura', name:'Manchas de pintura', desc:'Más artístico, colorido y con energía de pinturería.', colors:['#1687e0','#16b75f','#9a4dff','#ff4d6d']}
+];
+
+function applyTheme(key){
+  const theme = THEMES.find(t=>t.key===key) || THEMES[0];
+  document.documentElement.setAttribute('data-theme', theme.key);
+  localStorage.setItem('pk_theme', theme.key);
+  renderThemeList();
+}
+
+function loadTheme(){
+  const key = localStorage.getItem('pk_theme') || 'pro';
+  document.documentElement.setAttribute('data-theme', key);
+}
+
+function resetTheme(){
+  applyTheme('pro');
+  showToast('Estilo Pancko Pro aplicado');
+}
+
+function renderThemeList(){
+  const box = document.getElementById('themeList');
+  if(!box) return;
+  const current = document.documentElement.getAttribute('data-theme') || 'pro';
+  box.innerHTML = THEMES.map(t=>`
+    <div class="theme-card ${t.key===current?'active':''}" onclick="applyTheme('${t.key}');showToast('Estilo ${esc(t.name)} aplicado')">
+      <div class="theme-card-title">${esc(t.name)}</div>
+      <div class="theme-card-desc">${esc(t.desc)}</div>
+      <div class="theme-preview">
+        ${t.colors.map(c=>`<span class="theme-dot" style="background:${c}"></span>`).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+loadTheme();
+
 function showScreen(id, options={}){
   const push = options.push !== false;
   const current = document.querySelector('.screen.active');
@@ -1673,6 +1921,7 @@ renderTintPriceInputs(); renderTintStatus(); renderTintPriceInputs(); }
   if(id==='clientsScreen') renderClientsList();
   if(id==='manageArticlesScreen') renderManageList();
   if(id==='labScreen'){ renderLabPatternButtons(); renderLabProductOptions(); renderLabProductInfo(); renderLabFormula(); renderLabRecords(); }
+  if(id==='styleScreen'){ renderThemeList(); }
   if(options.sync !== false) syncBrowserHistory(id);
 }
 
@@ -4438,6 +4687,185 @@ function buildA4HTML(payload){
     .lab-manual-row select,.lab-manual-row input{padding:8px 9px;border-radius:10px;font-size:.86rem;border:1px solid var(--border);background:rgba(0,0,0,.12);color:var(--text);}
     .lab-manual-remove{width:34px;height:34px;border:none;border-radius:10px;background:rgba(200,60,60,.22);color:#ff9a9a;font-weight:900;cursor:pointer;}
     .lab-record-search{width:100%;border-radius:14px;padding:12px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:1rem;margin-bottom:10px;}
+
+    /* ── THEMES / ESTILO VISUAL ── */
+    :root{
+      --tile-search2:#135682;
+      --tile-budget2:#136845;
+      --tile-import2:#5e2e8a;
+      --tile-discount2:#9a6010;
+      --tile-config2:#12526a;
+      --tile-history2:#6b2b2b;
+      --tile-support2:#0b5f4c;
+      --tile-lab:#0f6f88;
+      --tile-lab2:#0b5367;
+      --paint-blob-opacity:0;
+      --theme-card-preview-bg:rgba(255,255,255,.08);
+    }
+
+    html[data-theme="pro"]{
+      --bg:#0d2f6b; --bg2:#0a2455; --accent:#4ab3ff;
+      --tile-search:#1d6fa8; --tile-search2:#135682;
+      --tile-budget:#1a8c5a; --tile-budget2:#136845;
+      --tile-lab:#0f6f88; --tile-lab2:#0b5367;
+      --tile-config:#1a6b8a; --tile-config2:#12526a;
+      --tile-discount:#c07a10; --tile-discount2:#9a6010;
+      --tile-history:#8b3a3a; --tile-history2:#6b2b2b;
+      --tile-support:#0f7a63; --tile-support2:#0b5f4c;
+    }
+
+    html[data-theme="vibrante"]{
+      --bg:#123b8f; --bg2:#092762; --accent:#6bd6ff;
+      --tile-search:#1e88e5; --tile-search2:#0d47a1;
+      --tile-budget:#21b96b; --tile-budget2:#087b45;
+      --tile-lab:#7b61ff; --tile-lab2:#4b32c3;
+      --tile-config:#00a2b8; --tile-config2:#006d7e;
+      --tile-discount:#ff9f1c; --tile-discount2:#c76a00;
+      --tile-history:#e45757; --tile-history2:#9f2d2d;
+      --tile-support:#00a878; --tile-support2:#006e52;
+    }
+
+    html[data-theme="premium"]{
+      --bg:#101828; --bg2:#080f1d; --surface:rgba(255,255,255,.065); --surface2:rgba(255,255,255,.11);
+      --border:rgba(229,197,122,.18); --text:#f3f0e8; --text-muted:rgba(245,235,210,.60); --accent:#d6b66d;
+      --tile-search:#1f4e79; --tile-search2:#173553;
+      --tile-budget:#1f7a52; --tile-budget2:#15563b;
+      --tile-lab:#50408f; --tile-lab2:#332663;
+      --tile-config:#53606b; --tile-config2:#37414b;
+      --tile-discount:#a66a20; --tile-discount2:#754614;
+      --tile-history:#70443e; --tile-history2:#4f2c29;
+      --tile-support:#216b63; --tile-support2:#164941;
+    }
+
+    html[data-theme="noche"]{
+      --bg:#050914; --bg2:#02050b; --surface:rgba(255,255,255,.055); --surface2:rgba(255,255,255,.10);
+      --border:rgba(125,170,255,.16); --text:#e9f1ff; --text-muted:rgba(190,210,245,.58); --accent:#76b7ff;
+      --tile-search:#153c6a; --tile-search2:#0b243f;
+      --tile-budget:#14583b; --tile-budget2:#0b3726;
+      --tile-lab:#3b2e78; --tile-lab2:#241950;
+      --tile-config:#25384c; --tile-config2:#172333;
+      --tile-discount:#6e4b13; --tile-discount2:#3d2a0d;
+      --tile-history:#5c262b; --tile-history2:#351519;
+      --tile-support:#0f4f46; --tile-support2:#092f2b;
+    }
+
+    html[data-theme="clasico-claro"]{
+      --bg:#e9f1fb; --bg2:#d9e7f7; --surface:rgba(20,55,95,.08); --surface2:rgba(20,55,95,.13);
+      --border:rgba(20,55,95,.16); --text:#10243f; --text-muted:rgba(16,36,63,.62); --accent:#006cc9;
+      --tile-search:#3d8bd2; --tile-search2:#2f6fac;
+      --tile-budget:#2fa363; --tile-budget2:#23804f;
+      --tile-lab:#6d65d9; --tile-lab2:#5048aa;
+      --tile-config:#78909c; --tile-config2:#607d8b;
+      --tile-discount:#d48a24; --tile-discount2:#a96616;
+      --tile-history:#c15c5c; --tile-history2:#994242;
+      --tile-support:#26967e; --tile-support2:#1b7563;
+    }
+
+    html[data-theme="clasico-oscuro"]{
+      --bg:#102b4e; --bg2:#071a31; --accent:#3fa9f5;
+      --tile-search:#225d90; --tile-search2:#154163;
+      --tile-budget:#27764f; --tile-budget2:#185538;
+      --tile-lab:#4757a8; --tile-lab2:#2e3978;
+      --tile-config:#37657a; --tile-config2:#294d5f;
+      --tile-discount:#9a6a25; --tile-discount2:#6f4b18;
+      --tile-history:#7a3838; --tile-history2:#562828;
+      --tile-support:#1b6d5d; --tile-support2:#124d42;
+    }
+
+    html[data-theme="industrial"]{
+      --bg:#17212b; --bg2:#0f1720; --surface:rgba(220,235,245,.07); --surface2:rgba(220,235,245,.12);
+      --border:rgba(180,205,220,.18); --text:#e6eef3; --text-muted:rgba(210,225,235,.58); --accent:#7dd3fc;
+      --tile-search:#2c6f8f; --tile-search2:#204e66;
+      --tile-budget:#37785f; --tile-budget2:#285842;
+      --tile-lab:#4d5b73; --tile-lab2:#333f52;
+      --tile-config:#64748b; --tile-config2:#475569;
+      --tile-discount:#9a6b2f; --tile-discount2:#704e23;
+      --tile-history:#7c4a4a; --tile-history2:#553333;
+      --tile-support:#2f766d; --tile-support2:#24534e;
+    }
+
+    html[data-theme="pintura"]{
+      --bg:#102c78; --bg2:#061b4c; --accent:#ffcf33;
+      --tile-search:#1687e0; --tile-search2:#0b52b2;
+      --tile-budget:#16b75f; --tile-budget2:#087a35;
+      --tile-lab:#9a4dff; --tile-lab2:#5726b8;
+      --tile-config:#00a6b7; --tile-config2:#006d78;
+      --tile-discount:#ffb000; --tile-discount2:#f06a00;
+      --tile-history:#ff4d6d; --tile-history2:#a91f3a;
+      --tile-support:#00a883; --tile-support2:#006b57;
+      --paint-blob-opacity:.22;
+    }
+
+    /* Re-aplica fondos usando segundo color variable */
+    .tile-search  { background: linear-gradient(135deg, var(--tile-search), var(--tile-search2)); }
+    .tile-budget  { background: linear-gradient(135deg, var(--tile-budget), var(--tile-budget2)); }
+    .tile-import  { background: linear-gradient(135deg, var(--tile-import), var(--tile-import2)); }
+    .tile-discount{ background: linear-gradient(135deg, var(--tile-discount), var(--tile-discount2)); }
+    .tile-config  { background: linear-gradient(135deg, var(--tile-config), var(--tile-config2)); }
+    .tile-history { background: linear-gradient(135deg, var(--tile-history), var(--tile-history2)); }
+    .tile-support { background: linear-gradient(135deg, var(--tile-support), var(--tile-support2)); }
+    .tile-lab     { background: linear-gradient(135deg, var(--tile-lab), var(--tile-lab2)); }
+
+    html[data-theme="pintura"] body{
+      background-image:
+        radial-gradient(circle at 13% 18%, rgba(255,207,51,.22) 0 42px, transparent 43px),
+        radial-gradient(circle at 82% 12%, rgba(255,77,109,.20) 0 50px, transparent 51px),
+        radial-gradient(circle at 72% 82%, rgba(0,168,131,.20) 0 60px, transparent 61px),
+        radial-gradient(ellipse at 20% 0%, rgba(74,179,255,0.16) 0%, transparent 60%);
+    }
+    html[data-theme="pintura"] .tile::before{
+      content:'';
+      position:absolute;
+      inset:auto auto -34px -28px;
+      width:132px;
+      height:96px;
+      border-radius:58% 42% 50% 50%;
+      background:
+        radial-gradient(circle at 30% 35%, rgba(255,255,255,var(--paint-blob-opacity)) 0 16px, transparent 17px),
+        radial-gradient(circle at 62% 42%, rgba(255,255,255,.14) 0 12px, transparent 13px),
+        radial-gradient(circle at 48% 70%, rgba(255,255,255,.10) 0 18px, transparent 19px);
+      transform:rotate(-12deg);
+      pointer-events:none;
+    }
+
+    .style-grid{display:grid;gap:10px;}
+    .theme-card{
+      border:1px solid var(--border);
+      background:var(--surface);
+      border-radius:16px;
+      padding:12px;
+      cursor:pointer;
+      position:relative;
+      overflow:hidden;
+    }
+    .theme-card.active{
+      outline:2px solid var(--accent);
+      background:var(--surface2);
+    }
+    .theme-card-title{
+      font-family:var(--font-head);
+      font-size:1.05rem;
+      font-weight:800;
+      color:var(--text);
+    }
+    .theme-card-desc{
+      color:var(--text-muted);
+      font-size:.78rem;
+      margin-top:2px;
+      line-height:1.25;
+    }
+    .theme-preview{
+      display:flex;
+      gap:6px;
+      margin-top:10px;
+    }
+    .theme-dot{
+      width:32px;
+      height:22px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.18);
+    }
+
   </style></head><body>
   <div class="print-a4">
     <div class="a4-header">
