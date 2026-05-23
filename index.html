@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Pancko"/>
   <meta name="theme-color" content="#0a2a5e"/>
-  <title>Pancko Integral v0.9.9</title>
+  <title>Pancko Integral v0.10.0</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -1749,7 +1749,7 @@
       <div class="divider"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.9.9</div>
+          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.0</div>
           <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">Lanzamiento: Abril 2026</div>
         </div>
         <div style="font-size:2rem;opacity:.25;">🚀</div>
@@ -4234,6 +4234,8 @@ function drawAndShowTicket(cartData, cfg, client, clientData, modeLabel, modePct
   const W = 384;
   const PAD = 18;
   const INNER = W - PAD * 2;
+  const PRICE_W = 88;
+  const LEFT_W = INNER - PRICE_W - 8;
   const canvas = document.getElementById('thermalCanvas');
   const ctx = canvas.getContext('2d');
 
@@ -4243,7 +4245,7 @@ function drawAndShowTicket(cartData, cfg, client, clientData, modeLabel, modePct
   const F_BOLD = 'bold 13px monospace';
   const F_TOT  = 'bold 16px monospace';
 
-  const RH_LG = 24, RH_MD = 21, RH_SM = 18, RH_TOT = 26;
+  const RH_LG = 24, RH_MD = 21, RH_SM = 17, RH_TOT = 26;
 
   function T(str, x, y, font, align='left', color='#111'){
     ctx.font = font;
@@ -4265,24 +4267,6 @@ function drawAndShowTicket(cartData, cfg, client, clientData, modeLabel, modePct
     ctx.setLineDash([]);
   }
 
-  function wrap(text, maxW, font){
-    ctx.font = font;
-    const words = String(text || '').split(' ');
-    const lines = [];
-    let cur = '';
-    for(const w of words){
-      const t = cur ? cur + ' ' + w : w;
-      if(ctx.measureText(t).width > maxW && cur){
-        lines.push(cur);
-        cur = w;
-      }else{
-        cur = t;
-      }
-    }
-    if(cur) lines.push(cur);
-    return lines;
-  }
-
   function truncateToWidth(text, maxW, font){
     ctx.font = font;
     const raw = String(text || '');
@@ -4292,6 +4276,31 @@ function drawAndShowTicket(cartData, cfg, client, clientData, modeLabel, modePct
       out = out.slice(0, -1);
     }
     return out + '…';
+  }
+
+  function wrapToLines(text, maxW, font, maxLines=2){
+    ctx.font = font;
+    const words = String(text || '').split(/\s+/).filter(Boolean);
+    const lines = [];
+    let cur = '';
+    for(const w of words){
+      const test = cur ? cur + ' ' + w : w;
+      if(ctx.measureText(test).width > maxW && cur){
+        lines.push(cur);
+        cur = w;
+        if(lines.length >= maxLines) break;
+      }else{
+        cur = test;
+      }
+    }
+    if(lines.length < maxLines && cur) lines.push(cur);
+    if(words.length && lines.length === maxLines){
+      const joined = lines.join(' ');
+      if(joined.length < String(text).trim().length){
+        lines[maxLines-1] = truncateToWidth(lines[maxLines-1], maxW, font);
+      }
+    }
+    return lines.length ? lines : [''];
   }
 
   const comercio = (cfg && cfg.nombre && cfg.nombre.trim()) ? cfg.nombre.trim() : 'Colorshop Cañada';
@@ -4306,8 +4315,10 @@ function drawAndShowTicket(cartData, cfg, client, clientData, modeLabel, modePct
 
   const rows = cartData.map(item => {
     const finalT = finalItemTotal(item, modePct);
-    const line = truncateToWidth(item.qty + '× ' + item.ARTIC, INNER - 92, F_MD);
-    return { item, finalT, line };
+    const code = String(item.COD || '').trim();
+    const codeLine = truncateToWidth(`${item.qty}× ${code || 's/cód.'}`, LEFT_W, F_MD);
+    const descLines = wrapToLines(item.ARTIC || '', LEFT_W, F_SM, 2);
+    return { item, finalT, codeLine, descLines };
   });
 
   const baseTotal  = cartData.reduce((s, i) => s + i.PR_CON_IVA * i.qty, 0);
@@ -4316,28 +4327,27 @@ function drawAndShowTicket(cartData, cfg, client, clientData, modeLabel, modePct
   const G6=6, G8=8, G10=10, G12=12, G14=14, G16=16;
 
   let h = G14;
-  h += RH_LG;                    // comercio
+  h += RH_LG;
   if(direccion) h += RH_MD;
   if(telefono) h += RH_MD;
   if(whatsapp) h += RH_SM;
-  h += G12;
-  h += 1 + G12;
-  h += RH_SM;                    // fecha
-  if(cliente) h += 4 + RH_MD;    // cliente debajo de fecha
-  h += RH_SM;                    // descuento
+  h += G12 + 1 + G12;
+  h += RH_SM;
+  if(cliente) h += 4 + RH_MD;
+  if(clientData && clientData.cuit) h += RH_SM;
+  if(clientData && clientData.direccion) h += RH_SM;
+  if(clientData && clientData.telefono) h += RH_SM;
   h += G12 + 1 + G10;
-  h += RH_MD;                    // cabecera tabla
-  h += G6 + 1 + G8;
-  rows.forEach(() => { h += RH_MD + G6; });
+  h += RH_MD + G6 + 1 + G8;
+  rows.forEach(r => { h += RH_MD + (r.descLines.length * RH_SM) + G8; });
   h += G6 + 1 + G8;
   h += RH_MD + RH_MD;
   h += G10 + 1 + G10;
   h += RH_TOT;
   h += G14 + 1 + G12;
-  const pieLines = wrap(pie, INNER, F_SM);
+  const pieLines = wrapToLines(pie, INNER, F_SM, 3);
   h += pieLines.length * RH_SM;
-  h += RH_SM;                    // Pancko
-  h += G16;
+  h += RH_SM + G16;
 
   canvas.width = W;
   canvas.height = h;
@@ -4349,18 +4359,9 @@ function drawAndShowTicket(cartData, cfg, client, clientData, modeLabel, modePct
   T(comercio, W/2, y, F_LG, 'center');
   y += RH_LG;
 
-  if(direccion){
-    T(direccion, W/2, y, F_MD, 'center', '#444');
-    y += RH_MD;
-  }
-  if(telefono){
-    T('Tel: ' + telefono, W/2, y, F_MD, 'center', '#444');
-    y += RH_MD;
-  }
-  if(whatsapp){
-    T('WhatsApp: ' + whatsapp, W/2, y, F_SM, 'center', '#666');
-    y += RH_SM;
-  }
+  if(direccion){ T(direccion, W/2, y, F_MD, 'center', '#444'); y += RH_MD; }
+  if(telefono){ T('Tel: ' + telefono, W/2, y, F_MD, 'center', '#444'); y += RH_MD; }
+  if(whatsapp){ T('WhatsApp: ' + whatsapp, W/2, y, F_SM, 'center', '#666'); y += RH_SM; }
 
   y += G12;
   L(y);
@@ -4374,25 +4375,16 @@ function drawAndShowTicket(cartData, cfg, client, clientData, modeLabel, modePct
     y += 4;
     T('Cliente: ' + printClient, PAD, y, F_BOLD);
     y += RH_MD;
-    if(clientData && clientData.cuit){
-      T('CUIT/DNI: ' + clientData.cuit, PAD, y, F_SM, 'left', '#666');
-      y += RH_SM;
-    }
-    if(clientData && clientData.direccion){
-      T('Dirección: ' + clientData.direccion, PAD, y, F_SM, 'left', '#666');
-      y += RH_SM;
-    }
-    if(clientData && clientData.telefono){
-      T('Tel: ' + clientData.telefono, PAD, y, F_SM, 'left', '#666');
-      y += RH_SM;
-    }
+    if(clientData && clientData.cuit){ T('CUIT/DNI: ' + clientData.cuit, PAD, y, F_SM, 'left', '#666'); y += RH_SM; }
+    if(clientData && clientData.direccion){ T('Dirección: ' + clientData.direccion, PAD, y, F_SM, 'left', '#666'); y += RH_SM; }
+    if(clientData && clientData.telefono){ T('Tel: ' + clientData.telefono, PAD, y, F_SM, 'left', '#666'); y += RH_SM; }
   }
 
   y += G12;
   L(y, '#999', [5,4]);
   y += G10;
 
-  T('CANT   ARTÍCULO', PAD, y, F_BOLD);
+  T('CANT/CÓDIGO', PAD, y, F_BOLD);
   T('TOTAL', W - PAD, y, F_BOLD, 'right');
   y += RH_MD;
 
@@ -4401,10 +4393,14 @@ function drawAndShowTicket(cartData, cfg, client, clientData, modeLabel, modePct
   y += G8;
 
   rows.forEach(r => {
-    T(r.line, PAD, y, F_MD);
+    T(r.codeLine, PAD, y, F_MD);
     T($m(r.finalT), W - PAD, y, F_MD, 'right');
     y += RH_MD;
-    y += G6;
+    r.descLines.forEach(line => {
+      T(line, PAD + 12, y, F_SM, 'left', '#444');
+      y += RH_SM;
+    });
+    y += G8;
   });
 
   y += G6;
@@ -4415,7 +4411,7 @@ function drawAndShowTicket(cartData, cfg, client, clientData, modeLabel, modePct
   T($m(baseTotal), W - PAD, y, F_SM, 'right', '#777');
   y += RH_MD;
 
-  T('Descuento: ' + modeLabel + (modePct > 0 ? ' (' + modePct + '%)' : ''), PAD, y, F_SM, 'left', '#777');
+  T('Descuento: ' + modeLabel + ' (' + modePct + '%)', PAD, y, F_SM, 'left', '#777');
   T('-' + $m(baseTotal - finalTotal), W - PAD, y, F_SM, 'right', '#777');
   y += RH_MD;
 
@@ -4435,14 +4431,8 @@ function drawAndShowTicket(cartData, cfg, client, clientData, modeLabel, modePct
     T(line, W/2, y, F_SM, 'center', '#666');
     y += RH_SM;
   });
-
   T('Pancko · Sistema de precios', W/2, y, F_SM, 'center', '#666');
-  y += RH_SM;
 
-  ticketImageData = canvas.toDataURL('image/png');
-  const displayW = Math.min(340, window.innerWidth - 60);
-  canvas.style.width = displayW + 'px';
-  canvas.style.height = 'auto';
   document.getElementById('exportModal').classList.add('open');
 }
 
@@ -4467,932 +4457,143 @@ function makeSafeFileBase(){
 }
 
 function buildA4HTML(payload){
-  const rows = cart.map(item => {
+  const items = (payload && payload.items) ? payload.items : cart;
+  const cfg = payload.cfg || {};
+  const clientData = payload.clientData || null;
+  const clientName = (clientData && clientData.nombre) ? clientData.nombre : (payload.client || '');
+  const baseTotal = items.reduce((s,i)=>s+i.PR_CON_IVA*i.qty,0);
+  const finalTotal = items.reduce((s,i)=>s+finalItemTotal(i,payload.mode.percent),0);
+  const discountAmount = baseTotal - finalTotal;
+
+  const rows = items.map(item => {
     const unit = finalUnitPrice(item, payload.mode.percent);
     const subtotal = unit * item.qty;
+    const code = item.COD ? `<div class="code">Código: ${esc(item.COD)}</div>` : '';
     return `<tr>
-      <td>${item.qty}</td>
-      <td>${item.ARTIC}</td>
-      <td style="text-align:right;">${$m(unit)}</td>
-      <td style="text-align:right;">${$m(subtotal)}</td>
+      <td class="qty">${item.qty}</td>
+      <td class="article">${code}<div>${esc(item.ARTIC || '')}</div></td>
+      <td class="money">${$m(unit)}</td>
+      <td class="money">${$m(subtotal)}</td>
     </tr>`;
   }).join('');
 
-  const baseTotal = cart.reduce((s,i)=>s+i.PR_CON_IVA*i.qty,0);
-  const finalTotal = cart.reduce((s,i)=>s+finalItemTotal(i,payload.mode.percent),0);
-  const discountAmount = baseTotal - finalTotal;
-
   return `<!DOCTYPE html>
-  <html lang="es"><head><meta charset="UTF-8"><title>Presupuesto ${payload.codigo}</title>
-  <style>
-  body{font-family:Arial,sans-serif;color:#111;margin:0;padding:20px;background:#eee}
-  .print-a4{width:210mm;min-height:297mm;padding:20mm;background:#fff;margin:auto}
-  .a4-header{text-align:center;margin-bottom:20px}
-  .a4-header h1{font-size:26px;margin:0;font-weight:bold}
-  .a4-header p{margin:3px 0;font-size:13px;color:#555}
-  .a4-line{border-top:2px solid #000;margin:15px 0}
-  .a4-info{font-size:14px;margin-bottom:15px}
-  .a4-info strong{display:inline-block;width:110px}
-  .a4-table{width:100%;border-collapse:collapse;margin-top:10px}
-  .a4-table th{text-align:left;font-size:13px;padding:8px 4px;border-bottom:1px solid #000}
-  .a4-table td{padding:6px 4px;font-size:14px;border-bottom:1px solid #ddd}
-  .a4-right{text-align:right}
-  .a4-totals{margin-top:20px;width:100%}
-  .a4-totals td{padding:6px 0;font-size:14px}
-  .a4-total-final{font-size:20px;font-weight:bold;border-top:2px solid #000;padding-top:10px}
-  .a4-footer{text-align:center;margin-top:40px;font-size:13px;color:#666}
-  
-    .history-actions{
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-start;
-      gap:10px;
-    }
-    .history-trash{
-      background: rgba(200,60,60,0.2);
-      border: none;
-      border-radius: 8px;
-      width: 30px;
-      height: 30px;
-      color: #ff8a8a;
-      font-size: .9rem;
-      cursor: pointer;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      flex: 0 0 auto;
-    }
-
-
-    .tinto-box{
-      background:rgba(74,179,255,0.09);
-      border:1px solid rgba(74,179,255,0.24);
-      border-radius:14px;
-      padding:12px;
-      margin-top:12px;
-    }
-    .tinto-pill{
-      display:inline-block;
-      border:1px solid rgba(255,255,255,.14);
-      background:rgba(0,0,0,.15);
-      color:var(--text-muted);
-      border-radius:999px;
-      padding:4px 8px;
-      font-size:.72rem;
-      margin:3px 3px 0 0;
-    }
-    .tinto-preview{
-      margin-top:10px;
-      font-size:.86rem;
-      line-height:1.42;
-    }
-    .tinto-ok{color:#9cffca}
-    .tinto-bad{color:#ffb0b0}
-    .tinto-lines{
-      margin-top:8px;
-      max-height:130px;
-      overflow:auto;
-      background:rgba(0,0,0,.16);
-      border:1px solid var(--border);
-      border-radius:10px;
-      padding:8px;
-    }
-    .tinto-line{
-      display:flex;
-      justify-content:space-between;
-      gap:10px;
-      border-bottom:1px dashed rgba(255,255,255,.12);
-      padding:4px 0;
-      font-size:.82rem;
-    }
-    .tinto-line:last-child{border-bottom:none}
-
-
-    .tint-edit-modal{
-      display:none;
-      position:fixed;
-      inset:0;
-      z-index:12000;
-      background:rgba(0,0,0,.72);
-      align-items:flex-end;
-      justify-content:center;
-    }
-    .tint-edit-modal.open{display:flex;}
-    .tint-edit-card{
-      width:100%;
-      max-width:480px;
-      max-height:92vh;
-      overflow:auto;
-      background:#0d2f6b;
-      border:1px solid var(--border);
-      border-radius:22px 22px 0 0;
-      padding:18px;
-      box-shadow:0 -16px 38px rgba(0,0,0,.35);
-    }
-    .tint-edit-title{
-      font-family:var(--font-head);
-      font-size:1.15rem;
-      font-weight:800;
-      margin-bottom:10px;
-      color:#fff;
-    }
-    .cart-item.tint-clickable{cursor:pointer;}
-    .cart-item.tint-clickable:active{background:var(--surface2);}
-    .tint-edit-preview{
-      margin-top:10px;
-      background:rgba(0,0,0,.16);
-      border:1px solid var(--border);
-      border-radius:12px;
-      padding:10px;
-      font-size:.86rem;
-      line-height:1.42;
-    }
-
-
-    .tint-manual-box{
-      margin-top:12px;
-      background:rgba(0,0,0,.12);
-      border:1px solid var(--border);
-      border-radius:14px;
-      padding:10px;
-    }
-    .tint-manual-head{
-      display:grid;
-      grid-template-columns:1fr 92px 34px;
-      gap:8px;
-      color:var(--text-muted);
-      font-size:.72rem;
-      text-transform:uppercase;
-      letter-spacing:.04em;
-      margin-bottom:6px;
-    }
-    .tint-manual-row{
-      display:grid;
-      grid-template-columns:1fr 92px 34px;
-      gap:8px;
-      align-items:center;
-      margin-bottom:7px;
-    }
-    .tint-manual-row select,
-    .tint-manual-row input{
-      padding:8px 9px;
-      border-radius:10px;
-      font-size:.86rem;
-    }
-    .tint-manual-remove{
-      width:34px;
-      height:34px;
-      border:none;
-      border-radius:10px;
-      background:rgba(200,60,60,.22);
-      color:#ff9a9a;
-      font-weight:900;
-      cursor:pointer;
-    }
-    .tint-manual-total{
-      margin-top:8px;
-      padding-top:8px;
-      border-top:1px dashed rgba(255,255,255,.16);
-      font-size:.86rem;
-      color:var(--text-muted);
-      line-height:1.35;
-    }
-
-
-    .manual-discount-wrap{
-      display:none;
-      margin-top:8px;
-      margin-left:auto;
-      width:min(100%,260px);
-    }
-    .manual-discount-wrap.show{display:block;}
-    .manual-discount-wrap input{
-      width:100%;
-      border-radius:14px;
-      padding:12px;
-      border:1px solid var(--border);
-      background:var(--surface);
-      color:var(--text);
-      font-size:1rem;
-    }
-    .item-extra-discount{
-      margin-top:7px;
-      display:flex;
-      align-items:center;
-      gap:8px;
-      color:var(--text-muted);
-      font-size:.75rem;
-      line-height:1.2;
-    }
-    .item-extra-discount input{
-      width:78px;
-      border-radius:10px;
-      padding:7px 8px;
-      border:1px solid var(--border);
-      background:rgba(0,0,0,.12);
-      color:var(--text);
-      font-size:.86rem;
-      text-align:center;
-    }
-    .item-extra-tag{
-      display:inline-block;
-      margin-top:5px;
-      border:1px solid rgba(74,179,255,.24);
-      background:rgba(74,179,255,.10);
-      color:#9bd9ff;
-      border-radius:999px;
-      padding:3px 7px;
-      font-size:.70rem;
-      font-weight:700;
-    }
-
-
-    .tint-edit-modal.top-align{
-      align-items:flex-start;
-      padding-top:72px;
-    }
-    .tint-edit-modal.top-align .tint-edit-card{
-      border-radius:0 0 22px 22px;
-      max-height:72vh;
-    }
-
-
-    .lab-hero{
-      background:rgba(74,179,255,.08);
-      border:1px solid rgba(74,179,255,.22);
-      border-radius:18px;
-      padding:14px;
-      margin-bottom:12px;
-    }
-    .lab-formula-card{
-      background:rgba(0,0,0,.18);
-      border:1px solid var(--border);
-      border-radius:18px;
-      padding:14px;
-      margin-top:12px;
-    }
-    .lab-formula-title{
-      font-family:var(--font-head);
-      font-size:1.3rem;
-      font-weight:800;
-      color:#fff;
-      margin-bottom:4px;
-    }
-    .lab-meta{
-      color:var(--text-muted);
-      font-size:.86rem;
-      line-height:1.45;
-      margin-bottom:10px;
-    }
-    .lab-line{
-      display:grid;
-      grid-template-columns:72px 1fr;
-      gap:12px;
-      align-items:center;
-      background:rgba(255,255,255,.06);
-      border:1px solid rgba(255,255,255,.09);
-      border-radius:14px;
-      padding:12px;
-      margin-bottom:8px;
-    }
-    .lab-colorant{
-      font-family:var(--font-head);
-      font-size:1.8rem;
-      font-weight:900;
-      color:var(--accent);
-      text-align:center;
-    }
-    .lab-pulses{
-      font-size:1.1rem;
-      font-weight:800;
-      color:#fff;
-    }
-    .lab-oz{
-      font-size:.92rem;
-      color:var(--text-muted);
-      margin-top:3px;
-    }
-    .tile-lab{ background:linear-gradient(135deg,#0f6f88,#0b5367); }
-
-
-    .lab-suggest-box{
-      margin-top:8px;
-      max-height:260px;
-      overflow:auto;
-      border:1px solid var(--border);
-      border-radius:14px;
-      background:rgba(4,18,48,.96);
-      box-shadow:0 14px 26px rgba(0,0,0,.28);
-      display:none;
-    }
-    .lab-suggest-box.show{display:block;}
-    .lab-suggest-item{
-      padding:11px 12px;
-      border-bottom:1px solid rgba(255,255,255,.08);
-      cursor:pointer;
-    }
-    .lab-suggest-item:last-child{border-bottom:none;}
-    .lab-suggest-item:active{background:rgba(74,179,255,.16);}
-    .lab-suggest-title{
-      font-weight:800;
-      color:#fff;
-      font-size:.9rem;
-      line-height:1.25;
-    }
-    .lab-suggest-sub{
-      color:var(--text-muted);
-      font-size:.76rem;
-      margin-top:3px;
-    }
-    .lab-table{
-      margin-top:12px;
-      border:1px solid rgba(255,255,255,.10);
-      border-radius:16px;
-      overflow:hidden;
-      background:rgba(255,255,255,.04);
-    }
-    .lab-table-row{
-      display:grid;
-      grid-template-columns:62px 1fr 1fr 1fr;
-      align-items:center;
-      min-height:54px;
-      border-bottom:1px solid rgba(255,255,255,.08);
-    }
-    .lab-table-row:last-child{border-bottom:none;}
-    .lab-table-head{
-      min-height:38px;
-      color:var(--text-muted);
-      font-size:.72rem;
-      text-transform:uppercase;
-      letter-spacing:.06em;
-      background:rgba(0,0,0,.16);
-    }
-    .lab-table-cell{
-      padding:8px 7px;
-      text-align:center;
-    }
-    .lab-table-color{
-      font-family:var(--font-head);
-      color:var(--accent);
-      font-size:1.35rem;
-      font-weight:900;
-    }
-    .lab-table-val{
-      color:#fff;
-      font-size:1.08rem;
-      font-weight:800;
-    }
-    .lab-table-total{
-      color:var(--text-muted);
-      font-size:.95rem;
-      font-weight:700;
-    }
-
-
-    .lab-color-suggest-box{
-      margin-top:8px;
-      max-height:260px;
-      overflow:auto;
-      border:1px solid var(--border);
-      border-radius:14px;
-      background:rgba(4,18,48,.96);
-      box-shadow:0 14px 26px rgba(0,0,0,.28);
-      display:none;
-    }
-    .lab-color-suggest-box.show{display:block;}
-    .lab-color-suggest-item{
-      padding:11px 12px;
-      border-bottom:1px solid rgba(255,255,255,.08);
-      cursor:pointer;
-    }
-    .lab-color-suggest-item:last-child{border-bottom:none;}
-    .lab-color-suggest-item:active{background:rgba(74,179,255,.16);}
-    .lab-fav-row{
-      display:flex;
-      gap:8px;
-      overflow:auto;
-      padding:4px 0 10px;
-      margin-top:-2px;
-    }
-    .lab-fav-btn{
-      flex:0 0 auto;
-      border:1px solid rgba(74,179,255,.28);
-      background:rgba(74,179,255,.12);
-      color:#d9f2ff;
-      border-radius:999px;
-      padding:8px 10px;
-      font-weight:800;
-      font-size:.78rem;
-      cursor:pointer;
-      white-space:nowrap;
-    }
-
-
-    .lab-fav-row.compact{gap:6px;padding:0 0 8px;margin-top:-4px;}
-    .lab-fav-row.compact .lab-fav-btn{padding:6px 9px;font-size:.72rem;opacity:.86;background:rgba(74,179,255,.08);}
-
-    html.keyboard-lift,
-    body.keyboard-lift{
-      scroll-behavior:smooth;
-    }
-    body.keyboard-lift::after{
-      content:"";
-      display:block;
-      height:46vh;
-      pointer-events:none;
-    }
-
-
-    .lab-save-row{
-      display:grid;
-      grid-template-columns:1fr;
-      gap:8px;
-      margin-top:10px;
-    }
-    .lab-record-card{
-      background:rgba(255,255,255,.06);
-      border:1px solid rgba(255,255,255,.10);
-      border-radius:14px;
-      padding:11px 12px;
-      margin-bottom:8px;
-      cursor:pointer;
-    }
-    .lab-record-card:active{background:rgba(255,255,255,.10);}
-    .lab-record-title{
-      font-weight:800;
-      color:#fff;
-      font-size:.92rem;
-      line-height:1.25;
-    }
-    .lab-record-meta{
-      color:var(--text-muted);
-      font-size:.76rem;
-      margin-top:4px;
-      line-height:1.35;
-    }
-    .lab-record-actions{
-      display:flex;
-      gap:8px;
-      margin-top:8px;
-    }
-
-
-    .lab-manual-box{margin-top:12px;background:rgba(0,0,0,.12);border:1px solid var(--border);border-radius:14px;padding:10px;}
-    .lab-manual-head,.lab-manual-row{display:grid;grid-template-columns:1fr 92px 34px;gap:8px;align-items:center;}
-    .lab-manual-head{color:var(--text-muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;}
-    .lab-manual-row{margin-bottom:7px;}
-    .lab-manual-row select,.lab-manual-row input{padding:8px 9px;border-radius:10px;font-size:.86rem;border:1px solid var(--border);background:rgba(0,0,0,.12);color:var(--text);}
-    .lab-manual-remove{width:34px;height:34px;border:none;border-radius:10px;background:rgba(200,60,60,.22);color:#ff9a9a;font-weight:900;cursor:pointer;}
-    .lab-record-search{width:100%;border-radius:14px;padding:12px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:1rem;margin-bottom:10px;}
-
-    /* ── THEMES / ESTILO VISUAL ── */
-    :root{
-      --tile-search2:#135682;
-      --tile-budget2:#136845;
-      --tile-import2:#5e2e8a;
-      --tile-discount2:#9a6010;
-      --tile-config2:#12526a;
-      --tile-history2:#6b2b2b;
-      --tile-support2:#0b5f4c;
-      --tile-lab:#0f6f88;
-      --tile-lab2:#0b5367;
-      --paint-blob-opacity:0;
-      --theme-card-preview-bg:rgba(255,255,255,.08);
-    }
-
-    html[data-theme="pro"]{
-      --bg:#0d2f6b; --bg2:#0a2455; --accent:#4ab3ff;
-      --tile-search:#1d6fa8; --tile-search2:#135682;
-      --tile-budget:#1a8c5a; --tile-budget2:#136845;
-      --tile-lab:#0f6f88; --tile-lab2:#0b5367;
-      --tile-config:#1a6b8a; --tile-config2:#12526a;
-      --tile-discount:#c07a10; --tile-discount2:#9a6010;
-      --tile-history:#8b3a3a; --tile-history2:#6b2b2b;
-      --tile-support:#0f7a63; --tile-support2:#0b5f4c;
-    }
-
-    html[data-theme="vibrante"]{
-      --bg:#123b8f; --bg2:#092762; --accent:#6bd6ff;
-      --tile-search:#1e88e5; --tile-search2:#0d47a1;
-      --tile-budget:#21b96b; --tile-budget2:#087b45;
-      --tile-lab:#7b61ff; --tile-lab2:#4b32c3;
-      --tile-config:#00a2b8; --tile-config2:#006d7e;
-      --tile-discount:#ff9f1c; --tile-discount2:#c76a00;
-      --tile-history:#e45757; --tile-history2:#9f2d2d;
-      --tile-support:#00a878; --tile-support2:#006e52;
-    }
-
-    html[data-theme="premium"]{
-      --bg:#101828; --bg2:#080f1d; --surface:rgba(255,255,255,.065); --surface2:rgba(255,255,255,.11);
-      --border:rgba(229,197,122,.18); --text:#f3f0e8; --text-muted:rgba(245,235,210,.60); --accent:#d6b66d;
-      --tile-search:#1f4e79; --tile-search2:#173553;
-      --tile-budget:#1f7a52; --tile-budget2:#15563b;
-      --tile-lab:#50408f; --tile-lab2:#332663;
-      --tile-config:#53606b; --tile-config2:#37414b;
-      --tile-discount:#a66a20; --tile-discount2:#754614;
-      --tile-history:#70443e; --tile-history2:#4f2c29;
-      --tile-support:#216b63; --tile-support2:#164941;
-    }
-
-    html[data-theme="noche"]{
-      --bg:#050914; --bg2:#02050b; --surface:rgba(255,255,255,.055); --surface2:rgba(255,255,255,.10);
-      --border:rgba(125,170,255,.16); --text:#e9f1ff; --text-muted:rgba(190,210,245,.58); --accent:#76b7ff;
-      --tile-search:#153c6a; --tile-search2:#0b243f;
-      --tile-budget:#14583b; --tile-budget2:#0b3726;
-      --tile-lab:#3b2e78; --tile-lab2:#241950;
-      --tile-config:#25384c; --tile-config2:#172333;
-      --tile-discount:#6e4b13; --tile-discount2:#3d2a0d;
-      --tile-history:#5c262b; --tile-history2:#351519;
-      --tile-support:#0f4f46; --tile-support2:#092f2b;
-    }
-
-    html[data-theme="clasico-claro"]{
-      --bg:#e9f1fb; --bg2:#d9e7f7; --surface:rgba(20,55,95,.08); --surface2:rgba(20,55,95,.13);
-      --border:rgba(20,55,95,.16); --text:#10243f; --text-muted:rgba(16,36,63,.62); --accent:#006cc9;
-      --tile-search:#3d8bd2; --tile-search2:#2f6fac;
-      --tile-budget:#2fa363; --tile-budget2:#23804f;
-      --tile-lab:#6d65d9; --tile-lab2:#5048aa;
-      --tile-config:#78909c; --tile-config2:#607d8b;
-      --tile-discount:#d48a24; --tile-discount2:#a96616;
-      --tile-history:#c15c5c; --tile-history2:#994242;
-      --tile-support:#26967e; --tile-support2:#1b7563;
-    }
-
-    html[data-theme="clasico-oscuro"]{
-      --bg:#102b4e; --bg2:#071a31; --accent:#3fa9f5;
-      --tile-search:#225d90; --tile-search2:#154163;
-      --tile-budget:#27764f; --tile-budget2:#185538;
-      --tile-lab:#4757a8; --tile-lab2:#2e3978;
-      --tile-config:#37657a; --tile-config2:#294d5f;
-      --tile-discount:#9a6a25; --tile-discount2:#6f4b18;
-      --tile-history:#7a3838; --tile-history2:#562828;
-      --tile-support:#1b6d5d; --tile-support2:#124d42;
-    }
-
-    html[data-theme="industrial"]{
-      --bg:#17212b; --bg2:#0f1720; --surface:rgba(220,235,245,.07); --surface2:rgba(220,235,245,.12);
-      --border:rgba(180,205,220,.18); --text:#e6eef3; --text-muted:rgba(210,225,235,.58); --accent:#7dd3fc;
-      --tile-search:#2c6f8f; --tile-search2:#204e66;
-      --tile-budget:#37785f; --tile-budget2:#285842;
-      --tile-lab:#4d5b73; --tile-lab2:#333f52;
-      --tile-config:#64748b; --tile-config2:#475569;
-      --tile-discount:#9a6b2f; --tile-discount2:#704e23;
-      --tile-history:#7c4a4a; --tile-history2:#553333;
-      --tile-support:#2f766d; --tile-support2:#24534e;
-    }
-
-    html[data-theme="pintura"]{
-      --bg:#102c78; --bg2:#061b4c; --accent:#ffcf33;
-      --tile-search:#1687e0; --tile-search2:#0b52b2;
-      --tile-budget:#16b75f; --tile-budget2:#087a35;
-      --tile-lab:#9a4dff; --tile-lab2:#5726b8;
-      --tile-config:#00a6b7; --tile-config2:#006d78;
-      --tile-discount:#ffb000; --tile-discount2:#f06a00;
-      --tile-history:#ff4d6d; --tile-history2:#a91f3a;
-      --tile-support:#00a883; --tile-support2:#006b57;
-      --paint-blob-opacity:.22;
-    }
-
-    /* Re-aplica fondos usando segundo color variable */
-    .tile-search  { background: linear-gradient(135deg, var(--tile-search), var(--tile-search2)); }
-    .tile-budget  { background: linear-gradient(135deg, var(--tile-budget), var(--tile-budget2)); }
-    .tile-import  { background: linear-gradient(135deg, var(--tile-import), var(--tile-import2)); }
-    .tile-discount{ background: linear-gradient(135deg, var(--tile-discount), var(--tile-discount2)); }
-    .tile-config  { background: linear-gradient(135deg, var(--tile-config), var(--tile-config2)); }
-    .tile-history { background: linear-gradient(135deg, var(--tile-history), var(--tile-history2)); }
-    .tile-support { background: linear-gradient(135deg, var(--tile-support), var(--tile-support2)); }
-    .tile-lab     { background: linear-gradient(135deg, var(--tile-lab), var(--tile-lab2)); }
-
-    html[data-theme="pintura"] body{
-      background-image:
-        radial-gradient(circle at 13% 18%, rgba(255,207,51,.22) 0 42px, transparent 43px),
-        radial-gradient(circle at 82% 12%, rgba(255,77,109,.20) 0 50px, transparent 51px),
-        radial-gradient(circle at 72% 82%, rgba(0,168,131,.20) 0 60px, transparent 61px),
-        radial-gradient(ellipse at 20% 0%, rgba(74,179,255,0.16) 0%, transparent 60%);
-    }
-    html[data-theme="pintura"] .tile::before{
-      content:'';
-      position:absolute;
-      inset:auto auto -34px -28px;
-      width:132px;
-      height:96px;
-      border-radius:58% 42% 50% 50%;
-      background:
-        radial-gradient(circle at 30% 35%, rgba(255,255,255,var(--paint-blob-opacity)) 0 16px, transparent 17px),
-        radial-gradient(circle at 62% 42%, rgba(255,255,255,.14) 0 12px, transparent 13px),
-        radial-gradient(circle at 48% 70%, rgba(255,255,255,.10) 0 18px, transparent 19px);
-      transform:rotate(-12deg);
-      pointer-events:none;
-    }
-
-    .style-grid{display:grid;gap:10px;}
-    .theme-card{
-      border:1px solid var(--border);
-      background:var(--surface);
-      border-radius:16px;
-      padding:12px;
-      cursor:pointer;
-      position:relative;
-      overflow:hidden;
-    }
-    .theme-card.active{
-      outline:2px solid var(--accent);
-      background:var(--surface2);
-    }
-    .theme-card-title{
-      font-family:var(--font-head);
-      font-size:1.05rem;
-      font-weight:800;
-      color:var(--text);
-    }
-    .theme-card-desc{
-      color:var(--text-muted);
-      font-size:.78rem;
-      margin-top:2px;
-      line-height:1.25;
-    }
-    .theme-preview{
-      display:flex;
-      gap:6px;
-      margin-top:10px;
-    }
-    .theme-dot{
-      width:32px;
-      height:22px;
-      border-radius:999px;
-      border:1px solid rgba(255,255,255,.18);
-    }
-
-
-    /* ── THEME PATCH v0.9.4: tiles con identidad y glow ── */
-    :root{
-      --tile-client:#11a8a2; --tile-client2:#0d8d89;
-      --tile-style:#7b61ff; --tile-style2:#4b32c3;
-      --tile-import2:#5e2e8a;
-    }
-
-    html[data-theme="pro"]{
-      --tile-client:#139aa2; --tile-client2:#0b7078;
-      --tile-style:#5d6de8; --tile-style2:#3948ad;
-      --tile-import:#7c3fb5; --tile-import2:#5e2e8a;
-      --tile-support:#0f7a63; --tile-support2:#0b5f4c;
-    }
-    html[data-theme="vibrante"]{
-      --tile-client:#00c2b8; --tile-client2:#008e88;
-      --tile-style:#ff4fa3; --tile-style2:#b91e72;
-      --tile-import:#9a4dff; --tile-import2:#5b24c9;
-      --tile-support:#00a878; --tile-support2:#006e52;
-    }
-    html[data-theme="premium"]{
-      /* En los elegantes dejo varios tiles más parejos a propósito */
-      --tile-client:#216b63; --tile-client2:#164941;
-      --tile-style:#53606b; --tile-style2:#37414b;
-      --tile-import:#53606b; --tile-import2:#37414b;
-      --tile-support:#216b63; --tile-support2:#164941;
-    }
-    html[data-theme="noche"]{
-      --tile-client:#0f4f46; --tile-client2:#092f2b;
-      --tile-style:#2e3a66; --tile-style2:#1a2240;
-      --tile-import:#3b2e78; --tile-import2:#241950;
-      --tile-support:#0f4f46; --tile-support2:#092f2b;
-    }
-    html[data-theme="clasico-claro"]{
-      --tile-client:#1aa7a1; --tile-client2:#147f79;
-      --tile-style:#7667d8; --tile-style2:#5848b8;
-      --tile-import:#8a63d2; --tile-import2:#6746aa;
-      --tile-support:#26967e; --tile-support2:#1b7563;
-    }
-    html[data-theme="clasico-oscuro"]{
-      /* Otro estilo más uniforme/tradicional */
-      --tile-client:#1b6d5d; --tile-client2:#124d42;
-      --tile-style:#37657a; --tile-style2:#294d5f;
-      --tile-import:#4757a8; --tile-import2:#2e3978;
-      --tile-support:#1b6d5d; --tile-support2:#124d42;
-    }
-    html[data-theme="industrial"]{
-      --tile-client:#2f766d; --tile-client2:#24534e;
-      --tile-style:#64748b; --tile-style2:#475569;
-      --tile-import:#4d5b73; --tile-import2:#333f52;
-      --tile-support:#2f766d; --tile-support2:#24534e;
-    }
-    html[data-theme="pintura"]{
-      --tile-client:#00c2b8; --tile-client2:#007e86;
-      --tile-style:#ff4fa3; --tile-style2:#b91e72;
-      --tile-import:#9a4dff; --tile-import2:#5726b8;
-      --tile-support:#00a883; --tile-support2:#006b57;
-    }
-
-    .tile-client { background: linear-gradient(135deg, var(--tile-client), var(--tile-client2)); }
-    .tile-style  { background: linear-gradient(135deg, var(--tile-style), var(--tile-style2)); }
-
-    .tile-icon{
-      width:42px;
-      height:42px;
-      display:grid;
-      place-items:center;
-      border-radius:16px;
-      background:rgba(255,255,255,.14);
-      box-shadow:
-        inset 0 1px 0 rgba(255,255,255,.18),
-        0 0 18px rgba(255,255,255,.12);
-      text-shadow:0 2px 8px rgba(0,0,0,.25);
-    }
-
-    html[data-theme="vibrante"] .tile-icon,
-    html[data-theme="pintura"] .tile-icon{
-      background:rgba(255,255,255,.18);
-      box-shadow:
-        inset 0 1px 0 rgba(255,255,255,.22),
-        0 0 22px rgba(255,255,255,.18),
-        0 0 18px color-mix(in srgb, var(--accent) 40%, transparent);
-    }
-
-    html[data-theme="premium"] .tile-icon,
-    html[data-theme="industrial"] .tile-icon,
-    html[data-theme="clasico-oscuro"] .tile-icon{
-      background:rgba(255,255,255,.10);
-      box-shadow:inset 0 1px 0 rgba(255,255,255,.14), 0 0 10px rgba(255,255,255,.08);
-    }
-
-
-    /* ── THEME PATCH v0.9.5: Home más diferenciado ── */
-    html[data-theme="pro"]{
-      --tile-client:#11a8a2; --tile-client2:#087b83;
-      --tile-config:#4257c8; --tile-config2:#263796;
-      --tile-support:#0f7a63; --tile-support2:#0b5f4c;
-    }
-    html[data-theme="vibrante"]{
-      --tile-client:#00c2b8; --tile-client2:#008e88;
-      --tile-config:#ff5d73; --tile-config2:#b92843;
-      --tile-support:#00a878; --tile-support2:#006e52;
-    }
-    html[data-theme="premium"]{
-      /* Premium sí mantiene familia más elegante, pero con diferencia sutil */
-      --tile-client:#216b63; --tile-client2:#164941;
-      --tile-config:#5b4b78; --tile-config2:#3d3153;
-      --tile-support:#2f6553; --tile-support2:#214839;
-    }
-    html[data-theme="noche"]{
-      --tile-client:#0f5b5b; --tile-client2:#0a393d;
-      --tile-config:#473a8b; --tile-config2:#2a215a;
-      --tile-support:#0f4f46; --tile-support2:#092f2b;
-    }
-    html[data-theme="clasico-claro"]{
-      --tile-client:#19a6a0; --tile-client2:#137a76;
-      --tile-config:#6b62d6; --tile-config2:#4a43a7;
-      --tile-support:#26967e; --tile-support2:#1b7563;
-    }
-    html[data-theme="clasico-oscuro"]{
-      --tile-client:#1b6d5d; --tile-client2:#124d42;
-      --tile-config:#334d8f; --tile-config2:#243565;
-      --tile-support:#2b6650; --tile-support2:#1f4939;
-    }
-    html[data-theme="industrial"]{
-      --tile-client:#2f766d; --tile-client2:#24534e;
-      --tile-config:#56657d; --tile-config2:#3d495c;
-      --tile-support:#3f705f; --tile-support2:#2d5147;
-    }
-    html[data-theme="pintura"]{
-      --tile-client:#00c2b8; --tile-client2:#007e86;
-      --tile-config:#ff7a00; --tile-config2:#c84600;
-      --tile-support:#00a883; --tile-support2:#006b57;
-    }
-
-
-    /* ── THEME PATCH v0.9.6: Clientes separado de Parámetros en HOME ── */
-    html[data-theme="pro"]{
-      --tile-client:#009f9a; --tile-client2:#006d72;
-      --tile-config:#5b4fd6; --tile-config2:#352a9c;
-    }
-    html[data-theme="vibrante"]{
-      --tile-client:#00c2b8; --tile-client2:#007e86;
-      --tile-config:#ff6b00; --tile-config2:#c43e00;
-    }
-    html[data-theme="premium"]{
-      --tile-client:#236b60; --tile-client2:#17473f;
-      --tile-config:#67507d; --tile-config2:#453456;
-    }
-    html[data-theme="noche"]{
-      --tile-client:#0c5b56; --tile-client2:#073635;
-      --tile-config:#4b3a8f; --tile-config2:#2b2058;
-    }
-    html[data-theme="clasico-claro"]{
-      --tile-client:#12a59a; --tile-client2:#0b7772;
-      --tile-config:#6c63d9; --tile-config2:#4b43a6;
-    }
-    html[data-theme="clasico-oscuro"]{
-      --tile-client:#177061; --tile-client2:#0d4a40;
-      --tile-config:#394c9d; --tile-config2:#25336b;
-    }
-    html[data-theme="industrial"]{
-      --tile-client:#2d786e; --tile-client2:#20544d;
-      --tile-config:#667085; --tile-config2:#465162;
-    }
-    html[data-theme="pintura"]{
-      --tile-client:#ff7a00; --tile-client2:#c84600;
-      --tile-config:#ff4fa3; --tile-config2:#b91e72;
-    }
-
-
-    html:not([data-theme]) body{
-      visibility:hidden;
-    }
-
-  </style></head><body>
-  <div class="print-a4">
-    <div class="a4-header">
-      <h1>${payload.cfg.nombre || 'Colorshop Cañada'}</h1>
-      ${payload.cfg.direccion ? `<p>${payload.cfg.direccion}</p>` : ''}
-      ${(payload.cfg.telefono || payload.cfg.whatsapp) ? `<p>${payload.cfg.telefono ? 'Tel: '+payload.cfg.telefono : ''}${payload.cfg.telefono && payload.cfg.whatsapp ? ' · ' : ''}${payload.cfg.whatsapp ? 'WhatsApp: '+payload.cfg.whatsapp : ''}</p>` : ''}
-    </div>
-    <div class="a4-line"></div>
-    <div class="a4-info">
-      <div><strong>Fecha:</strong> ${payload.fecha}</div>
-      <div><strong>Presupuesto:</strong> ${payload.codigo}</div>
-      ${payload.clientData?.nombre ? `<div><strong>Cliente:</strong> ${payload.clientData.nombre}</div>` : (payload.client ? `<div><strong>Cliente:</strong> ${payload.client}</div>` : '')}
-      ${payload.clientData?.cuit ? `<div><strong>CUIT/DNI:</strong> ${payload.clientData.cuit}</div>` : ''}
-      ${payload.clientData?.direccion ? `<div><strong>Dirección:</strong> ${payload.clientData.direccion}</div>` : ''}
-      ${payload.clientData?.telefono ? `<div><strong>Tel:</strong> ${payload.clientData.telefono}</div>` : ''}
-    </div>
-    <table class="a4-table">
-      <thead><tr><th style="width:10%">Cant.</th><th style="width:50%">Artículo</th><th class="a4-right" style="width:20%">Precio</th><th class="a4-right" style="width:20%">Total</th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table>
-    <table class="a4-totals">
-      <tr><td>Precio lista</td><td class="a4-right">${$m(baseTotal)}</td></tr>
-      <tr><td>Descuento aplicado</td><td class="a4-right">${payload.mode.label}${payload.mode.percent>0 ? ' ('+payload.mode.percent+'%)' : ''}</td></tr>
-      <tr><td>Descuento</td><td class="a4-right">-${$m(discountAmount)}</td></tr>
-      <tr><td class="a4-total-final">TOTAL</td><td class="a4-total-final a4-right">${$m(finalTotal)}</td></tr>
-    </table>
-    <div class="a4-footer"><p>${payload.cfg.pie || '¡Gracias por su visita!'}</p><p>Pancko · Sistema de precios</p></div>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Presupuesto ${esc(payload.codigo || '')}</title>
+<style>
+  @page{size:A4;margin:12mm}
+  *{box-sizing:border-box}
+  body{font-family:Arial,Helvetica,sans-serif;color:#111;background:#fff;margin:0;padding:0}
+  .page{width:100%;max-width:190mm;margin:0 auto;background:#fff}
+  .header{text-align:center;margin-bottom:12mm}
+  .header h1{font-size:24px;margin:0 0 5px;font-weight:800}
+  .header p{margin:2px 0;font-size:12px;color:#555}
+  .line{border-top:2px solid #111;margin:10px 0 12px}
+  .info{display:grid;grid-template-columns:110px 1fr;gap:4px 8px;font-size:13px;margin-bottom:12px}
+  .info b{font-weight:700}
+  table{width:100%;border-collapse:collapse;table-layout:fixed}
+  th{font-size:12px;text-align:left;border-bottom:2px solid #111;padding:7px 5px}
+  td{font-size:12px;border-bottom:1px solid #ddd;padding:7px 5px;vertical-align:top}
+  .qty{width:13%;font-weight:700}
+  .article{width:51%;word-break:break-word}
+  .money{width:18%;text-align:right;white-space:nowrap}
+  .code{font-size:11px;color:#555;margin-bottom:2px;font-weight:700}
+  .totals{margin-top:14px;margin-left:auto;width:78mm;border-collapse:collapse}
+  .totals td{border:none;padding:4px 0;font-size:13px}
+  .totals .label{color:#555}
+  .totals .value{text-align:right;white-space:nowrap}
+  .grand td{border-top:2px solid #111;padding-top:9px;font-size:20px;font-weight:800;color:#111}
+  .footer{text-align:center;margin-top:18mm;font-size:12px;color:#666}
+  @media print{
+    html,body{background:#fff!important}
+    .page{max-width:none;margin:0}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <h1>${esc(cfg.nombre || 'Colorshop Cañada')}</h1>
+    ${cfg.direccion ? `<p>${esc(cfg.direccion)}</p>` : ''}
+    ${cfg.telefono ? `<p>Tel: ${esc(cfg.telefono)}</p>` : ''}
+    ${cfg.whatsapp ? `<p>WhatsApp: ${esc(cfg.whatsapp)}</p>` : ''}
   </div>
-<!-- MODAL EDITAR TINTO EN PRESUPUESTO -->
-<div class="tint-edit-modal" id="tintEditModal">
-  <div class="tint-edit-card">
-    <div class="tint-edit-title">Editar producto del presupuesto</div>
-    <div id="tintEditProductInfo" class="muted" style="line-height:1.35;margin-bottom:12px;"></div>
-    <div class="field">
-      <label>Descuento adicional del producto (%)</label>
-      <input id="tintEditExtraDiscount" type="number" min="0" max="100" step="0.01" placeholder="0" oninput="previewTintEdit(false)" />
-    </div>
-    <div style="font-weight:800;margin:12px 0 6px;color:#fff;">Color tintométrico</div>
-    <div class="field">
-      <label>Editar color / fórmula</label>
-      <input id="tintEditColorInput" list="tintEditColorList" type="text" placeholder="Ej: 8250 / October Sky" data-cleared="0" onfocus="clearTintInputOnce(this);renderTintEditOptions()" oninput="renderTintEditOptions();previewTintEdit()"/>
-      <datalist id="tintEditColorList"></datalist>
-    </div>
-    <div id="tintEditPreview" class="tint-edit-preview">
-      <span class="muted">Ingresá otro color para recalcular.</span>
-    </div>
 
-    <div class="tint-manual-box">
-      <div style="font-weight:700;margin-bottom:6px;">Ajuste manual de tintas</div>
-      <div class="muted" style="font-size:.78rem;line-height:1.35;margin-bottom:8px;">
-        Podés modificar pulsos, quitar tintas o agregar otra tinta si ajustaste el color.
-      </div>
-      <div class="tint-manual-head">
-        <div>Tinta</div><div>Pulsos usados</div><div></div>
-      </div>
-      <div id="tintManualRows"></div>
-      <button class="btn btn-back" style="width:100%;margin-top:8px" onclick="addTintManualRow()">＋ Agregar tinta</button>
-      <button class="btn btn-back" style="width:100%;margin-top:8px" onclick="restoreTintOriginalFormula()">Restaurar fórmula calculada</button>
-      <div id="tintManualTotal" class="tint-manual-total"></div>
-    </div>
+  <div class="line"></div>
 
-    <div style="display:flex;gap:10px;margin-top:14px;">
-      <button class="btn btn-primary" style="flex:1" onclick="saveTintEdit()">Guardar cambio</button>
-      <button class="btn btn-back" style="flex:1" onclick="closeTintEditModal()">Cancelar</button>
-    </div>
+  <div class="info">
+    <b>Fecha:</b><span>${esc(payload.fecha || '')}</span>
+    ${payload.codigo ? `<b>Código:</b><span>${esc(payload.codigo)}</span>` : ''}
+    ${clientName ? `<b>Cliente:</b><span>${esc(clientName)}</span>` : ''}
+    ${clientData && clientData.cuit ? `<b>CUIT/DNI:</b><span>${esc(clientData.cuit)}</span>` : ''}
+    ${clientData && clientData.direccion ? `<b>Dirección:</b><span>${esc(clientData.direccion)}</span>` : ''}
+    <b>Descuento:</b><span>${esc(payload.mode.label)} (${payload.mode.percent}%)</span>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th class="qty">Cant.</th>
+        <th class="article">Artículo</th>
+        <th class="money">Unit.</th>
+        <th class="money">Total</th>
+      </tr>
+    </thead>
+    <tbody>${rows}</tbody>
+  </table>
+
+  <table class="totals">
+    <tr><td class="label">Precio lista</td><td class="value">${$m(baseTotal)}</td></tr>
+    <tr><td class="label">Descuento</td><td class="value">-${$m(discountAmount)}</td></tr>
+    <tr class="grand"><td>TOTAL</td><td class="value">${$m(finalTotal)}</td></tr>
+  </table>
+
+  <div class="footer">
+    <div>${esc(cfg.pie || '¡Gracias por su visita!')}</div>
+    <div>Pancko · Sistema de precios</div>
   </div>
 </div>
-
-
-<!-- MODAL EDITAR ITEM COMÚN -->
-<div class="tint-edit-modal top-align" id="itemEditModal">
-  <div class="tint-edit-card">
-    <div class="tint-edit-title">Editar producto del presupuesto</div>
-    <div id="itemEditProductInfo" class="muted" style="line-height:1.35;margin-bottom:12px;"></div>
-    <div class="field">
-      <label>Descuento adicional del producto (%)</label>
-      <input id="itemEditExtraDiscount" type="number" min="0" max="100" step="0.01" placeholder="0" />
-    </div>
-    <div style="display:flex;gap:10px;margin-top:14px;">
-      <button class="btn btn-primary" style="flex:1" onclick="saveItemEdit()">Guardar cambio</button>
-      <button class="btn btn-back" style="flex:1" onclick="closeItemEditModal()">Cancelar</button>
-    </div>
-  </div>
-</div>
-
-</body></html>`;
+</body>
+</html>`;
 }
 
 function printBudgetA4(payload){
-  const win = window.open('', '_blank');
-  if(!win){ alert('No se pudo abrir la vista de impresión'); return; }
-  win.document.open();
-  win.document.write(buildA4HTML(payload));
-  win.document.close();
-  setTimeout(() => { win.focus(); win.print(); }, 250);
+  const printPayload = {
+    ...payload,
+    items: cart.map(i => ({
+      ...i,
+      tintData: i.tintData ? JSON.parse(JSON.stringify(i.tintData)) : null
+    }))
+  };
+
+  const html = buildA4HTML(printPayload);
+  const frame = document.createElement('iframe');
+  frame.style.position = 'fixed';
+  frame.style.right = '0';
+  frame.style.bottom = '0';
+  frame.style.width = '0';
+  frame.style.height = '0';
+  frame.style.border = '0';
+  frame.setAttribute('aria-hidden', 'true');
+  document.body.appendChild(frame);
+
+  const doc = frame.contentWindow.document;
+  doc.open();
+  doc.write(html);
+  doc.close();
+
+  setTimeout(() => {
+    try{
+      frame.contentWindow.focus();
+      frame.contentWindow.print();
+    }catch(e){
+      alert('No se pudo abrir la impresión A4');
+    }
+    setTimeout(() => frame.remove(), 4000);
+  }, 650);
 }
 
 async function shareBudgetWhatsApp(payload){
