@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Pancko"/>
   <meta name="theme-color" content="#0a2a5e"/>
-  <title>Pancko Precios + Tinto v0.1</title>
+  <title>Pancko Integral v0.2</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -587,7 +587,7 @@
   <!-- HEADER -->
   <div class="header">
     <div class="header-left">
-      <div class="brand" id="brandName">Colorshop Cañada</div>
+      <div class="brand" id="brandName">Pancko Integral</div>
       <div class="subtitle">Consulta de precios · <span id="brandSystem">Pancko</span></div>
     </div>
     <div class="header-badge" aria-label="Soporte Pancko" onclick="showScreen('supportScreen')" style="cursor:pointer;">
@@ -782,6 +782,7 @@
       <div class="divider"></div>
       <div class="sec-title" style="font-size:.98rem;margin-bottom:8px;">Precios por pulso</div>
       <div id="tintPriceInputs" class="stack"></div>
+      <button class="btn btn-back" style="width:100%;margin-top:10px" onclick="syncTintPricesFromProducts(true)">Tomar precios desde artículos</button>
       <button class="btn btn-green" style="width:100%;margin-top:10px" onclick="saveTintPrices()">Guardar precios de tintas</button>
     </div>
 
@@ -924,7 +925,7 @@
       <div class="divider"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Precios_Tinto_v0.1</div>
+          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.2</div>
           <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">Lanzamiento: Abril 2026</div>
         </div>
         <div style="font-size:2rem;opacity:.25;">🚀</div>
@@ -1392,6 +1393,36 @@ function renderTintPriceInputs(){
       <input type="number" step="0.01" id="tprice_${c}" value="${colorantPrices[c] ?? 0}" placeholder="$ pulso"/>
     </div>`).join('');
 }
+
+function syncTintPricesFromProducts(showAlert=false){
+  if(!Array.isArray(products) || !products.length) return 0;
+  const wanted = new Set(tintColorantList().map(normKey));
+  let found = 0;
+
+  for(const p of products){
+    const cod = normKey(p.COD);
+    const desc = normKey(p.ARTIC);
+    if(!wanted.has(cod)) continue;
+    if(!desc.includes('PULSO') || !desc.includes('COLORANTE')) continue;
+
+    const price = num(p.PR_CON_IVA);
+    if(price > 0){
+      colorantPrices[cod] = price;
+      found++;
+    }
+  }
+
+  if(found){
+    localStorage.setItem('pk_tint_prices', JSON.stringify(colorantPrices));
+    renderTintPriceInputs();
+    renderTintStatus();
+  }
+
+  if(showAlert){
+    alert(found ? `✅ Precios de tintas tomados desde artículos: ${found}` : 'No encontré artículos de Pulso de Colorante en la lista cargada.');
+  }
+  return found;
+}
 function saveTintPrices(){
   for(const c of tintColorantList()){
     const el=document.getElementById('tprice_'+c);
@@ -1405,7 +1436,7 @@ function renderTintStatus(){
   const el=document.getElementById('tintStatus');
   if(!el) return;
   const loadedPrices=tintColorantList().filter(c=>num(colorantPrices[c])>0).length;
-  el.innerHTML=`Recetas tintométricas: <b style="color:var(--accent)">${tintRecipes.length}</b><br>Precios de tintas cargados: <b style="color:var(--accent)">${loadedPrices}/${tintColorantList().length}</b>`;
+  el.innerHTML=`Recetas tintométricas: <b style="color:var(--accent)">${tintRecipes.length}</b><br>Precios de tintas cargados: <b style="color:var(--accent)">${loadedPrices}/${tintColorantList().length}</b><br><span style="font-size:.78rem;">Se toman automáticamente de artículos COD AXX/B/C... si figuran como Pulso de Colorante.</span>`;
 }
 function importTintRecipesCSV(){
   const file=document.getElementById('tintRecipesFileInput').files[0];
@@ -1697,9 +1728,11 @@ function importCSV(){
       products = imp;
       cart = [];
       save();
+      const tintFound = syncTintPricesFromProducts(false);
       renderImportStatus();
+      renderTintStatus();
       renderSearch();
-      alert(`✅ Importación correcta: ${products.length} artículos`);
+      alert(`✅ Importación correcta: ${products.length} artículos${tintFound ? `\n🎨 Precios de tintas detectados: ${tintFound}` : ''}`);
     }catch(err){
       alert('Error al importar: ' + err.message);
     }
