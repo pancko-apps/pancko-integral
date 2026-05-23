@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Pancko"/>
   <meta name="theme-color" content="#0a2a5e"/>
-  <title>Pancko Integral v0.2</title>
+  <title>Pancko Integral v0.3</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -925,7 +925,7 @@
       <div class="divider"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.2</div>
+          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.3</div>
           <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">Lanzamiento: Abril 2026</div>
         </div>
         <div style="font-size:2rem;opacity:.25;">🚀</div>
@@ -1664,8 +1664,7 @@ function renderCart(){
         const ls = num(item.PR_CON_IVA) * item.qty;
         const fn = applyDisc(num(item.PR_CON_IVA), mode.percent) * item.qty;
         const tintHtml = item.tintData ? `<div style="font-size:.74rem;color:var(--text-muted);line-height:1.35;margin-top:4px;">
-          Color ${esc(item.tintData.color)} · ${esc(item.tintData.descripcion || '')}<br>
-          Fórmula: ${esc(item.tintData.base_formula)} · Física: ${esc(item.tintData.base_fisica)} · Tintas: ${$m(item.tintData.tintCost)}
+          Color ${esc(item.tintData.color)} · ${esc(item.tintData.descripcion || '')}
         </div>` : '';
         return `
         <div class="cart-item cart-item-wrap">
