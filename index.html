@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Pancko"/>
   <meta name="theme-color" content="#0a2a5e"/>
-  <title>Pancko Integral v0.7.3</title>
+  <title>Pancko Integral v0.7.4</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -1051,7 +1051,7 @@
       <div class="lab-fav-row compact" id="labPatternButtons"></div>
       <div class="field">
         <label>Producto tintable</label>
-        <input id="labProductInput" type="text" placeholder="Buscar producto o código..." autocomplete="off" data-cleared="0" onfocus="focusAndLiftLabInput(this);selectedLabProduct=null;renderLabProductOptions(true)" oninput="renderLabProductOptions(true);selectLabProductFromInput(false)" />
+        <input id="labProductInput" type="text" placeholder="Buscar producto o código..." autocomplete="off" data-cleared="0" onfocus="focusAndLiftLabInput(this);setTimeout(()=>focusAndLiftLabInput(this),450);selectedLabProduct=null;renderLabProductOptions(true)" oninput="renderLabProductOptions(true);selectLabProductFromInput(false)" />
         <div id="labProductSuggest" class="lab-suggest-box"></div>
       </div>
 
@@ -1059,7 +1059,7 @@
 
       <div class="field">
         <label>Código o descripción del color</label>
-        <input id="labColorInput" type="text" placeholder="Ej: 8302 / Great Graphite" autocomplete="off" data-cleared="0" onfocus="focusAndLiftLabInput(this);renderLabColorOptions(true)" oninput="renderLabColorOptions(true);renderLabFormula()" />
+        <input id="labColorInput" type="text" placeholder="Ej: 8302 / Great Graphite" autocomplete="off" data-cleared="0" onfocus="focusAndLiftLabInput(this);setTimeout(()=>focusAndLiftLabInput(this),450);renderLabColorOptions(true)" oninput="renderLabColorOptions(true);renderLabFormula()" />
         <div id="labColorSuggest" class="lab-color-suggest-box"></div>
       </div>
 
@@ -1290,7 +1290,7 @@
       <div class="divider"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.7.3</div>
+          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.7.4</div>
           <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">Lanzamiento: Abril 2026</div>
         </div>
         <div style="font-size:2rem;opacity:.25;">🚀</div>
@@ -1695,7 +1695,14 @@ function clearTintInputOnce(input){
 }
 function focusAndLiftLabInput(input){
   clearTintInputOnce(input);
-  setTimeout(()=>{try{(input.closest('.lab-hero')||input).scrollIntoView({behavior:'smooth',block:'start'});}catch(e){}},120);
+  setTimeout(()=>{
+    try{
+      const hero = input.closest('.lab-hero') || input;
+      const rect = hero.getBoundingClientRect();
+      const targetY = window.scrollY + rect.top - 118;
+      window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' });
+    }catch(e){}
+  },160);
 }
 function parseTintFormula(str){
   return String(str||'')
