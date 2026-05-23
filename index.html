@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Pancko"/>
   <meta name="theme-color" content="#0a2a5e"/>
-  <title>Pancko Integral v0.9.8</title>
+  <title>Pancko Integral v0.9.9</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -1608,7 +1608,7 @@
         <input type="file" id="clientsCsvFileInput" accept=".csv"/>
       </div>
       <button class="btn btn-primary" style="width:100%" onclick="importClientsCSV()">Importar clientes</button>
-      <button class="btn btn-back" style="width:100%;margin-top:8px" onclick="fixAllClientsEncoding();save();renderClientsList();renderClientsImportStatus();showToast('Clientes reparados')">Reparar Ñ / acentos</button>
+      <button class="btn btn-back" style="width:100%;margin-top:8px" onclick="fixAllClientsEncoding();save();renderClientsList();renderClientsImportStatus();showToast('Ñ, mayúsculas y diéresis reparadas')">Reparar Ñ / acentos</button>
     </div>
     <div class="card">
       <div class="total-label" style="margin-bottom:6px;">Estado actual</div>
@@ -1749,7 +1749,7 @@
       <div class="divider"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.9.8</div>
+          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.9.9</div>
           <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">Lanzamiento: Abril 2026</div>
         </div>
         <div style="font-size:2rem;opacity:.25;">🚀</div>
@@ -3808,18 +3808,53 @@ function decodeText(buffer){
   }
 }
 
+function preserveCaseReplacement(match, upper, lower){
+  const letters = String(match || '').replace(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ]/g,'');
+  const isUpper = letters && letters === letters.toUpperCase();
+  return isUpper ? upper : lower;
+}
+
 function fixMojibakeText(value){
   let s = String(value ?? '');
 
-  // Casos comunes cuando Windows-1252/ANSI se leyó mal o quedó con reemplazo.
+  // Mojibake clásico UTF-8 leído como ANSI.
   const replacements = [
-    [/�/g, 'ñ'],          // fallback práctico para clientes locales: Ca�ada, G�mez, Pe�a
     [/Ã‘/g, 'Ñ'], [/Ã±/g, 'ñ'],
     [/Ã¡/g, 'á'], [/Ã©/g, 'é'], [/Ã­/g, 'í'], [/Ã³/g, 'ó'], [/Ãº/g, 'ú'],
     [/Ã/g, 'Á'], [/Ã‰/g, 'É'], [/Ã/g, 'Í'], [/Ã“/g, 'Ó'], [/Ãš/g, 'Ú'],
+    [/Ã¼/g, 'ü'], [/Ãœ/g, 'Ü'], [/Ã/g, 'Ü'],
     [/Âº/g, 'º'], [/Âª/g, 'ª'], [/Â°/g, '°'], [/Â/g, '']
   ];
   replacements.forEach(([a,b]) => { s = s.replace(a,b); });
+
+  // Cuando ya quedó el caracter de reemplazo �, no hay forma perfecta de saber
+  // cuál era la letra. Acá corregimos los casos locales más comunes.
+  const wordFixes = [
+    { re:/ca�ada/ig, lower:'cañada', upper:'CAÑADA' },
+    { re:/g�mez/ig, lower:'gómez', upper:'GÓMEZ' },
+    { re:/g�emes/ig, lower:'güemes', upper:'GÜEMES' },
+    { re:/verg�enza/ig, lower:'vergüenza', upper:'VERGÜENZA' },
+    { re:/ling�i/ig, lower:'lingüi', upper:'LINGÜI' },
+    { re:/ag�ero/ig, lower:'agüero', upper:'AGÜERO' },
+    { re:/pe�a/ig, lower:'peña', upper:'PEÑA' },
+    { re:/nu�ez/ig, lower:'nuñez', upper:'NUÑEZ' },
+    { re:/mu�oz/ig, lower:'muñoz', upper:'MUÑOZ' },
+    { re:/pi�eiro/ig, lower:'piñeiro', upper:'PIÑEIRO' },
+    { re:/ni�o/ig, lower:'niño', upper:'NIÑO' },
+    { re:/a�o/ig, lower:'año', upper:'AÑO' },
+    { re:/ba�o/ig, lower:'baño', upper:'BAÑO' },
+    { re:/dise�o/ig, lower:'diseño', upper:'DISEÑO' },
+    { re:/espa�a/ig, lower:'españa', upper:'ESPAÑA' }
+  ];
+  wordFixes.forEach(w => {
+    s = s.replace(w.re, m => preserveCaseReplacement(m, w.upper, w.lower));
+  });
+
+  // Fallback: si el texto completo está en mayúsculas, usar Ñ; si no, ñ.
+  // Esto evita que CABA�AS termine en cabañas/minúscula.
+  const letters = s.replace(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ]/g,'');
+  const mostlyUpper = letters && letters === letters.toUpperCase();
+  s = s.replace(/�/g, mostlyUpper ? 'Ñ' : 'ñ');
 
   return s;
 }
