@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Pancko"/>
   <meta name="theme-color" content="#0a2a5e"/>
-  <title>Pancko Integral v0.6.2</title>
+  <title>Pancko Integral v0.6.3</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -718,6 +718,16 @@
       font-weight:700;
     }
 
+
+    .tint-edit-modal.top-align{
+      align-items:flex-start;
+      padding-top:72px;
+    }
+    .tint-edit-modal.top-align .tint-edit-card{
+      border-radius:0 0 22px 22px;
+      max-height:72vh;
+    }
+
   </style>
 </head>
 <body>
@@ -1065,7 +1075,7 @@
       <div class="divider"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.6.2</div>
+          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.6.3</div>
           <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">Lanzamiento: Abril 2026</div>
         </div>
         <div style="font-size:2rem;opacity:.25;">🚀</div>
@@ -3135,6 +3145,16 @@ function buildA4HTML(payload){
       font-weight:700;
     }
 
+
+    .tint-edit-modal.top-align{
+      align-items:flex-start;
+      padding-top:72px;
+    }
+    .tint-edit-modal.top-align .tint-edit-card{
+      border-radius:0 0 22px 22px;
+      max-height:72vh;
+    }
+
   </style></head><body>
   <div class="print-a4">
     <div class="a4-header">
@@ -3166,14 +3186,15 @@ function buildA4HTML(payload){
 <!-- MODAL EDITAR TINTO EN PRESUPUESTO -->
 <div class="tint-edit-modal" id="tintEditModal">
   <div class="tint-edit-card">
-    <div class="tint-edit-title">Editar color del presupuesto</div>
+    <div class="tint-edit-title">Editar producto del presupuesto</div>
     <div id="tintEditProductInfo" class="muted" style="line-height:1.35;margin-bottom:12px;"></div>
     <div class="field">
       <label>Descuento adicional del producto (%)</label>
       <input id="tintEditExtraDiscount" type="number" min="0" max="100" step="0.01" placeholder="0" oninput="previewTintEdit(false)" />
     </div>
+    <div style="font-weight:800;margin:12px 0 6px;color:#fff;">Color tintométrico</div>
     <div class="field">
-      <label>Código o descripción del color</label>
+      <label>Editar color / fórmula</label>
       <input id="tintEditColorInput" list="tintEditColorList" type="text" placeholder="Ej: 8250 / October Sky" data-cleared="0" onfocus="clearTintInputOnce(this);renderTintEditOptions()" oninput="renderTintEditOptions();previewTintEdit()"/>
       <datalist id="tintEditColorList"></datalist>
     </div>
@@ -3204,7 +3225,7 @@ function buildA4HTML(payload){
 
 
 <!-- MODAL EDITAR ITEM COMÚN -->
-<div class="tint-edit-modal" id="itemEditModal">
+<div class="tint-edit-modal top-align" id="itemEditModal">
   <div class="tint-edit-card">
     <div class="tint-edit-title">Editar producto del presupuesto</div>
     <div id="itemEditProductInfo" class="muted" style="line-height:1.35;margin-bottom:12px;"></div>
@@ -3938,14 +3959,15 @@ function useClientForBudget(id){
 <!-- MODAL EDITAR TINTO EN PRESUPUESTO -->
 <div class="tint-edit-modal" id="tintEditModal">
   <div class="tint-edit-card">
-    <div class="tint-edit-title">Editar color del presupuesto</div>
+    <div class="tint-edit-title">Editar producto del presupuesto</div>
     <div id="tintEditProductInfo" class="muted" style="line-height:1.35;margin-bottom:12px;"></div>
     <div class="field">
       <label>Descuento adicional del producto (%)</label>
       <input id="tintEditExtraDiscount" type="number" min="0" max="100" step="0.01" placeholder="0" oninput="previewTintEdit(false)" />
     </div>
+    <div style="font-weight:800;margin:12px 0 6px;color:#fff;">Color tintométrico</div>
     <div class="field">
-      <label>Código o descripción del color</label>
+      <label>Editar color / fórmula</label>
       <input id="tintEditColorInput" list="tintEditColorList" type="text" placeholder="Ej: 8250 / October Sky" data-cleared="0" onfocus="clearTintInputOnce(this);renderTintEditOptions()" oninput="renderTintEditOptions();previewTintEdit()"/>
       <datalist id="tintEditColorList"></datalist>
     </div>
@@ -3976,7 +3998,7 @@ function useClientForBudget(id){
 
 
 <!-- MODAL EDITAR ITEM COMÚN -->
-<div class="tint-edit-modal" id="itemEditModal">
+<div class="tint-edit-modal top-align" id="itemEditModal">
   <div class="tint-edit-card">
     <div class="tint-edit-title">Editar producto del presupuesto</div>
     <div id="itemEditProductInfo" class="muted" style="line-height:1.35;margin-bottom:12px;"></div>
