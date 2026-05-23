@@ -2675,8 +2675,7 @@ function exportProductsCSV(){
   products.forEach(p=>{
     lines.push(cols.map(c=>String(p[c] ?? '').replace(/;/g, ',')).join(';'));
   });
-  downloadCSV('articulos_pancko.csv', lines.join('
-'));
+  downloadCSV('articulos_pancko.csv', lines.join('\n'));
 }
 
 function exportHistoryCSV(){
