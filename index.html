@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Pancko"/>
   <meta name="theme-color" content="#0a2a5e"/>
-  <title>Pancko Integral v0.9.3</title>
+  <title>Pancko Integral v0.9.4</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -1135,6 +1135,97 @@
       border:1px solid rgba(255,255,255,.18);
     }
 
+
+    /* ── THEME PATCH v0.9.4: tiles con identidad y glow ── */
+    :root{
+      --tile-client:#11a8a2; --tile-client2:#0d8d89;
+      --tile-style:#7b61ff; --tile-style2:#4b32c3;
+      --tile-import2:#5e2e8a;
+    }
+
+    html[data-theme="pro"]{
+      --tile-client:#139aa2; --tile-client2:#0b7078;
+      --tile-style:#5d6de8; --tile-style2:#3948ad;
+      --tile-import:#7c3fb5; --tile-import2:#5e2e8a;
+      --tile-support:#0f7a63; --tile-support2:#0b5f4c;
+    }
+    html[data-theme="vibrante"]{
+      --tile-client:#00c2b8; --tile-client2:#008e88;
+      --tile-style:#ff4fa3; --tile-style2:#b91e72;
+      --tile-import:#9a4dff; --tile-import2:#5b24c9;
+      --tile-support:#00a878; --tile-support2:#006e52;
+    }
+    html[data-theme="premium"]{
+      /* En los elegantes dejo varios tiles más parejos a propósito */
+      --tile-client:#216b63; --tile-client2:#164941;
+      --tile-style:#53606b; --tile-style2:#37414b;
+      --tile-import:#53606b; --tile-import2:#37414b;
+      --tile-support:#216b63; --tile-support2:#164941;
+    }
+    html[data-theme="noche"]{
+      --tile-client:#0f4f46; --tile-client2:#092f2b;
+      --tile-style:#2e3a66; --tile-style2:#1a2240;
+      --tile-import:#3b2e78; --tile-import2:#241950;
+      --tile-support:#0f4f46; --tile-support2:#092f2b;
+    }
+    html[data-theme="clasico-claro"]{
+      --tile-client:#1aa7a1; --tile-client2:#147f79;
+      --tile-style:#7667d8; --tile-style2:#5848b8;
+      --tile-import:#8a63d2; --tile-import2:#6746aa;
+      --tile-support:#26967e; --tile-support2:#1b7563;
+    }
+    html[data-theme="clasico-oscuro"]{
+      /* Otro estilo más uniforme/tradicional */
+      --tile-client:#1b6d5d; --tile-client2:#124d42;
+      --tile-style:#37657a; --tile-style2:#294d5f;
+      --tile-import:#4757a8; --tile-import2:#2e3978;
+      --tile-support:#1b6d5d; --tile-support2:#124d42;
+    }
+    html[data-theme="industrial"]{
+      --tile-client:#2f766d; --tile-client2:#24534e;
+      --tile-style:#64748b; --tile-style2:#475569;
+      --tile-import:#4d5b73; --tile-import2:#333f52;
+      --tile-support:#2f766d; --tile-support2:#24534e;
+    }
+    html[data-theme="pintura"]{
+      --tile-client:#00c2b8; --tile-client2:#007e86;
+      --tile-style:#ff4fa3; --tile-style2:#b91e72;
+      --tile-import:#9a4dff; --tile-import2:#5726b8;
+      --tile-support:#00a883; --tile-support2:#006b57;
+    }
+
+    .tile-client { background: linear-gradient(135deg, var(--tile-client), var(--tile-client2)); }
+    .tile-style  { background: linear-gradient(135deg, var(--tile-style), var(--tile-style2)); }
+
+    .tile-icon{
+      width:42px;
+      height:42px;
+      display:grid;
+      place-items:center;
+      border-radius:16px;
+      background:rgba(255,255,255,.14);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.18),
+        0 0 18px rgba(255,255,255,.12);
+      text-shadow:0 2px 8px rgba(0,0,0,.25);
+    }
+
+    html[data-theme="vibrante"] .tile-icon,
+    html[data-theme="pintura"] .tile-icon{
+      background:rgba(255,255,255,.18);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.22),
+        0 0 22px rgba(255,255,255,.18),
+        0 0 18px color-mix(in srgb, var(--accent) 40%, transparent);
+    }
+
+    html[data-theme="premium"] .tile-icon,
+    html[data-theme="industrial"] .tile-icon,
+    html[data-theme="clasico-oscuro"] .tile-icon{
+      background:rgba(255,255,255,.10);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.14), 0 0 10px rgba(255,255,255,.08);
+    }
+
   </style>
 </head>
 <body>
@@ -1461,7 +1552,7 @@
           <div class="tile-desc">Configurar listas y porcentajes</div>
         </div>
       </div>
-      <div class="tile tile-import" onclick="showScreen('styleScreen')">
+      <div class="tile tile-style" onclick="showScreen('styleScreen')">
         <div class="tile-icon">🎨</div>
         <div class="tile-copy">
           <div class="tile-name">Estilo visual</div>
@@ -1562,7 +1653,7 @@
       <div class="divider"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.9.3</div>
+          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.9.4</div>
           <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">Lanzamiento: Abril 2026</div>
         </div>
         <div style="font-size:2rem;opacity:.25;">🚀</div>
@@ -1851,14 +1942,14 @@ function save(){
 ═══════════════════════════════ */
 
 const THEMES = [
-  {key:'pro', name:'Pancko Pro', desc:'Equilibrado, sobrio y cómodo para uso diario.', colors:['#1d6fa8','#1a8c5a','#0f6f88','#8b3a3a']},
-  {key:'vibrante', name:'Pancko Vibrante', desc:'Más contraste entre módulos, más punch visual.', colors:['#1e88e5','#21b96b','#7b61ff','#ff9f1c']},
-  {key:'premium', name:'Pancko Premium', desc:'Oscuro elegante, más corporativo/franquicia.', colors:['#1f4e79','#1f7a52','#50408f','#d6b66d']},
-  {key:'noche', name:'Noche', desc:'Muy oscuro, ideal para laboratorio o uso prolongado.', colors:['#153c6a','#14583b','#3b2e78','#76b7ff']},
-  {key:'clasico-claro', name:'Clásico Claro', desc:'Más tradicional, limpio y usable en PC.', colors:['#e9f1fb','#3d8bd2','#2fa363','#d48a24']},
-  {key:'clasico-oscuro', name:'Clásico Oscuro', desc:'Azul clásico, más serio y parejo.', colors:['#102b4e','#225d90','#27764f','#9a6a25']},
+  {key:'pro', name:'Pancko Pro', desc:'Equilibrado, sobrio y cómodo para uso diario.', colors:['#1d6fa8','#1a8c5a','#139aa2','#5d6de8']},
+  {key:'vibrante', name:'Pancko Vibrante', desc:'Más contraste entre módulos, más punch visual.', colors:['#1e88e5','#21b96b','#7b61ff','#ff4fa3']},
+  {key:'premium', name:'Pancko Premium', desc:'Oscuro elegante, más corporativo/franquicia.', colors:['#1f4e79','#1f7a52','#53606b','#d6b66d']},
+  {key:'noche', name:'Noche', desc:'Muy oscuro, ideal para laboratorio o uso prolongado.', colors:['#050914','#153c6a','#3b2e78','#76b7ff']},
+  {key:'clasico-claro', name:'Clásico Claro', desc:'Más tradicional, limpio y usable en PC.', colors:['#e9f1fb','#3d8bd2','#1aa7a1','#7667d8']},
+  {key:'clasico-oscuro', name:'Clásico Oscuro', desc:'Azul clásico, más serio y parejo.', colors:['#102b4e','#225d90','#37657a','#1b6d5d']},
   {key:'industrial', name:'Industrial', desc:'Acero, grises técnicos y sensación herramienta.', colors:['#17212b','#2c6f8f','#64748b','#9a6b2f']},
-  {key:'pintura', name:'Manchas de pintura', desc:'Más artístico, colorido y con energía de pinturería.', colors:['#1687e0','#16b75f','#9a4dff','#ff4d6d']}
+  {key:'pintura', name:'Manchas de pintura', desc:'Más artístico, colorido y con energía de pinturería.', colors:['#1687e0','#16b75f','#ff4fa3','#ffcf33']}
 ];
 
 function applyTheme(key){
@@ -4864,6 +4955,97 @@ function buildA4HTML(payload){
       height:22px;
       border-radius:999px;
       border:1px solid rgba(255,255,255,.18);
+    }
+
+
+    /* ── THEME PATCH v0.9.4: tiles con identidad y glow ── */
+    :root{
+      --tile-client:#11a8a2; --tile-client2:#0d8d89;
+      --tile-style:#7b61ff; --tile-style2:#4b32c3;
+      --tile-import2:#5e2e8a;
+    }
+
+    html[data-theme="pro"]{
+      --tile-client:#139aa2; --tile-client2:#0b7078;
+      --tile-style:#5d6de8; --tile-style2:#3948ad;
+      --tile-import:#7c3fb5; --tile-import2:#5e2e8a;
+      --tile-support:#0f7a63; --tile-support2:#0b5f4c;
+    }
+    html[data-theme="vibrante"]{
+      --tile-client:#00c2b8; --tile-client2:#008e88;
+      --tile-style:#ff4fa3; --tile-style2:#b91e72;
+      --tile-import:#9a4dff; --tile-import2:#5b24c9;
+      --tile-support:#00a878; --tile-support2:#006e52;
+    }
+    html[data-theme="premium"]{
+      /* En los elegantes dejo varios tiles más parejos a propósito */
+      --tile-client:#216b63; --tile-client2:#164941;
+      --tile-style:#53606b; --tile-style2:#37414b;
+      --tile-import:#53606b; --tile-import2:#37414b;
+      --tile-support:#216b63; --tile-support2:#164941;
+    }
+    html[data-theme="noche"]{
+      --tile-client:#0f4f46; --tile-client2:#092f2b;
+      --tile-style:#2e3a66; --tile-style2:#1a2240;
+      --tile-import:#3b2e78; --tile-import2:#241950;
+      --tile-support:#0f4f46; --tile-support2:#092f2b;
+    }
+    html[data-theme="clasico-claro"]{
+      --tile-client:#1aa7a1; --tile-client2:#147f79;
+      --tile-style:#7667d8; --tile-style2:#5848b8;
+      --tile-import:#8a63d2; --tile-import2:#6746aa;
+      --tile-support:#26967e; --tile-support2:#1b7563;
+    }
+    html[data-theme="clasico-oscuro"]{
+      /* Otro estilo más uniforme/tradicional */
+      --tile-client:#1b6d5d; --tile-client2:#124d42;
+      --tile-style:#37657a; --tile-style2:#294d5f;
+      --tile-import:#4757a8; --tile-import2:#2e3978;
+      --tile-support:#1b6d5d; --tile-support2:#124d42;
+    }
+    html[data-theme="industrial"]{
+      --tile-client:#2f766d; --tile-client2:#24534e;
+      --tile-style:#64748b; --tile-style2:#475569;
+      --tile-import:#4d5b73; --tile-import2:#333f52;
+      --tile-support:#2f766d; --tile-support2:#24534e;
+    }
+    html[data-theme="pintura"]{
+      --tile-client:#00c2b8; --tile-client2:#007e86;
+      --tile-style:#ff4fa3; --tile-style2:#b91e72;
+      --tile-import:#9a4dff; --tile-import2:#5726b8;
+      --tile-support:#00a883; --tile-support2:#006b57;
+    }
+
+    .tile-client { background: linear-gradient(135deg, var(--tile-client), var(--tile-client2)); }
+    .tile-style  { background: linear-gradient(135deg, var(--tile-style), var(--tile-style2)); }
+
+    .tile-icon{
+      width:42px;
+      height:42px;
+      display:grid;
+      place-items:center;
+      border-radius:16px;
+      background:rgba(255,255,255,.14);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.18),
+        0 0 18px rgba(255,255,255,.12);
+      text-shadow:0 2px 8px rgba(0,0,0,.25);
+    }
+
+    html[data-theme="vibrante"] .tile-icon,
+    html[data-theme="pintura"] .tile-icon{
+      background:rgba(255,255,255,.18);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.22),
+        0 0 22px rgba(255,255,255,.18),
+        0 0 18px color-mix(in srgb, var(--accent) 40%, transparent);
+    }
+
+    html[data-theme="premium"] .tile-icon,
+    html[data-theme="industrial"] .tile-icon,
+    html[data-theme="clasico-oscuro"] .tile-icon{
+      background:rgba(255,255,255,.10);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.14), 0 0 10px rgba(255,255,255,.08);
     }
 
   </style></head><body>
