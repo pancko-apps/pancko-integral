@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Pancko"/>
   <meta name="theme-color" content="#0a2a5e"/>
-  <title>Pancko Integral v0.9.5</title>
+  <title>Pancko Integral v0.9.6</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -1270,6 +1270,41 @@
       --tile-support:#00a883; --tile-support2:#006b57;
     }
 
+
+    /* ── THEME PATCH v0.9.6: Clientes separado de Parámetros en HOME ── */
+    html[data-theme="pro"]{
+      --tile-client:#009f9a; --tile-client2:#006d72;
+      --tile-config:#5b4fd6; --tile-config2:#352a9c;
+    }
+    html[data-theme="vibrante"]{
+      --tile-client:#00c2b8; --tile-client2:#007e86;
+      --tile-config:#ff6b00; --tile-config2:#c43e00;
+    }
+    html[data-theme="premium"]{
+      --tile-client:#236b60; --tile-client2:#17473f;
+      --tile-config:#67507d; --tile-config2:#453456;
+    }
+    html[data-theme="noche"]{
+      --tile-client:#0c5b56; --tile-client2:#073635;
+      --tile-config:#4b3a8f; --tile-config2:#2b2058;
+    }
+    html[data-theme="clasico-claro"]{
+      --tile-client:#12a59a; --tile-client2:#0b7772;
+      --tile-config:#6c63d9; --tile-config2:#4b43a6;
+    }
+    html[data-theme="clasico-oscuro"]{
+      --tile-client:#177061; --tile-client2:#0d4a40;
+      --tile-config:#394c9d; --tile-config2:#25336b;
+    }
+    html[data-theme="industrial"]{
+      --tile-client:#2d786e; --tile-client2:#20544d;
+      --tile-config:#667085; --tile-config2:#465162;
+    }
+    html[data-theme="pintura"]{
+      --tile-client:#ff7a00; --tile-client2:#c84600;
+      --tile-config:#ff4fa3; --tile-config2:#b91e72;
+    }
+
   </style>
 </head>
 <body>
@@ -1317,7 +1352,7 @@
           <div class="tile-desc">Ver fórmula grande para preparar color</div>
         </div>
       </div>
-      <div class="tile tile-config" onclick="showScreen('clientsScreen')">
+      <div class="tile tile-client" onclick="showScreen('clientsScreen')">
         <div class="tile-icon">👤</div>
         <div class="tile-copy">
           <div class="tile-name">Clientes</div>
@@ -1697,7 +1732,7 @@
       <div class="divider"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.9.5</div>
+          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.9.6</div>
           <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">Lanzamiento: Abril 2026</div>
         </div>
         <div style="font-size:2rem;opacity:.25;">🚀</div>
@@ -5134,6 +5169,41 @@ function buildA4HTML(payload){
       --tile-client:#00c2b8; --tile-client2:#007e86;
       --tile-config:#ff7a00; --tile-config2:#c84600;
       --tile-support:#00a883; --tile-support2:#006b57;
+    }
+
+
+    /* ── THEME PATCH v0.9.6: Clientes separado de Parámetros en HOME ── */
+    html[data-theme="pro"]{
+      --tile-client:#009f9a; --tile-client2:#006d72;
+      --tile-config:#5b4fd6; --tile-config2:#352a9c;
+    }
+    html[data-theme="vibrante"]{
+      --tile-client:#00c2b8; --tile-client2:#007e86;
+      --tile-config:#ff6b00; --tile-config2:#c43e00;
+    }
+    html[data-theme="premium"]{
+      --tile-client:#236b60; --tile-client2:#17473f;
+      --tile-config:#67507d; --tile-config2:#453456;
+    }
+    html[data-theme="noche"]{
+      --tile-client:#0c5b56; --tile-client2:#073635;
+      --tile-config:#4b3a8f; --tile-config2:#2b2058;
+    }
+    html[data-theme="clasico-claro"]{
+      --tile-client:#12a59a; --tile-client2:#0b7772;
+      --tile-config:#6c63d9; --tile-config2:#4b43a6;
+    }
+    html[data-theme="clasico-oscuro"]{
+      --tile-client:#177061; --tile-client2:#0d4a40;
+      --tile-config:#394c9d; --tile-config2:#25336b;
+    }
+    html[data-theme="industrial"]{
+      --tile-client:#2d786e; --tile-client2:#20544d;
+      --tile-config:#667085; --tile-config2:#465162;
+    }
+    html[data-theme="pintura"]{
+      --tile-client:#ff7a00; --tile-client2:#c84600;
+      --tile-config:#ff4fa3; --tile-config2:#b91e72;
     }
 
   </style></head><body>
