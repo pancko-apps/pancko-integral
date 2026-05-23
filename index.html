@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Pancko"/>
   <meta name="theme-color" content="#0a2a5e"/>
-  <title>Pancko Integral v0.5</title>
+  <title>Pancko Integral v0.5.1</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -1016,7 +1016,7 @@
       <div class="divider"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.5</div>
+          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.5.1</div>
           <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">Lanzamiento: Abril 2026</div>
         </div>
         <div style="font-size:2rem;opacity:.25;">🚀</div>
@@ -1688,6 +1688,7 @@ function addToCart(){
     tintData = {
       color: calc.rec.idcolor || extractColorId(colorVal),
       descripcion: calc.rec.descripcion || '',
+      manualModified: false,
       base_formula: calc.base_formula,
       base_fisica: calc.base_fisica,
       factor: calc.factor,
@@ -1855,6 +1856,33 @@ function getCurrentTintManualLines(){
   return lines;
 }
 
+function normalizeFormulaLinesForCompare(lines){
+  const map = new Map();
+  (lines || []).forEach(x=>{
+    const c = normKey(x.colorante);
+    const p = roundPulse(num(x.pulsos));
+    if(!c || p <= 0) return;
+    map.set(c, roundPulse((map.get(c) || 0) + p));
+  });
+  return Array.from(map.entries()).sort((a,b)=>a[0].localeCompare(b[0]));
+}
+
+function formulasAreEqual(a,b){
+  const aa = normalizeFormulaLinesForCompare(a);
+  const bb = normalizeFormulaLinesForCompare(b);
+  if(aa.length !== bb.length) return false;
+  for(let i=0;i<aa.length;i++){
+    if(aa[i][0] !== bb[i][0]) return false;
+    if(Math.abs(num(aa[i][1]) - num(bb[i][1])) > 0.0001) return false;
+  }
+  return true;
+}
+
+function colorLabelWithMod(color, modified){
+  const c = String(color || '').trim();
+  return modified ? `${c}/MOD` : c;
+}
+
 function renderTintManualRows(lines){
   const box = document.getElementById('tintManualRows');
   if(!box) return;
@@ -1950,19 +1978,23 @@ function saveTintEdit(){
 
   const tintCost = manualLines.reduce((s,x)=>s+x.subtotal,0);
   const itemPrice = num(p.PR_CON_IVA) + tintCost;
+  const originalFormula = calc.lines.map(x=>({colorante:x.colorante,pulsos:x.pulsos,precioPulso:x.precioPulso,subtotal:x.subtotal}));
+  const manualModified = !formulasAreEqual(manualLines, originalFormula);
+  const colorCode = calc.rec.idcolor || extractColorId(value);
 
   item.PR_CON_IVA = itemPrice;
   item.PR_SIN_IVA = itemPrice / 1.21;
   item.base_ARTIC = p.ARTIC;
-  item.ARTIC = `${p.ARTIC} (${calc.rec.idcolor || extractColorId(value)})`;
+  item.ARTIC = `${p.ARTIC} (${colorLabelWithMod(colorCode, manualModified)})`;
   item.tintData = {
-    color: calc.rec.idcolor || extractColorId(value),
+    color: colorCode,
     descripcion: calc.rec.descripcion || '',
+    manualModified: manualModified,
     base_formula: calc.base_formula,
     base_fisica: calc.base_fisica,
     factor: calc.factor,
     tintCost: tintCost,
-    formula_original: calc.lines.map(x=>({colorante:x.colorante,pulsos:x.pulsos,precioPulso:x.precioPulso,subtotal:x.subtotal})),
+    formula_original: originalFormula,
     formula: manualLines
   };
 
@@ -2013,7 +2045,7 @@ function renderCart(){
         const ls = num(item.PR_CON_IVA) * item.qty;
         const fn = applyDisc(num(item.PR_CON_IVA), mode.percent) * item.qty;
         const tintHtml = item.tintData ? `<div style="font-size:.74rem;color:var(--text-muted);line-height:1.35;margin-top:4px;">
-          Color ${esc(item.tintData.color)} · ${esc(item.tintData.descripcion || '')}
+          Color ${esc(colorLabelWithMod(item.tintData.color, item.tintData.manualModified))} · ${esc(item.tintData.descripcion || '')}
         </div>` : '';
         const openAttr = item.tintData ? ` onclick="openTintEditModal('${esc(key)}')"` : '';
         const tintClass = item.tintData ? ' tint-clickable' : '';
