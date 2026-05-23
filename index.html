@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Pancko"/>
   <meta name="theme-color" content="#0a2a5e"/>
-  <title>Pancko Integral v0.9.4</title>
+  <title>Pancko Integral v0.9.5</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -1226,6 +1226,50 @@
       box-shadow:inset 0 1px 0 rgba(255,255,255,.14), 0 0 10px rgba(255,255,255,.08);
     }
 
+
+    /* ── THEME PATCH v0.9.5: Home más diferenciado ── */
+    html[data-theme="pro"]{
+      --tile-client:#11a8a2; --tile-client2:#087b83;
+      --tile-config:#4257c8; --tile-config2:#263796;
+      --tile-support:#0f7a63; --tile-support2:#0b5f4c;
+    }
+    html[data-theme="vibrante"]{
+      --tile-client:#00c2b8; --tile-client2:#008e88;
+      --tile-config:#ff5d73; --tile-config2:#b92843;
+      --tile-support:#00a878; --tile-support2:#006e52;
+    }
+    html[data-theme="premium"]{
+      /* Premium sí mantiene familia más elegante, pero con diferencia sutil */
+      --tile-client:#216b63; --tile-client2:#164941;
+      --tile-config:#5b4b78; --tile-config2:#3d3153;
+      --tile-support:#2f6553; --tile-support2:#214839;
+    }
+    html[data-theme="noche"]{
+      --tile-client:#0f5b5b; --tile-client2:#0a393d;
+      --tile-config:#473a8b; --tile-config2:#2a215a;
+      --tile-support:#0f4f46; --tile-support2:#092f2b;
+    }
+    html[data-theme="clasico-claro"]{
+      --tile-client:#19a6a0; --tile-client2:#137a76;
+      --tile-config:#6b62d6; --tile-config2:#4a43a7;
+      --tile-support:#26967e; --tile-support2:#1b7563;
+    }
+    html[data-theme="clasico-oscuro"]{
+      --tile-client:#1b6d5d; --tile-client2:#124d42;
+      --tile-config:#334d8f; --tile-config2:#243565;
+      --tile-support:#2b6650; --tile-support2:#1f4939;
+    }
+    html[data-theme="industrial"]{
+      --tile-client:#2f766d; --tile-client2:#24534e;
+      --tile-config:#56657d; --tile-config2:#3d495c;
+      --tile-support:#3f705f; --tile-support2:#2d5147;
+    }
+    html[data-theme="pintura"]{
+      --tile-client:#00c2b8; --tile-client2:#007e86;
+      --tile-config:#ff7a00; --tile-config2:#c84600;
+      --tile-support:#00a883; --tile-support2:#006b57;
+    }
+
   </style>
 </head>
 <body>
@@ -1653,7 +1697,7 @@
       <div class="divider"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.9.4</div>
+          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.9.5</div>
           <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">Lanzamiento: Abril 2026</div>
         </div>
         <div style="font-size:2rem;opacity:.25;">🚀</div>
@@ -5046,6 +5090,50 @@ function buildA4HTML(payload){
     html[data-theme="clasico-oscuro"] .tile-icon{
       background:rgba(255,255,255,.10);
       box-shadow:inset 0 1px 0 rgba(255,255,255,.14), 0 0 10px rgba(255,255,255,.08);
+    }
+
+
+    /* ── THEME PATCH v0.9.5: Home más diferenciado ── */
+    html[data-theme="pro"]{
+      --tile-client:#11a8a2; --tile-client2:#087b83;
+      --tile-config:#4257c8; --tile-config2:#263796;
+      --tile-support:#0f7a63; --tile-support2:#0b5f4c;
+    }
+    html[data-theme="vibrante"]{
+      --tile-client:#00c2b8; --tile-client2:#008e88;
+      --tile-config:#ff5d73; --tile-config2:#b92843;
+      --tile-support:#00a878; --tile-support2:#006e52;
+    }
+    html[data-theme="premium"]{
+      /* Premium sí mantiene familia más elegante, pero con diferencia sutil */
+      --tile-client:#216b63; --tile-client2:#164941;
+      --tile-config:#5b4b78; --tile-config2:#3d3153;
+      --tile-support:#2f6553; --tile-support2:#214839;
+    }
+    html[data-theme="noche"]{
+      --tile-client:#0f5b5b; --tile-client2:#0a393d;
+      --tile-config:#473a8b; --tile-config2:#2a215a;
+      --tile-support:#0f4f46; --tile-support2:#092f2b;
+    }
+    html[data-theme="clasico-claro"]{
+      --tile-client:#19a6a0; --tile-client2:#137a76;
+      --tile-config:#6b62d6; --tile-config2:#4a43a7;
+      --tile-support:#26967e; --tile-support2:#1b7563;
+    }
+    html[data-theme="clasico-oscuro"]{
+      --tile-client:#1b6d5d; --tile-client2:#124d42;
+      --tile-config:#334d8f; --tile-config2:#243565;
+      --tile-support:#2b6650; --tile-support2:#1f4939;
+    }
+    html[data-theme="industrial"]{
+      --tile-client:#2f766d; --tile-client2:#24534e;
+      --tile-config:#56657d; --tile-config2:#3d495c;
+      --tile-support:#3f705f; --tile-support2:#2d5147;
+    }
+    html[data-theme="pintura"]{
+      --tile-client:#00c2b8; --tile-client2:#007e86;
+      --tile-config:#ff7a00; --tile-config2:#c84600;
+      --tile-support:#00a883; --tile-support2:#006b57;
     }
 
   </style></head><body>
