@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Pancko"/>
   <meta name="theme-color" content="#0a2a5e"/>
-  <title>Pancko Integral v0.6.3</title>
+  <title>Pancko Integral v0.7</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -728,6 +728,64 @@
       max-height:72vh;
     }
 
+
+    .lab-hero{
+      background:rgba(74,179,255,.08);
+      border:1px solid rgba(74,179,255,.22);
+      border-radius:18px;
+      padding:14px;
+      margin-bottom:12px;
+    }
+    .lab-formula-card{
+      background:rgba(0,0,0,.18);
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:14px;
+      margin-top:12px;
+    }
+    .lab-formula-title{
+      font-family:var(--font-head);
+      font-size:1.3rem;
+      font-weight:800;
+      color:#fff;
+      margin-bottom:4px;
+    }
+    .lab-meta{
+      color:var(--text-muted);
+      font-size:.86rem;
+      line-height:1.45;
+      margin-bottom:10px;
+    }
+    .lab-line{
+      display:grid;
+      grid-template-columns:72px 1fr;
+      gap:12px;
+      align-items:center;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.09);
+      border-radius:14px;
+      padding:12px;
+      margin-bottom:8px;
+    }
+    .lab-colorant{
+      font-family:var(--font-head);
+      font-size:1.8rem;
+      font-weight:900;
+      color:var(--accent);
+      text-align:center;
+    }
+    .lab-pulses{
+      font-size:1.1rem;
+      font-weight:800;
+      color:#fff;
+    }
+    .lab-oz{
+      font-size:.92rem;
+      color:var(--text-muted);
+      margin-top:3px;
+    }
+    .tile-lab{ background:linear-gradient(135deg,#0f6f88,#0b5367); }
+
   </style>
 </head>
 <body>
@@ -766,6 +824,13 @@
         <div class="tile-copy">
           <div class="tile-name">Presupuesto</div>
           <div class="tile-desc">Lista y totalizador</div>
+        </div>
+      </div>
+      <div class="tile tile-lab" onclick="showScreen('labScreen')">
+        <div class="tile-icon">🧪</div>
+        <div class="tile-copy">
+          <div class="tile-name">Laboratorio</div>
+          <div class="tile-desc">Ver fórmula grande para preparar color</div>
         </div>
       </div>
       <div class="tile tile-config" onclick="showScreen('clientsScreen')">
@@ -856,6 +921,39 @@
     </div>
   </section>
 
+
+
+  <!-- LABORATORIO -->
+  <section class="screen" id="labScreen">
+    <div class="top-bar">
+      <button class="btn btn-back" onclick="showScreen('homeScreen')">← Inicio</button>
+      <button class="btn btn-green" onclick="showScreen('cartScreen')">🧾 Presupuesto</button>
+    </div>
+    <div class="sec-title">Laboratorio tintométrico</div>
+
+    <div class="lab-hero">
+      <div class="field">
+        <label>Producto tintable</label>
+        <input id="labProductInput" list="labProductList" type="text" placeholder="Buscar producto o código..." onfocus="renderLabProductOptions()" oninput="renderLabProductOptions();selectLabProductFromInput()" />
+        <datalist id="labProductList"></datalist>
+      </div>
+
+      <div id="labProductInfo" class="muted" style="font-size:.86rem;line-height:1.4;margin-bottom:10px;"></div>
+
+      <div class="field">
+        <label>Código o descripción del color</label>
+        <input id="labColorInput" list="labColorList" type="text" placeholder="Ej: 8302 / Great Graphite" data-cleared="0" onfocus="clearTintInputOnce(this);renderLabColorOptions()" oninput="renderLabColorOptions();renderLabFormula()" />
+        <datalist id="labColorList"></datalist>
+      </div>
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn btn-primary" style="flex:1" onclick="renderLabFormula()">Ver fórmula</button>
+        <button class="btn btn-green" style="flex:1" onclick="addLabToBudget()">Agregar al presupuesto</button>
+      </div>
+    </div>
+
+    <div id="labResult"></div>
+  </section>
 
   <!-- CLIENTES -->
   <section class="screen" id="clientsScreen">
@@ -1075,7 +1173,7 @@
       <div class="divider"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.6.3</div>
+          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.7</div>
           <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">Lanzamiento: Abril 2026</div>
         </div>
         <div style="font-size:2rem;opacity:.25;">🚀</div>
@@ -1217,6 +1315,8 @@ let config = JSON.parse(localStorage.getItem('pk_config') || 'null') || {
 };
 let selectedProduct = null;
 let selectedTintCalc = null;
+let selectedLabProduct = null;
+let selectedLabCalc = null;
 let editingTintKey = null;
 let editingItemKey = null;
 let editingTintCalc = null;
@@ -1265,6 +1365,7 @@ renderTintPriceInputs(); renderTintStatus(); renderTintPriceInputs(); }
   if(id==='historyScreen') renderHistory();
   if(id==='clientsScreen') renderClientsList();
   if(id==='manageArticlesScreen') renderManageList();
+  if(id==='labScreen'){ renderLabProductOptions(); renderLabProductInfo(); renderLabFormula(); }
   if(options.sync !== false) syncBrowserHistory(id);
 }
 
@@ -1424,6 +1525,15 @@ function roundPulse(v){ return Math.round((Number(v)||0) / 0.125) * 0.125; }
 function fmtPulse(v){
   const n=roundPulse(v);
   return Number.isInteger(n) ? String(n) : n.toFixed(3).replace(/0+$/,'').replace(/\.$/,'');
+}
+
+function pulseToOz(p){
+  const val = Math.abs(roundPulse(p));
+  const oz = Math.floor(val / 48);
+  const rem = roundPulse(val - oz * 48);
+  if(oz > 0 && rem > 0) return `${oz} oz + ${fmtPulse(rem)} p`;
+  if(oz > 0) return `${oz} oz`;
+  return `${fmtPulse(rem)} p`;
 }
 function extractColorId(value){
   const s=String(value||'').trim();
@@ -1669,6 +1779,171 @@ function parseGenericCSV(text){
   });
 }
 buildTintIndex();
+
+
+
+function labProductLabel(p){
+  return `${p.COD} — ${p.ARTIC}`;
+}
+
+function renderLabProductOptions(){
+  const list = document.getElementById('labProductList');
+  const input = document.getElementById('labProductInput');
+  if(!list || !input) return;
+
+  const q = normKey(input.value);
+  const matches = products
+    .filter(p => isTintableProduct(p))
+    .filter(p => {
+      if(!q) return true;
+      return normKey(p.COD).includes(q) || normKey(p.ARTIC).includes(q);
+    })
+    .slice(0, 120);
+
+  list.innerHTML = matches.map(p => `<option value="${esc(labProductLabel(p))}"></option>`).join('');
+}
+
+function extractLabProductCode(value){
+  const s = String(value || '').trim();
+  if(s.includes(' — ')) return s.split(' — ')[0].trim();
+  if(s.includes(' - ')) return s.split(' - ')[0].trim();
+  return s;
+}
+
+function selectLabProductFromInput(){
+  const input = document.getElementById('labProductInput');
+  if(!input) return;
+  const code = extractLabProductCode(input.value);
+  const p = products.find(x => String(x.COD) === String(code));
+  selectedLabProduct = p && isTintableProduct(p) ? p : null;
+  if(selectedLabProduct){
+    renderLabProductInfo();
+    renderLabColorOptions();
+  }else{
+    const info = document.getElementById('labProductInfo');
+    if(info) info.innerHTML = '';
+  }
+}
+
+function renderLabProductInfo(){
+  const info = document.getElementById('labProductInfo');
+  if(!info) return;
+  const input = document.getElementById('labProductInput');
+  if(!selectedLabProduct && input && input.value) selectLabProductFromInput();
+
+  const p = selectedLabProduct;
+  if(!p){
+    info.innerHTML = 'Elegí un producto tintable para consultar fórmula.';
+    return;
+  }
+
+  info.innerHTML = `<b>${esc(p.ARTIC)}</b><br>Código: ${esc(p.COD)} · ${esc(p.tipo_tinto || 'TINTABLE')} · Base ${esc(p.base_tinto || '')} · Física ${esc(p.base_fisica_tinto || p.base_tinto || '')} · Factor ${esc(p.factor_tinto || '')}`;
+}
+
+function renderLabColorOptions(){
+  const list = document.getElementById('labColorList');
+  const input = document.getElementById('labColorInput');
+  if(!list || !input) return;
+  if(!selectedLabProduct) selectLabProductFromInput();
+  const p = selectedLabProduct;
+  if(!p){ list.innerHTML=''; return; }
+
+  const q = normKey(input.value);
+  const bases = compatibleBasesForProduct(p);
+  const matches = [];
+  for(const r of tintRecipes){
+    if(!bases.includes(normKey(r.base))) continue;
+    const id = normKey(r.idcolor || r.codigo_formula);
+    const desc = normKey(r.descripcion);
+    if(!q || id.includes(q) || desc.includes(q)){
+      matches.push(r);
+      if(matches.length >= 100) break;
+    }
+  }
+  list.innerHTML = matches.map(r => `<option value="${esc(tintRecipeLabel(r))}"></option>`).join('');
+}
+
+function renderLabFormula(){
+  const result = document.getElementById('labResult');
+  if(!result) return;
+
+  if(!selectedLabProduct) selectLabProductFromInput();
+  const p = selectedLabProduct;
+  const color = (document.getElementById('labColorInput')?.value || '').trim();
+
+  selectedLabCalc = null;
+
+  if(!p){
+    result.innerHTML = '<div class="empty-msg">Elegí un producto tintable.</div>';
+    return;
+  }
+  if(!color){
+    result.innerHTML = '<div class="empty-msg">Ingresá un código o descripción de color.</div>';
+    return;
+  }
+
+  const res = calcTintForProduct(p, color);
+  if(!res.ok){
+    result.innerHTML = `<div class="card"><div class="tinto-bad">${esc(res.msg)}</div></div>`;
+    return;
+  }
+
+  selectedLabCalc = res;
+
+  result.innerHTML = `
+    <div class="lab-formula-card">
+      <div class="lab-formula-title">${esc(res.rec.idcolor || extractColorId(color))} · ${esc(res.rec.descripcion || '')}</div>
+      <div class="lab-meta">
+        Producto: <b>${esc(p.ARTIC)}</b><br>
+        Base fórmula: <b>${esc(res.base_formula)}</b> · Base física: <b>${esc(res.base_fisica)}</b> · Factor: <b>${Number(res.factor.toFixed(6))}</b><br>
+        Redondeo: 0.125 pulso
+      </div>
+      ${res.lines.map(x => `
+        <div class="lab-line">
+          <div class="lab-colorant">${esc(x.colorante)}</div>
+          <div>
+            <div class="lab-pulses">${fmtPulse(x.pulsos)} pulsos</div>
+            <div class="lab-oz">${pulseToOz(x.pulsos)}</div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function addLabToBudget(){
+  if(!selectedLabProduct) selectLabProductFromInput();
+  const p = selectedLabProduct;
+  const color = (document.getElementById('labColorInput')?.value || '').trim();
+  if(!p){ alert('Elegí un producto tintable.'); return; }
+  const calc = calcTintForProduct(p, color);
+  if(!calc.ok){ alert(calc.msg); return; }
+
+  const itemPrice = num(p.PR_CON_IVA) + calc.tintCost;
+  cart.push({
+    uid:'u_'+Date.now()+'_'+Math.random().toString(16).slice(2),
+    COD:p.COD,
+    ARTIC:`${p.ARTIC} (${calc.rec.idcolor || extractColorId(color)})`,
+    base_ARTIC:p.ARTIC,
+    PR_SIN_IVA:itemPrice/1.21,
+    PR_CON_IVA:itemPrice,
+    qty:1,
+    extraDiscount:0,
+    tintData:{
+      color: calc.rec.idcolor || extractColorId(color),
+      descripcion: calc.rec.descripcion || '',
+      manualModified:false,
+      base_formula: calc.base_formula,
+      base_fisica: calc.base_fisica,
+      factor: calc.factor,
+      tintCost: calc.tintCost,
+      formula_original: calc.lines.map(x=>({colorante:x.colorante,pulsos:x.pulsos,precioPulso:x.precioPulso,subtotal:x.subtotal})),
+      formula: calc.lines.map(x=>({colorante:x.colorante,pulsos:x.pulsos,precioPulso:x.precioPulso,subtotal:x.subtotal}))
+    }
+  });
+  save();
+  showScreen('cartScreen');
+}
 
 
 /* ═══════════════════════════════
@@ -3154,6 +3429,64 @@ function buildA4HTML(payload){
       border-radius:0 0 22px 22px;
       max-height:72vh;
     }
+
+
+    .lab-hero{
+      background:rgba(74,179,255,.08);
+      border:1px solid rgba(74,179,255,.22);
+      border-radius:18px;
+      padding:14px;
+      margin-bottom:12px;
+    }
+    .lab-formula-card{
+      background:rgba(0,0,0,.18);
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:14px;
+      margin-top:12px;
+    }
+    .lab-formula-title{
+      font-family:var(--font-head);
+      font-size:1.3rem;
+      font-weight:800;
+      color:#fff;
+      margin-bottom:4px;
+    }
+    .lab-meta{
+      color:var(--text-muted);
+      font-size:.86rem;
+      line-height:1.45;
+      margin-bottom:10px;
+    }
+    .lab-line{
+      display:grid;
+      grid-template-columns:72px 1fr;
+      gap:12px;
+      align-items:center;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.09);
+      border-radius:14px;
+      padding:12px;
+      margin-bottom:8px;
+    }
+    .lab-colorant{
+      font-family:var(--font-head);
+      font-size:1.8rem;
+      font-weight:900;
+      color:var(--accent);
+      text-align:center;
+    }
+    .lab-pulses{
+      font-size:1.1rem;
+      font-weight:800;
+      color:#fff;
+    }
+    .lab-oz{
+      font-size:.92rem;
+      color:var(--text-muted);
+      margin-top:3px;
+    }
+    .tile-lab{ background:linear-gradient(135deg,#0f6f88,#0b5367); }
 
   </style></head><body>
   <div class="print-a4">
