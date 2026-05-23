@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Pancko"/>
   <meta name="theme-color" content="#0a2a5e"/>
-  <title>Pancko Integral v0.4.1</title>
+  <title>Pancko Integral v0.5</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -620,6 +620,56 @@
       line-height:1.42;
     }
 
+
+    .tint-manual-box{
+      margin-top:12px;
+      background:rgba(0,0,0,.12);
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:10px;
+    }
+    .tint-manual-head{
+      display:grid;
+      grid-template-columns:1fr 92px 34px;
+      gap:8px;
+      color:var(--text-muted);
+      font-size:.72rem;
+      text-transform:uppercase;
+      letter-spacing:.04em;
+      margin-bottom:6px;
+    }
+    .tint-manual-row{
+      display:grid;
+      grid-template-columns:1fr 92px 34px;
+      gap:8px;
+      align-items:center;
+      margin-bottom:7px;
+    }
+    .tint-manual-row select,
+    .tint-manual-row input{
+      padding:8px 9px;
+      border-radius:10px;
+      font-size:.86rem;
+    }
+    .tint-manual-remove{
+      width:34px;
+      height:34px;
+      border:none;
+      border-radius:10px;
+      background:rgba(200,60,60,.22);
+      color:#ff9a9a;
+      font-weight:900;
+      cursor:pointer;
+    }
+    .tint-manual-total{
+      margin-top:8px;
+      padding-top:8px;
+      border-top:1px dashed rgba(255,255,255,.16);
+      font-size:.86rem;
+      color:var(--text-muted);
+      line-height:1.35;
+    }
+
   </style>
 </head>
 <body>
@@ -966,7 +1016,7 @@
       <div class="divider"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.4.1</div>
+          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.5</div>
           <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">Lanzamiento: Abril 2026</div>
         </div>
         <div style="font-size:2rem;opacity:.25;">🚀</div>
@@ -1642,6 +1692,7 @@ function addToCart(){
       base_fisica: calc.base_fisica,
       factor: calc.factor,
       tintCost: calc.tintCost,
+      formula_original: calc.lines.map(x=>({colorante:x.colorante,pulsos:x.pulsos,precioPulso:x.precioPulso,subtotal:x.subtotal})),
       formula: calc.lines.map(x=>({colorante:x.colorante,pulsos:x.pulsos,precioPulso:x.precioPulso,subtotal:x.subtotal}))
     };
   }
@@ -1703,6 +1754,7 @@ function openTintEditModal(key){
 
   renderTintEditOptions();
   previewTintEdit();
+  renderTintManualRows(item.tintData.formula || []);
 
   document.getElementById('tintEditModal').classList.add('open');
 }
@@ -1740,7 +1792,7 @@ function renderTintEditOptions(){
   list.innerHTML=matches.map(r=>`<option value="${esc(tintRecipeLabel(r))}"></option>`).join('');
 }
 
-function previewTintEdit(){
+function previewTintEdit(refreshManual=true){
   const box=document.getElementById('tintEditPreview');
   const input=document.getElementById('tintEditColorInput');
   const item=getCartItemByKey(editingTintKey);
@@ -1767,6 +1819,7 @@ function previewTintEdit(){
   }
 
   editingTintCalc = res;
+  if(refreshManual) renderTintManualRows(res.lines);
   const basePrice=num(p.PR_CON_IVA);
   const total=basePrice+res.tintCost;
 
@@ -1777,6 +1830,98 @@ function previewTintEdit(){
     <div class="tinto-lines">
       ${res.lines.map(x=>`<div class="tinto-line"><span><b>${esc(x.colorante)}</b></span><span>${fmtPulse(x.pulsos)} pulsos</span><span>${$m(x.subtotal)}</span></div>`).join('')}
     </div>`;
+}
+
+
+function tintColorOptionsHtml(selected=''){
+  return tintColorantList().map(c=>`<option value="${c}" ${normKey(c)===normKey(selected)?'selected':''}>${c}</option>`).join('');
+}
+
+function getCurrentTintManualLines(){
+  const rows = Array.from(document.querySelectorAll('#tintManualRows .tint-manual-row'));
+  const lines = [];
+  for(const row of rows){
+    const c = normKey(row.querySelector('[data-tint-color]')?.value || '');
+    const pulses = roundPulse(num(row.querySelector('[data-tint-pulses]')?.value || 0));
+    if(!c || pulses <= 0) continue;
+    const precioPulso = num(colorantPrices[c]);
+    lines.push({
+      colorante:c,
+      pulsos:pulses,
+      precioPulso,
+      subtotal:pulses * precioPulso
+    });
+  }
+  return lines;
+}
+
+function renderTintManualRows(lines){
+  const box = document.getElementById('tintManualRows');
+  if(!box) return;
+  const safe = (lines || []).map(x => ({
+    colorante: normKey(x.colorante),
+    pulsos: roundPulse(x.pulsos ?? x.pulsosRaw ?? 0)
+  })).filter(x => x.colorante && x.pulsos > 0);
+
+  box.innerHTML = safe.map((x, idx)=>`
+    <div class="tint-manual-row" data-row="${idx}">
+      <select data-tint-color onchange="updateTintManualTotal()">${tintColorOptionsHtml(x.colorante)}</select>
+      <input data-tint-pulses type="number" step="0.125" value="${fmtPulse(x.pulsos)}" oninput="updateTintManualTotal()"/>
+      <button class="tint-manual-remove" onclick="removeTintManualRow(this)">×</button>
+    </div>
+  `).join('');
+
+  updateTintManualTotal();
+}
+
+function addTintManualRow(colorante='B', pulsos=1){
+  const box = document.getElementById('tintManualRows');
+  if(!box) return;
+  const div = document.createElement('div');
+  div.className = 'tint-manual-row';
+  div.innerHTML = `
+    <select data-tint-color onchange="updateTintManualTotal()">${tintColorOptionsHtml(colorante)}</select>
+    <input data-tint-pulses type="number" step="0.125" value="${fmtPulse(pulsos)}" oninput="updateTintManualTotal()"/>
+    <button class="tint-manual-remove" onclick="removeTintManualRow(this)">×</button>
+  `;
+  box.appendChild(div);
+  updateTintManualTotal();
+}
+
+function removeTintManualRow(btn){
+  const row = btn.closest('.tint-manual-row');
+  if(row) row.remove();
+  updateTintManualTotal();
+}
+
+function updateTintManualTotal(){
+  const out = document.getElementById('tintManualTotal');
+  const item = getCartItemByKey(editingTintKey);
+  if(!out || !item) return;
+
+  const p = products.find(x=>String(x.COD)===String(item.COD));
+  const basePrice = p ? num(p.PR_CON_IVA) : (num(item.PR_CON_IVA) - num(item.tintData?.tintCost));
+  const lines = getCurrentTintManualLines();
+  const tintCost = lines.reduce((s,x)=>s+x.subtotal,0);
+  const total = basePrice + tintCost;
+
+  out.innerHTML = `Tintas: <b>${$m(tintCost)}</b> · Total lista: <b>${$m(total)}</b>`;
+}
+
+function restoreTintOriginalFormula(){
+  const item = getCartItemByKey(editingTintKey);
+  const p = item ? products.find(x=>String(x.COD)===String(item.COD)) : null;
+  const value = (document.getElementById('tintEditColorInput')?.value || '').trim();
+  if(!p || !value) return;
+
+  const calc = calcTintForProduct(p, value);
+  if(!calc.ok){
+    alert(calc.msg || 'No se pudo restaurar fórmula calculada.');
+    return;
+  }
+  editingTintCalc = calc;
+  renderTintManualRows(calc.lines);
+  previewTintEdit(false);
 }
 
 function saveTintEdit(){
@@ -1797,7 +1942,15 @@ function saveTintEdit(){
     return;
   }
 
-  const itemPrice = num(p.PR_CON_IVA) + calc.tintCost;
+  const manualLines = getCurrentTintManualLines();
+  if(!manualLines.length){
+    alert('La fórmula no puede quedar sin tintas.');
+    return;
+  }
+
+  const tintCost = manualLines.reduce((s,x)=>s+x.subtotal,0);
+  const itemPrice = num(p.PR_CON_IVA) + tintCost;
+
   item.PR_CON_IVA = itemPrice;
   item.PR_SIN_IVA = itemPrice / 1.21;
   item.base_ARTIC = p.ARTIC;
@@ -1808,8 +1961,9 @@ function saveTintEdit(){
     base_formula: calc.base_formula,
     base_fisica: calc.base_fisica,
     factor: calc.factor,
-    tintCost: calc.tintCost,
-    formula: calc.lines.map(x=>({colorante:x.colorante,pulsos:x.pulsos,precioPulso:x.precioPulso,subtotal:x.subtotal}))
+    tintCost: tintCost,
+    formula_original: calc.lines.map(x=>({colorante:x.colorante,pulsos:x.pulsos,precioPulso:x.precioPulso,subtotal:x.subtotal})),
+    formula: manualLines
   };
 
   save();
@@ -2682,6 +2836,56 @@ function buildA4HTML(payload){
       line-height:1.42;
     }
 
+
+    .tint-manual-box{
+      margin-top:12px;
+      background:rgba(0,0,0,.12);
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:10px;
+    }
+    .tint-manual-head{
+      display:grid;
+      grid-template-columns:1fr 92px 34px;
+      gap:8px;
+      color:var(--text-muted);
+      font-size:.72rem;
+      text-transform:uppercase;
+      letter-spacing:.04em;
+      margin-bottom:6px;
+    }
+    .tint-manual-row{
+      display:grid;
+      grid-template-columns:1fr 92px 34px;
+      gap:8px;
+      align-items:center;
+      margin-bottom:7px;
+    }
+    .tint-manual-row select,
+    .tint-manual-row input{
+      padding:8px 9px;
+      border-radius:10px;
+      font-size:.86rem;
+    }
+    .tint-manual-remove{
+      width:34px;
+      height:34px;
+      border:none;
+      border-radius:10px;
+      background:rgba(200,60,60,.22);
+      color:#ff9a9a;
+      font-weight:900;
+      cursor:pointer;
+    }
+    .tint-manual-total{
+      margin-top:8px;
+      padding-top:8px;
+      border-top:1px dashed rgba(255,255,255,.16);
+      font-size:.86rem;
+      color:var(--text-muted);
+      line-height:1.35;
+    }
+
   </style></head><body>
   <div class="print-a4">
     <div class="a4-header">
@@ -2723,6 +2927,21 @@ function buildA4HTML(payload){
     <div id="tintEditPreview" class="tint-edit-preview">
       <span class="muted">Ingresá otro color para recalcular.</span>
     </div>
+
+    <div class="tint-manual-box">
+      <div style="font-weight:700;margin-bottom:6px;">Ajuste manual de tintas</div>
+      <div class="muted" style="font-size:.78rem;line-height:1.35;margin-bottom:8px;">
+        Podés modificar pulsos, quitar tintas o agregar otra tinta si ajustaste el color.
+      </div>
+      <div class="tint-manual-head">
+        <div>Tinta</div><div>Pulsos usados</div><div></div>
+      </div>
+      <div id="tintManualRows"></div>
+      <button class="btn btn-back" style="width:100%;margin-top:8px" onclick="addTintManualRow()">＋ Agregar tinta</button>
+      <button class="btn btn-back" style="width:100%;margin-top:8px" onclick="restoreTintOriginalFormula()">Restaurar fórmula calculada</button>
+      <div id="tintManualTotal" class="tint-manual-total"></div>
+    </div>
+
     <div style="display:flex;gap:10px;margin-top:14px;">
       <button class="btn btn-primary" style="flex:1" onclick="saveTintEdit()">Guardar cambio</button>
       <button class="btn btn-back" style="flex:1" onclick="closeTintEditModal()">Cancelar</button>
@@ -3459,6 +3678,21 @@ function useClientForBudget(id){
     <div id="tintEditPreview" class="tint-edit-preview">
       <span class="muted">Ingresá otro color para recalcular.</span>
     </div>
+
+    <div class="tint-manual-box">
+      <div style="font-weight:700;margin-bottom:6px;">Ajuste manual de tintas</div>
+      <div class="muted" style="font-size:.78rem;line-height:1.35;margin-bottom:8px;">
+        Podés modificar pulsos, quitar tintas o agregar otra tinta si ajustaste el color.
+      </div>
+      <div class="tint-manual-head">
+        <div>Tinta</div><div>Pulsos usados</div><div></div>
+      </div>
+      <div id="tintManualRows"></div>
+      <button class="btn btn-back" style="width:100%;margin-top:8px" onclick="addTintManualRow()">＋ Agregar tinta</button>
+      <button class="btn btn-back" style="width:100%;margin-top:8px" onclick="restoreTintOriginalFormula()">Restaurar fórmula calculada</button>
+      <div id="tintManualTotal" class="tint-manual-total"></div>
+    </div>
+
     <div style="display:flex;gap:10px;margin-top:14px;">
       <button class="btn btn-primary" style="flex:1" onclick="saveTintEdit()">Guardar cambio</button>
       <button class="btn btn-back" style="flex:1" onclick="closeTintEditModal()">Cancelar</button>
