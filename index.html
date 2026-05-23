@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Pancko"/>
   <meta name="theme-color" content="#0a2a5e"/>
-  <title>Pancko Integral v0.10.2</title>
+  <title>Pancko Integral v0.10.3</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -1489,7 +1489,7 @@
       </div>
 
       <div style="display:flex;gap:10px;flex-wrap:wrap;">
-        <button class="btn btn-primary" style="flex:1" onclick="renderLabFormula()">Ver fórmula</button>
+        <button class="btn btn-primary" style="flex:1" onclick="renderLabFormula()">Actualizar fórmula</button>
         <button class="btn btn-green" style="flex:1" onclick="addLabToBudget()">Agregar al presupuesto</button>
       </div>
       <div class="lab-save-row">
@@ -1749,7 +1749,7 @@
       <div class="divider"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.2</div>
+          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.3</div>
           <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">Lanzamiento: Abril 2026</div>
         </div>
         <div style="font-size:2rem;opacity:.25;">🚀</div>
@@ -2723,6 +2723,8 @@ function renderLabFormula(){
       </div>
     </div>
   `;
+  renderLabManualRows(selectedLabManualLines);
+  renderLabFormulaTable(selectedLabManualLines);
 }
 
 
