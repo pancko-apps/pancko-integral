@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Pancko"/>
   <meta name="theme-color" content="#0a2a5e"/>
-  <title>Pancko Integral v0.10.1</title>
+  <title>Pancko Integral v0.10.2</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -1749,7 +1749,7 @@
       <div class="divider"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.1</div>
+          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.2</div>
           <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">Lanzamiento: Abril 2026</div>
         </div>
         <div style="font-size:2rem;opacity:.25;">🚀</div>
@@ -1856,123 +1856,8 @@
   </div>
 </div>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js">
-
-/* ═══════════════════════════════
-   BUNDLED DATA AUTOLOAD
-═══════════════════════════════ */
-const BUNDLED_DATA_VERSION_KEY = 'pk_bundled_data_versions';
-
-function renderBundledDataStatus(msg=''){
-  const el = document.getElementById('bundledDataStatus');
-  if(!el) return;
-  const versions = JSON.parse(localStorage.getItem(BUNDLED_DATA_VERSION_KEY) || '{}');
-  const parts = [];
-  if(versions.articulos) parts.push(`Artículos: ${versions.articulos}`);
-  if(versions.recetas) parts.push(`Recetas: ${versions.recetas}`);
-  if(versions.clientes) parts.push(`Clientes: ${versions.clientes}`);
-  el.innerHTML = `${msg ? `<div>${esc(msg)}</div>` : ''}${parts.length ? `Datos del repo cargados:<br>${parts.join('<br>')}` : 'Datos del repo: sin cargar todavía.'}`;
-}
-
-async function fetchTextIfOk(url){
-  const res = await fetch(url, { cache:'no-store' });
-  if(!res.ok) throw new Error(`${url}: ${res.status}`);
-  const buffer = await res.arrayBuffer();
-  return decodeText(buffer);
-}
-
-async function autoLoadBundledData(){
-  try{
-    const version = JSON.parse(await fetchTextIfOk('data/version.json'));
-    const loaded = JSON.parse(localStorage.getItem(BUNDLED_DATA_VERSION_KEY) || '{}');
-    let changed = false;
-    let messages = [];
-
-    if(version.articulos && version.articulos !== loaded.articulos){
-      const text = await fetchTextIfOk('data/articulos.csv');
-      const imp = parseCSV(text);
-      if(imp.length){
-        products = imp;
-        const tintFound = syncTintPricesFromProducts(false);
-        loaded.articulos = version.articulos;
-        changed = true;
-        messages.push(`Artículos actualizados: ${products.length}${tintFound ? ` · tintas ${tintFound}` : ''}`);
-      }
-    }
-
-    if(version.recetas && version.recetas !== loaded.recetas){
-      const text = await fetchTextIfOk('data/recetas.csv');
-      const rows = parseGenericCSV(text);
-      const valid = rows.filter(r => r.base && (r.idcolor || r.codigo_formula) && r.formula_1l);
-      if(valid.length){
-        tintRecipes = valid;
-        buildTintIndex();
-        loaded.recetas = version.recetas;
-        changed = true;
-        messages.push(`Recetas actualizadas: ${tintRecipes.length}`);
-      }
-    }
-
-    if(version.clientes && version.clientes !== loaded.clientes){
-      const text = await fetchTextIfOk('data/clientes.csv');
-      const imported = parseClientsCSV(text).map(fixClientEncoding);
-      if(imported.length){
-        clients = imported;
-        loaded.clientes = version.clientes;
-        changed = true;
-        messages.push(`Clientes actualizados: ${clients.length}`);
-      }
-    }
-
-    if(changed){
-      localStorage.setItem(BUNDLED_DATA_VERSION_KEY, JSON.stringify(loaded));
-      save();
-      buildTintIndex();
-      syncTintPricesFromProducts(false);
-      if(typeof renderImportStatus==='function') renderImportStatus();
-      if(typeof renderTintStatus==='function') renderTintStatus();
-      if(typeof renderTintPriceInputs==='function') renderTintPriceInputs();
-      if(typeof renderClientsImportStatus==='function') renderClientsImportStatus();
-      if(typeof renderClientsList==='function') renderClientsList();
-      if(typeof renderSearch==='function') renderSearch();
-      if(typeof renderManageList==='function') renderManageList();
-      renderBundledDataStatus(messages.join('<br>'));
-      showToast('Datos del repositorio actualizados');
-    }else{
-      renderBundledDataStatus('Datos del repositorio ya estaban al día.');
-    }
-  }catch(err){
-    // Si se abre como archivo local o falta /data, no rompemos la app.
-    renderBundledDataStatus('Carga automática no disponible. Podés importar CSV manualmente.');
-    console.warn('Bundled data autoload:', err);
-  }
-}
-
-autoLoadBundledData();
-
-
-document.addEventListener('click', function(e){
-  const labList = document.getElementById('labClientAutocompleteList');
-  const labInput = document.getElementById('labClientInput');
-  if(labList && labInput && !labList.contains(e.target) && e.target !== labInput){
-    labList.style.display = 'none';
-  }
-});
-
-document.addEventListener('click', function(e){
-  const box = document.getElementById('labProductSuggest');
-  const inp = document.getElementById('labProductInput');
-  if(box && inp && !box.contains(e.target) && e.target !== inp){
-    box.classList.remove('show');
-  }
-  const cbox = document.getElementById('labColorSuggest');
-  const cinp = document.getElementById('labColorInput');
-  if(cbox && cinp && !cbox.contains(e.target) && e.target !== cinp){
-    cbox.classList.remove('show');
-  }
-});
-
-</script><script>
+<!-- Cloudflare email-decode script removed: no inline code inside script src. -->
+<script>
 /* ═══════════════════════════════
    STATE
 ═══════════════════════════════ */
@@ -3149,8 +3034,7 @@ function addLabToBudget(){
       color: colorLabelWithMod(calc.rec.idcolor || extractColorId(color), labFormulaModified()),
       color_original: calc.rec.idcolor || extractColorId(color),
       descripcion: calc.rec.descripcion || '',
-      manualModified: labFormulaModified(),
-      manualModified:modified,
+      manualModified: modified,
       base_formula: calc.base_formula,
       base_fisica: calc.base_fisica,
       factor: calc.factor,
@@ -3279,9 +3163,9 @@ function addToCart(){
       base_formula: calc.base_formula,
       base_fisica: calc.base_fisica,
       factor: calc.factor,
-      tintCost: tintCost,
+      tintCost: calc.tintCost,
       formula_original: calc.lines.map(x=>({colorante:x.colorante,pulsos:x.pulsos,precioPulso:x.precioPulso,subtotal:x.subtotal})),
-      formula: usedLines.map(x=>({colorante:x.colorante,pulsos:x.pulsos,precioPulso:x.precioPulso,subtotal:x.subtotal}))
+      formula: calc.lines.map(x=>({colorante:x.colorante,pulsos:x.pulsos,precioPulso:x.precioPulso,subtotal:x.subtotal}))
     };
   }
 
@@ -3304,6 +3188,15 @@ window.screenHistory = [];
 window.addEventListener('popstate', function(e){
   const target = (e.state && e.state.screen) ? e.state.screen : 'homeScreen';
   showScreen(target, {push:false, sync:false});
+});
+
+
+document.addEventListener('click', function(e){
+  const labList = document.getElementById('labClientAutocompleteList');
+  const labInput = document.getElementById('labClientInput');
+  if(labList && labInput && !labList.contains(e.target) && e.target !== labInput){
+    labList.style.display = 'none';
+  }
 });
 
 document.addEventListener('keydown', function(e){
