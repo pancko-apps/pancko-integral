@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Pancko"/>
   <meta name="theme-color" content="#0a2a5e"/>
-  <title>Pancko Integral v0.10.0</title>
+  <title>Pancko Integral v0.10.1</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -1749,7 +1749,7 @@
       <div class="divider"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.0</div>
+          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.1</div>
           <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">Lanzamiento: Abril 2026</div>
         </div>
         <div style="font-size:2rem;opacity:.25;">🚀</div>
@@ -4234,18 +4234,19 @@ function drawAndShowTicket(cartData, cfg, client, clientData, modeLabel, modePct
   const W = 384;
   const PAD = 18;
   const INNER = W - PAD * 2;
-  const PRICE_W = 88;
-  const LEFT_W = INNER - PRICE_W - 8;
+  const PRICE_W = 86;
+  const LEFT_W = INNER - PRICE_W - 10;
   const canvas = document.getElementById('thermalCanvas');
   const ctx = canvas.getContext('2d');
 
   const F_LG   = 'bold 15px monospace';
   const F_MD   = 'bold 13px monospace';
   const F_SM   = '11px monospace';
+  const F_XS   = '10px monospace';
   const F_BOLD = 'bold 13px monospace';
   const F_TOT  = 'bold 16px monospace';
 
-  const RH_LG = 24, RH_MD = 21, RH_SM = 17, RH_TOT = 26;
+  const RH_LG = 24, RH_MD = 21, RH_SM = 17, RH_XS = 15, RH_TOT = 26;
 
   function T(str, x, y, font, align='left', color='#111'){
     ctx.font = font;
@@ -4294,9 +4295,9 @@ function drawAndShowTicket(cartData, cfg, client, clientData, modeLabel, modePct
       }
     }
     if(lines.length < maxLines && cur) lines.push(cur);
-    if(words.length && lines.length === maxLines){
-      const joined = lines.join(' ');
-      if(joined.length < String(text).trim().length){
+    if(lines.length === maxLines){
+      const raw = String(text || '').trim();
+      if(lines.join(' ').length < raw.length){
         lines[maxLines-1] = truncateToWidth(lines[maxLines-1], maxW, font);
       }
     }
@@ -4316,9 +4317,9 @@ function drawAndShowTicket(cartData, cfg, client, clientData, modeLabel, modePct
   const rows = cartData.map(item => {
     const finalT = finalItemTotal(item, modePct);
     const code = String(item.COD || '').trim();
-    const codeLine = truncateToWidth(`${item.qty}× ${code || 's/cód.'}`, LEFT_W, F_MD);
-    const descLines = wrapToLines(item.ARTIC || '', LEFT_W, F_SM, 2);
-    return { item, finalT, codeLine, descLines };
+    const articleLines = wrapToLines(item.ARTIC || '', LEFT_W, F_MD, 2);
+    const codeLine = code ? truncateToWidth('Código: ' + code, LEFT_W, F_XS) : '';
+    return { item, finalT, articleLines, codeLine };
   });
 
   const baseTotal  = cartData.reduce((s, i) => s + i.PR_CON_IVA * i.qty, 0);
@@ -4339,7 +4340,7 @@ function drawAndShowTicket(cartData, cfg, client, clientData, modeLabel, modePct
   if(clientData && clientData.telefono) h += RH_SM;
   h += G12 + 1 + G10;
   h += RH_MD + G6 + 1 + G8;
-  rows.forEach(r => { h += RH_MD + (r.descLines.length * RH_SM) + G8; });
+  rows.forEach(r => { h += Math.max(RH_MD, r.articleLines.length * RH_MD) + (r.codeLine ? RH_XS : 0) + G8; });
   h += G6 + 1 + G8;
   h += RH_MD + RH_MD;
   h += G10 + 1 + G10;
@@ -4384,7 +4385,7 @@ function drawAndShowTicket(cartData, cfg, client, clientData, modeLabel, modePct
   L(y, '#999', [5,4]);
   y += G10;
 
-  T('CANT/CÓDIGO', PAD, y, F_BOLD);
+  T('CANT. / ARTÍCULO', PAD, y, F_BOLD);
   T('TOTAL', W - PAD, y, F_BOLD, 'right');
   y += RH_MD;
 
@@ -4393,13 +4394,18 @@ function drawAndShowTicket(cartData, cfg, client, clientData, modeLabel, modePct
   y += G8;
 
   rows.forEach(r => {
-    T(r.codeLine, PAD, y, F_MD);
-    T($m(r.finalT), W - PAD, y, F_MD, 'right');
-    y += RH_MD;
-    r.descLines.forEach(line => {
-      T(line, PAD + 12, y, F_SM, 'left', '#444');
-      y += RH_SM;
+    const qtyPrefix = `${r.item.qty}× `;
+    T(qtyPrefix, PAD, y, F_MD, 'left', '#111');
+    const xArticle = PAD + 34;
+    r.articleLines.forEach((line, idx) => {
+      T(line, xArticle, y + idx * RH_MD, F_MD, 'left', '#111');
     });
+    T($m(r.finalT), W - PAD, y, F_MD, 'right');
+    y += Math.max(RH_MD, r.articleLines.length * RH_MD);
+    if(r.codeLine){
+      T(r.codeLine, xArticle, y, F_XS, 'left', '#666');
+      y += RH_XS;
+    }
     y += G8;
   });
 
@@ -4433,6 +4439,7 @@ function drawAndShowTicket(cartData, cfg, client, clientData, modeLabel, modePct
   });
   T('Pancko · Sistema de precios', W/2, y, F_SM, 'center', '#666');
 
+  ticketImageData = canvas.toDataURL('image/png');
   document.getElementById('exportModal').classList.add('open');
 }
 
@@ -4570,30 +4577,25 @@ function printBudgetA4(payload){
   };
 
   const html = buildA4HTML(printPayload);
-  const frame = document.createElement('iframe');
-  frame.style.position = 'fixed';
-  frame.style.right = '0';
-  frame.style.bottom = '0';
-  frame.style.width = '0';
-  frame.style.height = '0';
-  frame.style.border = '0';
-  frame.setAttribute('aria-hidden', 'true');
-  document.body.appendChild(frame);
+  const blob = new Blob([html], {type:'text/html;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const win = window.open(url, '_blank');
 
-  const doc = frame.contentWindow.document;
-  doc.open();
-  doc.write(html);
-  doc.close();
+  if(!win){
+    URL.revokeObjectURL(url);
+    alert('No se pudo abrir la vista A4. Revisá si el navegador bloqueó ventanas emergentes.');
+    return;
+  }
 
   setTimeout(() => {
     try{
-      frame.contentWindow.focus();
-      frame.contentWindow.print();
+      win.focus();
+      win.print();
     }catch(e){
-      alert('No se pudo abrir la impresión A4');
+      // Si Android no permite auto-imprimir el blob, al menos queda abierta la vista A4 para imprimir/guardar desde menú.
     }
-    setTimeout(() => frame.remove(), 4000);
-  }, 650);
+    setTimeout(() => URL.revokeObjectURL(url), 12000);
+  }, 900);
 }
 
 async function shareBudgetWhatsApp(payload){
