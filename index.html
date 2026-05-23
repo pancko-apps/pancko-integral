@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Pancko"/>
   <meta name="theme-color" content="#0a2a5e"/>
-  <title>Pancko Integral v0.8.1</title>
+  <title>Pancko Integral v0.9.1</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -914,6 +914,40 @@
       pointer-events:none;
     }
 
+
+    .lab-save-row{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:8px;
+      margin-top:10px;
+    }
+    .lab-record-card{
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:14px;
+      padding:11px 12px;
+      margin-bottom:8px;
+      cursor:pointer;
+    }
+    .lab-record-card:active{background:rgba(255,255,255,.10);}
+    .lab-record-title{
+      font-weight:800;
+      color:#fff;
+      font-size:.92rem;
+      line-height:1.25;
+    }
+    .lab-record-meta{
+      color:var(--text-muted);
+      font-size:.76rem;
+      margin-top:4px;
+      line-height:1.35;
+    }
+    .lab-record-actions{
+      display:flex;
+      gap:8px;
+      margin-top:8px;
+    }
+
   </style>
 </head>
 <body>
@@ -1075,13 +1109,27 @@
         <div id="labColorSuggest" class="lab-color-suggest-box"></div>
       </div>
 
+      <div class="field autocomplete-wrap">
+        <label>Cliente / registro</label>
+        <input type="text" id="labClientInput" placeholder="Cliente para guardar registro (opcional)" autocomplete="off" oninput="renderLabClientAutocomplete()" onfocus="renderLabClientAutocomplete()"/>
+        <div id="labClientAutocompleteList" class="autocomplete-list"></div>
+      </div>
+
       <div style="display:flex;gap:10px;flex-wrap:wrap;">
         <button class="btn btn-primary" style="flex:1" onclick="renderLabFormula()">Ver fórmula</button>
         <button class="btn btn-green" style="flex:1" onclick="addLabToBudget()">Agregar al presupuesto</button>
       </div>
+      <div class="lab-save-row">
+        <button class="btn btn-amber" style="width:100%" onclick="saveLabRecord()">Guardar registro de laboratorio</button>
+      </div>
     </div>
 
     <div id="labResult"></div>
+
+    <div class="card">
+      <div class="sec-title" style="font-size:1rem;margin-bottom:8px;">Últimos registros de laboratorio</div>
+      <div id="labRecordsList"></div>
+    </div>
   </section>
 
   <!-- CLIENTES -->
@@ -1303,7 +1351,7 @@
       <div class="divider"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.8.1</div>
+          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.9.1</div>
           <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">Lanzamiento: Abril 2026</div>
         </div>
         <div style="font-size:2rem;opacity:.25;">🚀</div>
@@ -1505,6 +1553,14 @@ autoLoadBundledData();
 
 
 document.addEventListener('click', function(e){
+  const labList = document.getElementById('labClientAutocompleteList');
+  const labInput = document.getElementById('labClientInput');
+  if(labList && labInput && !labList.contains(e.target) && e.target !== labInput){
+    labList.style.display = 'none';
+  }
+});
+
+document.addEventListener('click', function(e){
   const box = document.getElementById('labProductSuggest');
   const inp = document.getElementById('labProductInput');
   if(box && inp && !box.contains(e.target) && e.target !== inp){
@@ -1554,6 +1610,7 @@ let selectedProduct = null;
 let selectedTintCalc = null;
 let selectedLabProduct = null;
 let selectedLabCalc = null;
+let labRecords = JSON.parse(localStorage.getItem('pk_lab_records') || '[]');
 let selectedLabColorRecipe = null;
 let editingTintKey = null;
 let editingItemKey = null;
@@ -1571,6 +1628,7 @@ function save(){
   localStorage.setItem('pk_history', JSON.stringify(budgetHistory));
   localStorage.setItem('pk_clients', JSON.stringify(clients));
   localStorage.setItem('pk_config', JSON.stringify(config));
+  localStorage.setItem('pk_lab_records', JSON.stringify(labRecords));
   localStorage.setItem('pk_tint_recipes', JSON.stringify(tintRecipes));
   localStorage.setItem('pk_tint_prices', JSON.stringify(colorantPrices));
 }
@@ -1603,7 +1661,7 @@ renderTintPriceInputs(); renderTintStatus(); renderTintPriceInputs(); }
   if(id==='historyScreen') renderHistory();
   if(id==='clientsScreen') renderClientsList();
   if(id==='manageArticlesScreen') renderManageList();
-  if(id==='labScreen'){ renderLabPatternButtons(); renderLabProductOptions(); renderLabProductInfo(); renderLabFormula(); }
+  if(id==='labScreen'){ renderLabPatternButtons(); renderLabProductOptions(); renderLabProductInfo(); renderLabFormula(); renderLabRecords(); }
   if(options.sync !== false) syncBrowserHistory(id);
 }
 
@@ -2340,6 +2398,159 @@ function renderLabFormula(){
       </div>
     </div>
   `;
+}
+
+
+function renderLabClientAutocomplete(){
+  const input = document.getElementById('labClientInput');
+  const list = document.getElementById('labClientAutocompleteList');
+  if(!input || !list) return;
+
+  const q = norm(input.value || '');
+  const matches = clients
+    .filter(c => !q || norm(c.cliente || '').includes(q) || norm(c.cuit || '').includes(q))
+    .slice(0, 12);
+
+  if(!matches.length){
+    list.style.display = 'none';
+    list.innerHTML = '';
+    return;
+  }
+
+  list.innerHTML = matches.map(c => `
+    <div class="autocomplete-item" onclick="selectLabClient('${esc(String(c.id || c.cuit || c.cliente || ''))}')">
+      <div class="autocomplete-name">${esc(c.cliente || '')}</div>
+      <div class="autocomplete-meta">${esc(c.cuit || '')}${c.telefono ? ' · ' + esc(c.telefono) : ''}</div>
+    </div>
+  `).join('');
+  list.style.display = 'block';
+}
+
+function selectLabClient(id){
+  const c = clients.find(x => String(x.id || x.cuit || x.cliente || '') === String(id));
+  const input = document.getElementById('labClientInput');
+  const list = document.getElementById('labClientAutocompleteList');
+  if(input && c) input.value = c.cliente || '';
+  if(list){ list.style.display = 'none'; list.innerHTML = ''; }
+}
+
+function currentLabClientData(){
+  const name = (document.getElementById('labClientInput')?.value || '').trim();
+  if(!name) return null;
+  const match = clients.find(c => norm(c.cliente || '') === norm(name));
+  if(match){
+    return {
+      id: match.id || match.cuit || '',
+      cliente: match.cliente || name,
+      cuit: match.cuit || '',
+      telefono: match.telefono || '',
+      direccion: match.direccion || ''
+    };
+  }
+  return { id:'', cliente:name, cuit:'', telefono:'', direccion:'' };
+}
+
+function getLabRecordPayload(){
+  if(!selectedLabProduct) selectLabProductFromInput();
+  const p = selectedLabProduct;
+  const color = (document.getElementById('labColorInput')?.value || '').trim();
+  if(!p) return {ok:false,msg:'Elegí un producto tintable.'};
+
+  const calc = calcTintForProduct(p, color);
+  if(!calc.ok) return {ok:false,msg:calc.msg || 'No se pudo calcular la fórmula.'};
+
+  const client = currentLabClientData();
+  const now = new Date();
+
+  return {
+    ok:true,
+    record:{
+      id:'lab_'+Date.now()+'_'+Math.random().toString(16).slice(2),
+      fecha: now.toLocaleString('es-AR'),
+      timestamp: now.toISOString(),
+      cliente: client ? client.cliente : '',
+      clienteData: client,
+      COD:p.COD,
+      ARTIC:p.ARTIC,
+      color: calc.rec.idcolor || extractColorId(color),
+      descripcion: calc.rec.descripcion || '',
+      base_formula: calc.base_formula,
+      base_fisica: calc.base_fisica,
+      factor: calc.factor,
+      formula: calc.lines.map(x=>({
+        colorante:x.colorante,
+        pulsos:x.pulsos,
+        precioPulso:x.precioPulso,
+        subtotal:x.subtotal
+      }))
+    }
+  };
+}
+
+function saveLabRecord(){
+  const payload = getLabRecordPayload();
+  if(!payload.ok){ alert(payload.msg); return; }
+
+  labRecords.unshift(payload.record);
+  labRecords = labRecords.slice(0, 300);
+  save();
+  renderLabRecords();
+  showToast('Registro de laboratorio guardado');
+}
+
+function renderLabRecords(){
+  const box = document.getElementById('labRecordsList');
+  if(!box) return;
+
+  if(!labRecords.length){
+    box.innerHTML = '<div class="empty-msg" style="padding:14px;">Sin registros todavía.</div>';
+    return;
+  }
+
+  box.innerHTML = labRecords.slice(0, 12).map(r => `
+    <div class="lab-record-card" onclick="loadLabRecord('${esc(r.id)}')">
+      <div class="lab-record-title">${esc(r.cliente || 'Sin cliente')} · ${esc(r.color)} ${r.descripcion ? '· ' + esc(r.descripcion) : ''}</div>
+      <div class="lab-record-meta">
+        ${esc(r.fecha || '')}<br>
+        ${esc(r.ARTIC || '')}<br>
+        Base ${esc(r.base_formula || '')} · Física ${esc(r.base_fisica || '')}
+      </div>
+      <div class="lab-record-actions">
+        <button class="mini-btn edit" onclick="event.stopPropagation();loadLabRecord('${esc(r.id)}')">Abrir</button>
+        <button class="mini-btn delete" onclick="event.stopPropagation();deleteLabRecord('${esc(r.id)}')">Borrar</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function loadLabRecord(id){
+  const r = labRecords.find(x => x.id === id);
+  if(!r) return;
+
+  const p = products.find(x => String(x.COD) === String(r.COD));
+  if(p){
+    selectedLabProduct = p;
+    const pInput = document.getElementById('labProductInput');
+    if(pInput){ pInput.value = labProductLabel(p); pInput.dataset.cleared = '0'; }
+  }
+
+  const cInput = document.getElementById('labColorInput');
+  if(cInput){ cInput.value = `${r.color} — ${r.descripcion || ''}`; cInput.dataset.cleared = '0'; }
+
+  const clientInput = document.getElementById('labClientInput');
+  if(clientInput) clientInput.value = r.cliente || '';
+
+  renderLabProductInfo();
+  renderLabColorOptions();
+  renderLabFormula();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function deleteLabRecord(id){
+  if(!confirm('¿Borrar este registro de laboratorio?')) return;
+  labRecords = labRecords.filter(x => x.id !== id);
+  save();
+  renderLabRecords();
 }
 
 function addLabToBudget(){
@@ -4045,6 +4256,40 @@ function buildA4HTML(payload){
       display:block;
       height:46vh;
       pointer-events:none;
+    }
+
+
+    .lab-save-row{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:8px;
+      margin-top:10px;
+    }
+    .lab-record-card{
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:14px;
+      padding:11px 12px;
+      margin-bottom:8px;
+      cursor:pointer;
+    }
+    .lab-record-card:active{background:rgba(255,255,255,.10);}
+    .lab-record-title{
+      font-weight:800;
+      color:#fff;
+      font-size:.92rem;
+      line-height:1.25;
+    }
+    .lab-record-meta{
+      color:var(--text-muted);
+      font-size:.76rem;
+      margin-top:4px;
+      line-height:1.35;
+    }
+    .lab-record-actions{
+      display:flex;
+      gap:8px;
+      margin-top:8px;
     }
 
   </style></head><body>
