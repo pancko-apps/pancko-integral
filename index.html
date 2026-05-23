@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Pancko"/>
   <meta name="theme-color" content="#0a2a5e"/>
-  <title>Pancko Integral v0.9.1</title>
+  <title>Pancko Integral v0.9.1.1</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -948,6 +948,14 @@
       margin-top:8px;
     }
 
+
+    .lab-manual-box{margin-top:12px;background:rgba(0,0,0,.12);border:1px solid var(--border);border-radius:14px;padding:10px;}
+    .lab-manual-head,.lab-manual-row{display:grid;grid-template-columns:1fr 92px 34px;gap:8px;align-items:center;}
+    .lab-manual-head{color:var(--text-muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;}
+    .lab-manual-row{margin-bottom:7px;}
+    .lab-manual-row select,.lab-manual-row input{padding:8px 9px;border-radius:10px;font-size:.86rem;border:1px solid var(--border);background:rgba(0,0,0,.12);color:var(--text);}
+    .lab-manual-remove{width:34px;height:34px;border:none;border-radius:10px;background:rgba(200,60,60,.22);color:#ff9a9a;font-weight:900;cursor:pointer;}
+    .lab-record-search{width:100%;border-radius:14px;padding:12px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:1rem;margin-bottom:10px;}
   </style>
 </head>
 <body>
@@ -1111,7 +1119,7 @@
 
       <div class="field autocomplete-wrap">
         <label>Cliente / registro</label>
-        <input type="text" id="labClientInput" placeholder="Cliente para guardar registro (opcional)" autocomplete="off" oninput="renderLabClientAutocomplete()" onfocus="renderLabClientAutocomplete()"/>
+        <input type="text" id="labClientInput" placeholder="Cliente para guardar registro (opcional)" autocomplete="off" data-cleared="0" oninput="renderLabClientAutocomplete()" onfocus="clearTintInputOnce(this);renderLabClientAutocomplete()"/>
         <div id="labClientAutocompleteList" class="autocomplete-list"></div>
       </div>
 
@@ -1128,6 +1136,7 @@
 
     <div class="card">
       <div class="sec-title" style="font-size:1rem;margin-bottom:8px;">Últimos registros de laboratorio</div>
+      <input id="labRecordSearchInput" class="lab-record-search" type="text" placeholder="Buscar por cliente, color, producto..." oninput="renderLabRecords()" />
       <div id="labRecordsList"></div>
     </div>
   </section>
@@ -1351,7 +1360,7 @@
       <div class="divider"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.9.1</div>
+          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.9.1.1</div>
           <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">Lanzamiento: Abril 2026</div>
         </div>
         <div style="font-size:2rem;opacity:.25;">🚀</div>
@@ -1610,6 +1619,7 @@ let selectedProduct = null;
 let selectedTintCalc = null;
 let selectedLabProduct = null;
 let selectedLabCalc = null;
+let selectedLabManualLines = [];
 let labRecords = JSON.parse(localStorage.getItem('pk_lab_records') || '[]');
 let selectedLabColorRecipe = null;
 let editingTintKey = null;
@@ -1628,6 +1638,7 @@ function save(){
   localStorage.setItem('pk_history', JSON.stringify(budgetHistory));
   localStorage.setItem('pk_clients', JSON.stringify(clients));
   localStorage.setItem('pk_config', JSON.stringify(config));
+  localStorage.setItem('pk_lab_records', JSON.stringify(labRecords));
   localStorage.setItem('pk_lab_records', JSON.stringify(labRecords));
   localStorage.setItem('pk_tint_recipes', JSON.stringify(tintRecipes));
   localStorage.setItem('pk_tint_prices', JSON.stringify(colorantPrices));
@@ -2368,6 +2379,7 @@ function renderLabFormula(){
   }
 
   selectedLabCalc = res;
+  selectedLabManualLines = res.lines.map(x=>({colorante:x.colorante,pulsos:x.pulsos,precioPulso:x.precioPulso,subtotal:x.subtotal}));
 
   result.innerHTML = `
     <div class="lab-formula-card">
@@ -2377,24 +2389,14 @@ function renderLabFormula(){
         Base fórmula: <b>${esc(res.base_formula)}</b> · Base física: <b>${esc(res.base_fisica)}</b> · Factor: <b>${Number(res.factor.toFixed(6))}</b><br>
         Redondeo: 0.125 pulso
       </div>
-      <div class="lab-table">
-        <div class="lab-table-row lab-table-head">
-          <div class="lab-table-cell">Tinta</div>
-          <div class="lab-table-cell">Oz.</div>
-          <div class="lab-table-cell">Pls.</div>
-          <div class="lab-table-cell">Tot.</div>
-        </div>
-        ${res.lines.map(x => {
-          const pp = pulseParts(x.pulsos);
-          return `
-            <div class="lab-table-row">
-              <div class="lab-table-cell lab-table-color">${esc(x.colorante)}</div>
-              <div class="lab-table-cell lab-table-val">${fmtDashValue(pp.oz)}</div>
-              <div class="lab-table-cell lab-table-val">${fmtDashValue(pp.pls)}</div>
-              <div class="lab-table-cell lab-table-total">(${fmtPulse(pp.total)})</div>
-            </div>
-          `;
-        }).join('')}
+      <div id="labFormulaTableBox"></div>
+      <div class="lab-manual-box">
+        <div style="font-weight:700;margin-bottom:6px;">Editar fórmula usada</div>
+        <div class="muted" style="font-size:.78rem;line-height:1.35;margin-bottom:8px;">Ajustá pulsos, agregá una tinta o restaurá la fórmula calculada.</div>
+        <div class="lab-manual-head"><div>Tinta</div><div>Pulsos</div><div></div></div>
+        <div id="labManualRows"></div>
+        <button class="btn btn-back" style="width:100%;margin-top:8px" onclick="addLabManualRow()">＋ Agregar tinta</button>
+        <button class="btn btn-back" style="width:100%;margin-top:8px" onclick="restoreLabCalculatedFormula()">Restaurar fórmula calculada</button>
       </div>
     </div>
   `;
@@ -2450,6 +2452,57 @@ function currentLabClientData(){
   return { id:'', cliente:name, cuit:'', telefono:'', direccion:'' };
 }
 
+
+function labTintColorOptionsHtml(selected=''){
+  return tintColorantList().map(c=>`<option value="${c}" ${normKey(c)===normKey(selected)?'selected':''}>${c}</option>`).join('');
+}
+function getCurrentLabManualLines(){
+  const rows = Array.from(document.querySelectorAll('#labManualRows .lab-manual-row'));
+  const lines = [];
+  for(const row of rows){
+    const c = normKey(row.querySelector('[data-lab-tint-color]')?.value || '');
+    const pulses = roundPulse(num(row.querySelector('[data-lab-tint-pulses]')?.value || 0));
+    if(!c || pulses <= 0) continue;
+    const precioPulso = num(colorantPrices[c]);
+    lines.push({colorante:c,pulsos:pulses,precioPulso,subtotal:pulses*precioPulso});
+  }
+  return lines;
+}
+function renderLabManualRows(lines){
+  const box = document.getElementById('labManualRows');
+  if(!box) return;
+  const safe = (lines || []).map(x=>({colorante:normKey(x.colorante),pulsos:roundPulse(x.pulsos ?? x.pulsosRaw ?? 0)})).filter(x=>x.colorante && x.pulsos>0);
+  box.innerHTML = safe.map(x=>`
+    <div class="lab-manual-row">
+      <select data-lab-tint-color onchange="updateLabManualFormulaFromInputs()">${labTintColorOptionsHtml(x.colorante)}</select>
+      <input data-lab-tint-pulses type="number" step="0.125" value="${fmtPulse(x.pulsos)}" oninput="updateLabManualFormulaFromInputs()"/>
+      <button class="lab-manual-remove" onclick="removeLabManualRow(this)">×</button>
+    </div>`).join('');
+}
+function addLabManualRow(colorante='B', pulsos=1){
+  const box = document.getElementById('labManualRows'); if(!box) return;
+  const div = document.createElement('div'); div.className = 'lab-manual-row';
+  div.innerHTML = `<select data-lab-tint-color onchange="updateLabManualFormulaFromInputs()">${labTintColorOptionsHtml(colorante)}</select>
+    <input data-lab-tint-pulses type="number" step="0.125" value="${fmtPulse(pulsos)}" oninput="updateLabManualFormulaFromInputs()"/>
+    <button class="lab-manual-remove" onclick="removeLabManualRow(this)">×</button>`;
+  box.appendChild(div); updateLabManualFormulaFromInputs();
+}
+function removeLabManualRow(btn){ const row=btn.closest('.lab-manual-row'); if(row) row.remove(); updateLabManualFormulaFromInputs(); }
+function updateLabManualFormulaFromInputs(){ selectedLabManualLines = getCurrentLabManualLines(); renderLabFormulaTable(selectedLabManualLines); }
+function restoreLabCalculatedFormula(){
+  if(!selectedLabCalc) return;
+  selectedLabManualLines = selectedLabCalc.lines.map(x=>({colorante:x.colorante,pulsos:x.pulsos,precioPulso:x.precioPulso,subtotal:x.subtotal}));
+  renderLabManualRows(selectedLabManualLines); renderLabFormulaTable(selectedLabManualLines);
+}
+function renderLabFormulaTable(lines){
+  const box = document.getElementById('labFormulaTableBox'); if(!box) return;
+  box.innerHTML = `<div class="lab-table">
+    <div class="lab-table-row lab-table-head"><div class="lab-table-cell">Tinta</div><div class="lab-table-cell">Oz.</div><div class="lab-table-cell">Pls.</div><div class="lab-table-cell">Tot.</div></div>
+    ${(lines||[]).map(x=>{ const pp=pulseParts(x.pulsos); return `<div class="lab-table-row"><div class="lab-table-cell lab-table-color">${esc(x.colorante)}</div><div class="lab-table-cell lab-table-val">${fmtDashValue(pp.oz)}</div><div class="lab-table-cell lab-table-val">${fmtDashValue(pp.pls)}</div><div class="lab-table-cell lab-table-total">(${fmtPulse(pp.total)})</div></div>`;}).join('')}
+  </div>`;
+}
+function labFormulaModified(){ return selectedLabCalc ? !formulasAreEqual(selectedLabManualLines, selectedLabCalc.lines) : false; }
+
 function getLabRecordPayload(){
   if(!selectedLabProduct) selectLabProductFromInput();
   const p = selectedLabProduct;
@@ -2472,12 +2525,15 @@ function getLabRecordPayload(){
       clienteData: client,
       COD:p.COD,
       ARTIC:p.ARTIC,
-      color: calc.rec.idcolor || extractColorId(color),
+      color: colorLabelWithMod(calc.rec.idcolor || extractColorId(color), labFormulaModified()),
+      color_original: calc.rec.idcolor || extractColorId(color),
       descripcion: calc.rec.descripcion || '',
+      manualModified: labFormulaModified(),
       base_formula: calc.base_formula,
       base_fisica: calc.base_fisica,
       factor: calc.factor,
-      formula: calc.lines.map(x=>({
+      formula_original: calc.lines.map(x=>({colorante:x.colorante,pulsos:x.pulsos,precioPulso:x.precioPulso,subtotal:x.subtotal})),
+      formula: (selectedLabManualLines.length ? selectedLabManualLines : calc.lines).map(x=>({
         colorante:x.colorante,
         pulsos:x.pulsos,
         precioPulso:x.precioPulso,
@@ -2502,12 +2558,14 @@ function renderLabRecords(){
   const box = document.getElementById('labRecordsList');
   if(!box) return;
 
-  if(!labRecords.length){
-    box.innerHTML = '<div class="empty-msg" style="padding:14px;">Sin registros todavía.</div>';
+  const q = normKey(document.getElementById('labRecordSearchInput')?.value || '');
+  const filtered = labRecords.filter(r => !q || normKey(`${r.cliente || ''} ${r.color || ''} ${r.descripcion || ''} ${r.ARTIC || ''} ${r.COD || ''}`).includes(q));
+  if(!filtered.length){
+    box.innerHTML = '<div class="empty-msg" style="padding:14px;">Sin registros encontrados.</div>';
     return;
   }
 
-  box.innerHTML = labRecords.slice(0, 12).map(r => `
+  box.innerHTML = filtered.slice(0, 40).map(r => `
     <div class="lab-record-card" onclick="loadLabRecord('${esc(r.id)}')">
       <div class="lab-record-title">${esc(r.cliente || 'Sin cliente')} · ${esc(r.color)} ${r.descripcion ? '· ' + esc(r.descripcion) : ''}</div>
       <div class="lab-record-meta">
@@ -2543,6 +2601,7 @@ function loadLabRecord(id){
   renderLabProductInfo();
   renderLabColorOptions();
   renderLabFormula();
+  if(r.formula && r.formula.length){ selectedLabManualLines = r.formula; renderLabManualRows(selectedLabManualLines); renderLabFormulaTable(selectedLabManualLines); }
   window.scrollTo({top:0, behavior:'smooth'});
 }
 
@@ -2561,26 +2620,32 @@ function addLabToBudget(){
   const calc = calcTintForProduct(p, color);
   if(!calc.ok){ alert(calc.msg); return; }
 
-  const itemPrice = num(p.PR_CON_IVA) + calc.tintCost;
+  const usedLines = selectedLabManualLines.length ? selectedLabManualLines : calc.lines;
+  const tintCost = usedLines.reduce((s,x)=>s+(num(x.subtotal) || (num(x.pulsos)*num(x.precioPulso))),0);
+  const modified = !formulasAreEqual(usedLines, calc.lines);
+  const colorCode = calc.rec.idcolor || extractColorId(color);
+  const itemPrice = num(p.PR_CON_IVA) + tintCost;
   cart.push({
     uid:'u_'+Date.now()+'_'+Math.random().toString(16).slice(2),
     COD:p.COD,
-    ARTIC:`${p.ARTIC} (${calc.rec.idcolor || extractColorId(color)})`,
+    ARTIC:`${p.ARTIC} (${colorLabelWithMod(colorCode, modified)})`,
     base_ARTIC:p.ARTIC,
     PR_SIN_IVA:itemPrice/1.21,
     PR_CON_IVA:itemPrice,
     qty:1,
     extraDiscount:0,
     tintData:{
-      color: calc.rec.idcolor || extractColorId(color),
+      color: colorLabelWithMod(calc.rec.idcolor || extractColorId(color), labFormulaModified()),
+      color_original: calc.rec.idcolor || extractColorId(color),
       descripcion: calc.rec.descripcion || '',
-      manualModified:false,
+      manualModified: labFormulaModified(),
+      manualModified:modified,
       base_formula: calc.base_formula,
       base_fisica: calc.base_fisica,
       factor: calc.factor,
-      tintCost: calc.tintCost,
+      tintCost: tintCost,
       formula_original: calc.lines.map(x=>({colorante:x.colorante,pulsos:x.pulsos,precioPulso:x.precioPulso,subtotal:x.subtotal})),
-      formula: calc.lines.map(x=>({colorante:x.colorante,pulsos:x.pulsos,precioPulso:x.precioPulso,subtotal:x.subtotal}))
+      formula: usedLines.map(x=>({colorante:x.colorante,pulsos:x.pulsos,precioPulso:x.precioPulso,subtotal:x.subtotal}))
     }
   });
   save();
@@ -2703,9 +2768,9 @@ function addToCart(){
       base_formula: calc.base_formula,
       base_fisica: calc.base_fisica,
       factor: calc.factor,
-      tintCost: calc.tintCost,
+      tintCost: tintCost,
       formula_original: calc.lines.map(x=>({colorante:x.colorante,pulsos:x.pulsos,precioPulso:x.precioPulso,subtotal:x.subtotal})),
-      formula: calc.lines.map(x=>({colorante:x.colorante,pulsos:x.pulsos,precioPulso:x.precioPulso,subtotal:x.subtotal}))
+      formula: usedLines.map(x=>({colorante:x.colorante,pulsos:x.pulsos,precioPulso:x.precioPulso,subtotal:x.subtotal}))
     };
   }
 
@@ -4292,6 +4357,14 @@ function buildA4HTML(payload){
       margin-top:8px;
     }
 
+
+    .lab-manual-box{margin-top:12px;background:rgba(0,0,0,.12);border:1px solid var(--border);border-radius:14px;padding:10px;}
+    .lab-manual-head,.lab-manual-row{display:grid;grid-template-columns:1fr 92px 34px;gap:8px;align-items:center;}
+    .lab-manual-head{color:var(--text-muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;}
+    .lab-manual-row{margin-bottom:7px;}
+    .lab-manual-row select,.lab-manual-row input{padding:8px 9px;border-radius:10px;font-size:.86rem;border:1px solid var(--border);background:rgba(0,0,0,.12);color:var(--text);}
+    .lab-manual-remove{width:34px;height:34px;border:none;border-radius:10px;background:rgba(200,60,60,.22);color:#ff9a9a;font-weight:900;cursor:pointer;}
+    .lab-record-search{width:100%;border-radius:14px;padding:12px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:1rem;margin-bottom:10px;}
   </style></head><body>
   <div class="print-a4">
     <div class="a4-header">
