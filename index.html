@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Pancko"/>
   <meta name="theme-color" content="#0a2a5e"/>
-  <title>Pancko Integral v0.5.1</title>
+  <title>Pancko Integral v0.6</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -670,6 +670,54 @@
       line-height:1.35;
     }
 
+
+    .manual-discount-wrap{
+      display:none;
+      margin-top:8px;
+      margin-left:auto;
+      width:min(100%,260px);
+    }
+    .manual-discount-wrap.show{display:block;}
+    .manual-discount-wrap input{
+      width:100%;
+      border-radius:14px;
+      padding:12px;
+      border:1px solid var(--border);
+      background:var(--surface);
+      color:var(--text);
+      font-size:1rem;
+    }
+    .item-extra-discount{
+      margin-top:7px;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      color:var(--text-muted);
+      font-size:.75rem;
+      line-height:1.2;
+    }
+    .item-extra-discount input{
+      width:78px;
+      border-radius:10px;
+      padding:7px 8px;
+      border:1px solid var(--border);
+      background:rgba(0,0,0,.12);
+      color:var(--text);
+      font-size:.86rem;
+      text-align:center;
+    }
+    .item-extra-tag{
+      display:inline-block;
+      margin-top:5px;
+      border:1px solid rgba(74,179,255,.24);
+      background:rgba(74,179,255,.10);
+      color:#9bd9ff;
+      border-radius:999px;
+      padding:3px 7px;
+      font-size:.70rem;
+      font-weight:700;
+    }
+
   </style>
 </head>
 <body>
@@ -781,6 +829,9 @@
     <div class="cart-mode-row">
       <span class="cart-mode-label">Descuento:</span>
       <select id="priceModeSelect" onchange="saveModeAndRender()"></select>
+    </div>
+    <div id="manualDiscountWrap" class="manual-discount-wrap">
+      <input id="manualDiscountInput" type="number" min="0" max="100" step="0.01" placeholder="Descuento manual %" oninput="saveCustomDiscountAndRender()" />
     </div>
 
     <div id="cartItems"></div>
@@ -1016,7 +1067,7 @@
       <div class="divider"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.5.1</div>
+          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.6</div>
           <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">Lanzamiento: Abril 2026</div>
         </div>
         <div style="font-size:2rem;opacity:.25;">🚀</div>
@@ -1274,6 +1325,38 @@ function $m(v){ return new Intl.NumberFormat('es-AR',{style:'currency',currency:
 function norm(t){ return String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim(); }
 function applyDisc(price, pct){ return Math.round(price*(1-pct/100)); }
 
+function clampPct(v){
+  const n = Number(v);
+  if(!Number.isFinite(n)) return 0;
+  return Math.max(0, Math.min(100, n));
+}
+
+function getCustomDiscount(){
+  const el = document.getElementById('manualDiscountInput');
+  const raw = el ? el.value : localStorage.getItem('pk_custom_discount');
+  return clampPct(raw || 0);
+}
+
+function itemExtraPct(item){
+  return clampPct(item && item.extraDiscount);
+}
+
+function finalUnitPrice(item, modePct){
+  const base = num(item.PR_CON_IVA);
+  const globalPct = clampPct(modePct);
+  const extraPct = itemExtraPct(item);
+  return Math.round(base * (1 - globalPct/100) * (1 - extraPct/100));
+}
+
+function finalItemTotal(item, modePct){
+  return finalUnitPrice(item, modePct) * (Number(item.qty) || 1);
+}
+
+function modeLabel(mode){
+  if(!mode) return '';
+  return mode.key === 'manual' ? `${mode.label} (${mode.percent}%)` : `${mode.label} (${mode.percent}%)`;
+}
+
 function resolveClientData(){
   const name = (document.getElementById('clientName')?.value || '').trim();
   if(!name) return null;
@@ -1291,7 +1374,11 @@ function resolveClientData(){
 }
 
 function getMode(){
-  const key = document.getElementById('priceModeSelect').value;
+  const sel = document.getElementById('priceModeSelect');
+  const key = sel ? sel.value : (localStorage.getItem('pk_price_mode') || discounts[0].key);
+  if(key === 'manual'){
+    return { key:'manual', label:'Manual', percent:getCustomDiscount() };
+  }
   return discounts.find(d=>d.key===key) || discounts[0];
 }
 
@@ -1701,9 +1788,9 @@ function addToCart(){
   if(!tintable){
     const ex = cart.find(i=>!i.tintData && String(i.COD)===String(p.COD));
     if(ex) ex.qty += qty;
-    else cart.push({uid:'u_'+Date.now()+'_'+Math.random().toString(16).slice(2), COD:p.COD, ARTIC:itemName, base_ARTIC:p.ARTIC, PR_SIN_IVA:p.PR_SIN_IVA || (itemPrice/1.21), PR_CON_IVA:itemPrice, qty});
+    else cart.push({uid:'u_'+Date.now()+'_'+Math.random().toString(16).slice(2), COD:p.COD, ARTIC:itemName, base_ARTIC:p.ARTIC, PR_SIN_IVA:p.PR_SIN_IVA || (itemPrice/1.21), PR_CON_IVA:itemPrice, qty, extraDiscount:0});
   }else{
-    cart.push({uid:'u_'+Date.now()+'_'+Math.random().toString(16).slice(2), COD:p.COD, ARTIC:itemName, base_ARTIC:p.ARTIC, PR_SIN_IVA:itemPrice/1.21, PR_CON_IVA:itemPrice, qty, tintData});
+    cart.push({uid:'u_'+Date.now()+'_'+Math.random().toString(16).slice(2), COD:p.COD, ARTIC:itemName, base_ARTIC:p.ARTIC, PR_SIN_IVA:itemPrice/1.21, PR_CON_IVA:itemPrice, qty, extraDiscount:0, tintData});
   }
 
   save();
@@ -2008,13 +2095,30 @@ function saveTintEdit(){
 ═══════════════════════════════ */
 function renderModeOptions(){
   const sel = document.getElementById('priceModeSelect');
+  if(!sel) return;
   const cur = localStorage.getItem('pk_price_mode') || discounts[0].key;
-  sel.innerHTML = discounts.map(d=>`<option value="${d.key}">${d.label} (${d.percent}%)</option>`).join('');
+  const custom = localStorage.getItem('pk_custom_discount') || '0';
+  sel.innerHTML = discounts.map(d=>`<option value="${d.key}">${d.label} (${d.percent}%)</option>`).join('') +
+    `<option value="manual">Manual (${custom || 0}%)</option>`;
   sel.value = cur;
+  if(!sel.value) sel.value = discounts[0].key;
+
+  const wrap = document.getElementById('manualDiscountWrap');
+  const inp = document.getElementById('manualDiscountInput');
+  if(inp) inp.value = custom;
+  if(wrap) wrap.classList.toggle('show', sel.value === 'manual');
 }
 
 function saveModeAndRender(){
-  localStorage.setItem('pk_price_mode', document.getElementById('priceModeSelect').value);
+  const sel = document.getElementById('priceModeSelect');
+  if(sel) localStorage.setItem('pk_price_mode', sel.value);
+  renderCart();
+}
+
+function saveCustomDiscountAndRender(){
+  const inp = document.getElementById('manualDiscountInput');
+  const pct = clampPct(inp ? inp.value : 0);
+  localStorage.setItem('pk_custom_discount', pct);
   renderCart();
 }
 
@@ -2043,19 +2147,27 @@ function renderCart(){
       ${cart.map(item=>{
         const key = item.uid || item.COD;
         const ls = num(item.PR_CON_IVA) * item.qty;
-        const fn = applyDisc(num(item.PR_CON_IVA), mode.percent) * item.qty;
+        const fn = finalItemTotal(item, mode.percent);
+        const extra = itemExtraPct(item);
         const tintHtml = item.tintData ? `<div style="font-size:.74rem;color:var(--text-muted);line-height:1.35;margin-top:4px;">
           Color ${esc(colorLabelWithMod(item.tintData.color, item.tintData.manualModified))} · ${esc(item.tintData.descripcion || '')}
         </div>` : '';
+        const extraTag = extra ? `<span class="item-extra-tag">+ desc. producto ${extra}%</span>` : '';
         const openAttr = item.tintData ? ` onclick="openTintEditModal('${esc(key)}')"` : '';
         const tintClass = item.tintData ? ' tint-clickable' : '';
         return `
         <div class="cart-item cart-item-wrap${tintClass}"${openAttr}>
-          <div class="cart-item-name">${esc(item.ARTIC)}${tintHtml}</div>
+          <div class="cart-item-name">
+            ${esc(item.ARTIC)}${tintHtml}${extraTag}
+            <div class="item-extra-discount" onclick="event.stopPropagation()">
+              <span>Desc. adicional</span>
+              <input type="number" min="0" max="100" step="0.01" value="${extra || ''}" placeholder="0" onchange="updateItemExtraDiscount('${esc(key)}',this.value)" oninput="updateItemExtraDiscount('${esc(key)}',this.value)" /> %
+            </div>
+          </div>
           <button class="cart-trash" onclick="event.stopPropagation();removeItem('${esc(key)}')">🗑</button>
           <div class="cart-item-row">
             <input class="qty-input" type="number" inputmode="numeric" min="1" step="1" value="${item.qty}"
-              onfocus="this.value=''" onchange="updateQty('${esc(key)}',this.value)"/>
+              onclick="event.stopPropagation()" onfocus="this.value=''" onchange="updateQty('${esc(key)}',this.value)"/>
             <div></div>
             <div class="cart-val">${$m(ls)}</div>
             <div class="cart-val final">${$m(fn)}</div>
@@ -2065,7 +2177,7 @@ function renderCart(){
     </div>`;
 
   const base = cart.reduce((s,i)=>s+num(i.PR_CON_IVA)*i.qty,0);
-  const final = cart.reduce((s,i)=>s+applyDisc(num(i.PR_CON_IVA),mode.percent)*i.qty,0);
+  const final = cart.reduce((s,i)=>s+finalItemTotal(i,mode.percent),0);
   document.getElementById('baseTotalVal').textContent = $m(base);
   document.getElementById('finalTotalVal').textContent = $m(final);
 }
@@ -2075,6 +2187,14 @@ function updateQty(key, val){
   if(!item) return;
   item.qty=Math.max(1,Number(val||1));
   save(); renderCart();
+}
+
+function updateItemExtraDiscount(key, val){
+  const item=cart.find(i=>String(i.uid || i.COD)===String(key));
+  if(!item) return;
+  item.extraDiscount = clampPct(val || 0);
+  save();
+  renderCart();
 }
 
 function removeItem(key){
@@ -2274,7 +2394,7 @@ function saveDiscounts(){
     label: document.getElementById(`dl_${i}`).value.trim()||d.label,
     percent: Math.max(0,Math.min(100,Number(document.getElementById(`dp_${i}`).value||d.percent)))
   }));
-  save(); alert('✅ Descuentos guardados');
+  save(); renderModeOptions(); alert('✅ Descuentos guardados');
 }
 
 /* ═══════════════════════════════
@@ -2355,7 +2475,7 @@ function saveToHistory(forceCode=null){
   const clientInput = document.getElementById('clientName');
   const client = clientInput ? clientInput.value.trim() : '';
   const clientData = resolveClientData();
-  const total=cart.reduce((s,i)=>s+applyDisc(i.PR_CON_IVA,mode.percent)*i.qty,0);
+  const total=cart.reduce((s,i)=>s+finalItemTotal(i,mode.percent),0);
   const now=new Date();
   const entry={
     id: Date.now().toString(),
@@ -2398,7 +2518,7 @@ function openHistoryDetail(id){
       <div style="font-size:.78rem;color:var(--text-muted);margin-top:3px;">${h.fecha} · ${h.modo}</div>
       <div class="divider"></div>
       ${h.cart.map(item=>{
-        const fn=applyDisc(item.PR_CON_IVA,h.modePercent)*item.qty;
+        const fn=finalItemTotal(item,h.modePercent);
         return `<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:.85rem;">
           <span>${item.qty}× ${item.ARTIC}</span>
           <span style="color:var(--accent);font-family:var(--font-head)">${$m(fn)}</span>
@@ -2565,13 +2685,13 @@ function drawAndShowTicket(cartData, cfg, client, clientData, modeLabel, modePct
   canvas.height = 10;
 
   const rows = cartData.map(item => {
-    const finalT = applyDisc(item.PR_CON_IVA, modePct) * item.qty;
+    const finalT = finalItemTotal(item, modePct);
     const line = truncateToWidth(item.qty + '× ' + item.ARTIC, INNER - 92, F_MD);
     return { item, finalT, line };
   });
 
   const baseTotal  = cartData.reduce((s, i) => s + i.PR_CON_IVA * i.qty, 0);
-  const finalTotal = cartData.reduce((s, i) => s + applyDisc(i.PR_CON_IVA, modePct) * i.qty, 0);
+  const finalTotal = cartData.reduce((s, i) => s + finalItemTotal(i, modePct), 0);
 
   const G6=6, G8=8, G10=10, G12=12, G14=14, G16=16;
 
@@ -2728,7 +2848,7 @@ function makeSafeFileBase(){
 
 function buildA4HTML(payload){
   const rows = cart.map(item => {
-    const unit = applyDisc(item.PR_CON_IVA, payload.mode.percent);
+    const unit = finalUnitPrice(item, payload.mode.percent);
     const subtotal = unit * item.qty;
     return `<tr>
       <td>${item.qty}</td>
@@ -2739,7 +2859,7 @@ function buildA4HTML(payload){
   }).join('');
 
   const baseTotal = cart.reduce((s,i)=>s+i.PR_CON_IVA*i.qty,0);
-  const finalTotal = cart.reduce((s,i)=>s+applyDisc(i.PR_CON_IVA,payload.mode.percent)*i.qty,0);
+  const finalTotal = cart.reduce((s,i)=>s+finalItemTotal(i,payload.mode.percent),0);
   const discountAmount = baseTotal - finalTotal;
 
   return `<!DOCTYPE html>
@@ -2916,6 +3036,54 @@ function buildA4HTML(payload){
       font-size:.86rem;
       color:var(--text-muted);
       line-height:1.35;
+    }
+
+
+    .manual-discount-wrap{
+      display:none;
+      margin-top:8px;
+      margin-left:auto;
+      width:min(100%,260px);
+    }
+    .manual-discount-wrap.show{display:block;}
+    .manual-discount-wrap input{
+      width:100%;
+      border-radius:14px;
+      padding:12px;
+      border:1px solid var(--border);
+      background:var(--surface);
+      color:var(--text);
+      font-size:1rem;
+    }
+    .item-extra-discount{
+      margin-top:7px;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      color:var(--text-muted);
+      font-size:.75rem;
+      line-height:1.2;
+    }
+    .item-extra-discount input{
+      width:78px;
+      border-radius:10px;
+      padding:7px 8px;
+      border:1px solid var(--border);
+      background:rgba(0,0,0,.12);
+      color:var(--text);
+      font-size:.86rem;
+      text-align:center;
+    }
+    .item-extra-tag{
+      display:inline-block;
+      margin-top:5px;
+      border:1px solid rgba(74,179,255,.24);
+      background:rgba(74,179,255,.10);
+      color:#9bd9ff;
+      border-radius:999px;
+      padding:3px 7px;
+      font-size:.70rem;
+      font-weight:700;
     }
 
   </style></head><body>
