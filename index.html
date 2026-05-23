@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Pancko"/>
   <meta name="theme-color" content="#0a2a5e"/>
-  <title>Pancko Integral v0.3</title>
+  <title>Pancko Integral v0.4</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -579,6 +579,47 @@
     }
     .tinto-line:last-child{border-bottom:none}
 
+
+    .tint-edit-modal{
+      display:none;
+      position:fixed;
+      inset:0;
+      z-index:12000;
+      background:rgba(0,0,0,.72);
+      align-items:flex-end;
+      justify-content:center;
+    }
+    .tint-edit-modal.open{display:flex;}
+    .tint-edit-card{
+      width:100%;
+      max-width:480px;
+      max-height:92vh;
+      overflow:auto;
+      background:#0d2f6b;
+      border:1px solid var(--border);
+      border-radius:22px 22px 0 0;
+      padding:18px;
+      box-shadow:0 -16px 38px rgba(0,0,0,.35);
+    }
+    .tint-edit-title{
+      font-family:var(--font-head);
+      font-size:1.15rem;
+      font-weight:800;
+      margin-bottom:10px;
+      color:#fff;
+    }
+    .cart-item.tint-clickable{cursor:pointer;}
+    .cart-item.tint-clickable:active{background:var(--surface2);}
+    .tint-edit-preview{
+      margin-top:10px;
+      background:rgba(0,0,0,.16);
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:10px;
+      font-size:.86rem;
+      line-height:1.42;
+    }
+
   </style>
 </head>
 <body>
@@ -925,7 +966,7 @@
       <div class="divider"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.3</div>
+          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.4</div>
           <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">Lanzamiento: Abril 2026</div>
         </div>
         <div style="font-size:2rem;opacity:.25;">🚀</div>
@@ -1067,6 +1108,8 @@ let config = JSON.parse(localStorage.getItem('pk_config') || 'null') || {
 };
 let selectedProduct = null;
 let selectedTintCalc = null;
+let editingTintKey = null;
+let editingTintCalc = null;
 let tintRecipes = JSON.parse(localStorage.getItem('pk_tint_recipes') || '[]');
 let colorantPrices = JSON.parse(localStorage.getItem('pk_tint_prices') || '{}');
 let tintRecipeIndex = new Map();
@@ -1617,10 +1660,152 @@ window.addEventListener('popstate', function(e){
 
 document.addEventListener('keydown', function(e){
   if(e.key === 'Escape'){
+    const tm=document.getElementById('tintEditModal');
+    if(tm && tm.classList.contains('open')){ closeTintEditModal(); return; }
     e.preventDefault();
     handleAppBack();
   }
 });
+
+
+function getCartItemByKey(key){
+  return cart.find(i=>String(i.uid || i.COD)===String(key));
+}
+
+function openTintEditModal(key){
+  const item = getCartItemByKey(key);
+  if(!item || !item.tintData) return;
+
+  editingTintKey = key;
+  editingTintCalc = null;
+
+  const p = products.find(x=>String(x.COD)===String(item.COD));
+  if(!p){
+    alert('No encontré el producto base en artículos.');
+    return;
+  }
+
+  const info = document.getElementById('tintEditProductInfo');
+  info.innerHTML = `<b>${esc(item.base_ARTIC || p.ARTIC || item.ARTIC)}</b><br>Código: ${esc(item.COD)}<br>Color actual: ${esc(item.tintData.color)} · ${esc(item.tintData.descripcion || '')}`;
+
+  const inp = document.getElementById('tintEditColorInput');
+  inp.value = `${item.tintData.color} — ${item.tintData.descripcion || ''}`;
+
+  renderTintEditOptions();
+  previewTintEdit();
+
+  document.getElementById('tintEditModal').classList.add('open');
+}
+
+function closeTintEditModal(){
+  editingTintKey = null;
+  editingTintCalc = null;
+  const modal = document.getElementById('tintEditModal');
+  if(modal) modal.classList.remove('open');
+}
+
+function renderTintEditOptions(){
+  const input=document.getElementById('tintEditColorInput');
+  const list=document.getElementById('tintEditColorList');
+  const item=getCartItemByKey(editingTintKey);
+  if(!input || !list || !item) return;
+
+  const p = products.find(x=>String(x.COD)===String(item.COD));
+  if(!p || !isTintableProduct(p)) return;
+
+  const q=normKey(input.value);
+  const bases=compatibleBasesForProduct(p);
+  const matches=[];
+
+  for(const r of tintRecipes){
+    if(!bases.includes(normKey(r.base))) continue;
+    const id=normKey(r.idcolor || r.codigo_formula);
+    const desc=normKey(r.descripcion);
+    if(!q || id.includes(q) || desc.includes(q)){
+      matches.push(r);
+      if(matches.length>=90) break;
+    }
+  }
+
+  list.innerHTML=matches.map(r=>`<option value="${esc(tintRecipeLabel(r))}"></option>`).join('');
+}
+
+function previewTintEdit(){
+  const box=document.getElementById('tintEditPreview');
+  const input=document.getElementById('tintEditColorInput');
+  const item=getCartItemByKey(editingTintKey);
+  editingTintCalc=null;
+
+  if(!box || !input || !item) return;
+
+  const p = products.find(x=>String(x.COD)===String(item.COD));
+  if(!p){
+    box.innerHTML='<span class="tinto-bad">No encontré producto base.</span>';
+    return;
+  }
+
+  const value=input.value.trim();
+  if(!value){
+    box.innerHTML='<span class="muted">Ingresá otro color para recalcular.</span>';
+    return;
+  }
+
+  const res=calcTintForProduct(p,value);
+  if(!res.ok){
+    box.innerHTML=`<span class="tinto-bad">${esc(res.msg)}</span>`;
+    return;
+  }
+
+  editingTintCalc = res;
+  const basePrice=num(p.PR_CON_IVA);
+  const total=basePrice+res.tintCost;
+
+  box.innerHTML=`
+    <div class="tinto-ok"><b>Compatible:</b> ${esc(res.rec.idcolor||'')} · ${esc(res.rec.descripcion||'')}</div>
+    <div class="muted">Base fórmula: ${res.base_formula} · Base física: ${res.base_fisica} · Factor: ${Number(res.factor.toFixed(6))}</div>
+    <div style="margin-top:6px">Total lista nuevo: <b>${$m(total)}</b></div>
+    <div class="tinto-lines">
+      ${res.lines.map(x=>`<div class="tinto-line"><span><b>${esc(x.colorante)}</b></span><span>${fmtPulse(x.pulsos)} pulsos</span><span>${$m(x.subtotal)}</span></div>`).join('')}
+    </div>`;
+}
+
+function saveTintEdit(){
+  const item=getCartItemByKey(editingTintKey);
+  if(!item || !item.tintData) return;
+
+  const p = products.find(x=>String(x.COD)===String(item.COD));
+  if(!p){
+    alert('No encontré producto base.');
+    return;
+  }
+
+  const value=(document.getElementById('tintEditColorInput')?.value || '').trim();
+  const calc = editingTintCalc || calcTintForProduct(p,value);
+
+  if(!calc.ok){
+    alert(calc.msg || 'No se pudo recalcular el color.');
+    return;
+  }
+
+  const itemPrice = num(p.PR_CON_IVA) + calc.tintCost;
+  item.PR_CON_IVA = itemPrice;
+  item.PR_SIN_IVA = itemPrice / 1.21;
+  item.base_ARTIC = p.ARTIC;
+  item.ARTIC = `${p.ARTIC} (${calc.rec.idcolor || extractColorId(value)})`;
+  item.tintData = {
+    color: calc.rec.idcolor || extractColorId(value),
+    descripcion: calc.rec.descripcion || '',
+    base_formula: calc.base_formula,
+    base_fisica: calc.base_fisica,
+    factor: calc.factor,
+    tintCost: calc.tintCost,
+    formula: calc.lines.map(x=>({colorante:x.colorante,pulsos:x.pulsos,precioPulso:x.precioPulso,subtotal:x.subtotal}))
+  };
+
+  save();
+  closeTintEditModal();
+  renderCart();
+}
 
 /* ═══════════════════════════════
    CART
@@ -1666,10 +1851,12 @@ function renderCart(){
         const tintHtml = item.tintData ? `<div style="font-size:.74rem;color:var(--text-muted);line-height:1.35;margin-top:4px;">
           Color ${esc(item.tintData.color)} · ${esc(item.tintData.descripcion || '')}
         </div>` : '';
+        const openAttr = item.tintData ? ` onclick="openTintEditModal('${esc(key)}')"` : '';
+        const tintClass = item.tintData ? ' tint-clickable' : '';
         return `
-        <div class="cart-item cart-item-wrap">
+        <div class="cart-item cart-item-wrap${tintClass}"${openAttr}>
           <div class="cart-item-name">${esc(item.ARTIC)}${tintHtml}</div>
-          <button class="cart-trash" onclick="removeItem('${esc(key)}')">🗑</button>
+          <button class="cart-trash" onclick="event.stopPropagation();removeItem('${esc(key)}')">🗑</button>
           <div class="cart-item-row">
             <input class="qty-input" type="number" inputmode="numeric" min="1" step="1" value="${item.qty}"
               onfocus="this.value=''" onchange="updateQty('${esc(key)}',this.value)"/>
@@ -2444,6 +2631,47 @@ function buildA4HTML(payload){
     }
     .tinto-line:last-child{border-bottom:none}
 
+
+    .tint-edit-modal{
+      display:none;
+      position:fixed;
+      inset:0;
+      z-index:12000;
+      background:rgba(0,0,0,.72);
+      align-items:flex-end;
+      justify-content:center;
+    }
+    .tint-edit-modal.open{display:flex;}
+    .tint-edit-card{
+      width:100%;
+      max-width:480px;
+      max-height:92vh;
+      overflow:auto;
+      background:#0d2f6b;
+      border:1px solid var(--border);
+      border-radius:22px 22px 0 0;
+      padding:18px;
+      box-shadow:0 -16px 38px rgba(0,0,0,.35);
+    }
+    .tint-edit-title{
+      font-family:var(--font-head);
+      font-size:1.15rem;
+      font-weight:800;
+      margin-bottom:10px;
+      color:#fff;
+    }
+    .cart-item.tint-clickable{cursor:pointer;}
+    .cart-item.tint-clickable:active{background:var(--surface2);}
+    .tint-edit-preview{
+      margin-top:10px;
+      background:rgba(0,0,0,.16);
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:10px;
+      font-size:.86rem;
+      line-height:1.42;
+    }
+
   </style></head><body>
   <div class="print-a4">
     <div class="a4-header">
@@ -2471,7 +2699,28 @@ function buildA4HTML(payload){
       <tr><td class="a4-total-final">TOTAL</td><td class="a4-total-final a4-right">${$m(finalTotal)}</td></tr>
     </table>
     <div class="a4-footer"><p>${payload.cfg.pie || '¡Gracias por su visita!'}</p><p>Pancko · Sistema de precios</p></div>
-  </div></body></html>`;
+  </div>
+<!-- MODAL EDITAR TINTO EN PRESUPUESTO -->
+<div class="tint-edit-modal" id="tintEditModal">
+  <div class="tint-edit-card">
+    <div class="tint-edit-title">Editar color del presupuesto</div>
+    <div id="tintEditProductInfo" class="muted" style="line-height:1.35;margin-bottom:12px;"></div>
+    <div class="field">
+      <label>Código o descripción del color</label>
+      <input id="tintEditColorInput" list="tintEditColorList" type="text" placeholder="Ej: 8250 / October Sky" onfocus="renderTintEditOptions()" oninput="renderTintEditOptions();previewTintEdit()"/>
+      <datalist id="tintEditColorList"></datalist>
+    </div>
+    <div id="tintEditPreview" class="tint-edit-preview">
+      <span class="muted">Ingresá otro color para recalcular.</span>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:14px;">
+      <button class="btn btn-primary" style="flex:1" onclick="saveTintEdit()">Guardar cambio</button>
+      <button class="btn btn-back" style="flex:1" onclick="closeTintEditModal()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+</body></html>`;
 }
 
 function printBudgetA4(payload){
@@ -3186,5 +3435,26 @@ function useClientForBudget(id){
 }
 
 </script>
+
+<!-- MODAL EDITAR TINTO EN PRESUPUESTO -->
+<div class="tint-edit-modal" id="tintEditModal">
+  <div class="tint-edit-card">
+    <div class="tint-edit-title">Editar color del presupuesto</div>
+    <div id="tintEditProductInfo" class="muted" style="line-height:1.35;margin-bottom:12px;"></div>
+    <div class="field">
+      <label>Código o descripción del color</label>
+      <input id="tintEditColorInput" list="tintEditColorList" type="text" placeholder="Ej: 8250 / October Sky" onfocus="renderTintEditOptions()" oninput="renderTintEditOptions();previewTintEdit()"/>
+      <datalist id="tintEditColorList"></datalist>
+    </div>
+    <div id="tintEditPreview" class="tint-edit-preview">
+      <span class="muted">Ingresá otro color para recalcular.</span>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:14px;">
+      <button class="btn btn-primary" style="flex:1" onclick="saveTintEdit()">Guardar cambio</button>
+      <button class="btn btn-back" style="flex:1" onclick="closeTintEditModal()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
