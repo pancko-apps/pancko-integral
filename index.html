@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Pancko"/>
   <meta name="theme-color" content="#0a2a5e"/>
-  <title>Pancko Integral v0.9.7</title>
+  <title>Pancko Integral v0.9.8</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -1608,6 +1608,7 @@
         <input type="file" id="clientsCsvFileInput" accept=".csv"/>
       </div>
       <button class="btn btn-primary" style="width:100%" onclick="importClientsCSV()">Importar clientes</button>
+      <button class="btn btn-back" style="width:100%;margin-top:8px" onclick="fixAllClientsEncoding();save();renderClientsList();renderClientsImportStatus();showToast('Clientes reparados')">Reparar Ñ / acentos</button>
     </div>
     <div class="card">
       <div class="total-label" style="margin-bottom:6px;">Estado actual</div>
@@ -1748,7 +1749,7 @@
       <div class="divider"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.9.7</div>
+          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.9.8</div>
           <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">Lanzamiento: Abril 2026</div>
         </div>
         <div style="font-size:2rem;opacity:.25;">🚀</div>
@@ -1876,7 +1877,8 @@ function renderBundledDataStatus(msg=''){
 async function fetchTextIfOk(url){
   const res = await fetch(url, { cache:'no-store' });
   if(!res.ok) throw new Error(`${url}: ${res.status}`);
-  return await res.text();
+  const buffer = await res.arrayBuffer();
+  return decodeText(buffer);
 }
 
 async function autoLoadBundledData(){
@@ -1913,7 +1915,7 @@ async function autoLoadBundledData(){
 
     if(version.clientes && version.clientes !== loaded.clientes){
       const text = await fetchTextIfOk('data/clientes.csv');
-      const imported = parseClientsCSV(text);
+      const imported = parseClientsCSV(text).map(fixClientEncoding);
       if(imported.length){
         clients = imported;
         loaded.clientes = version.clientes;
@@ -2003,6 +2005,7 @@ let clients = JSON.parse(localStorage.getItem('pk_clients') || 'null') || [
 let config = JSON.parse(localStorage.getItem('pk_config') || 'null') || {
   nombre:'Colorshop Cañada', direccion:'', telefono:'', whatsapp:'', pie:'¡Gracias por su visita!'
 };
+fixAllClientsEncoding();
 let selectedProduct = null;
 let selectedTintCalc = null;
 let selectedLabProduct = null;
@@ -2024,9 +2027,9 @@ function save(){
   localStorage.setItem('pk_cart', JSON.stringify(cart));
   localStorage.setItem('pk_discounts', JSON.stringify(discounts));
   localStorage.setItem('pk_history', JSON.stringify(budgetHistory));
+  fixAllClientsEncoding();
   localStorage.setItem('pk_clients', JSON.stringify(clients));
   localStorage.setItem('pk_config', JSON.stringify(config));
-  localStorage.setItem('pk_lab_records', JSON.stringify(labRecords));
   localStorage.setItem('pk_lab_records', JSON.stringify(labRecords));
   localStorage.setItem('pk_tint_recipes', JSON.stringify(tintRecipes));
   localStorage.setItem('pk_tint_prices', JSON.stringify(colorantPrices));
@@ -3804,6 +3807,39 @@ function decodeText(buffer){
     }
   }
 }
+
+function fixMojibakeText(value){
+  let s = String(value ?? '');
+
+  // Casos comunes cuando Windows-1252/ANSI se leyó mal o quedó con reemplazo.
+  const replacements = [
+    [/�/g, 'ñ'],          // fallback práctico para clientes locales: Ca�ada, G�mez, Pe�a
+    [/Ã‘/g, 'Ñ'], [/Ã±/g, 'ñ'],
+    [/Ã¡/g, 'á'], [/Ã©/g, 'é'], [/Ã­/g, 'í'], [/Ã³/g, 'ó'], [/Ãº/g, 'ú'],
+    [/Ã/g, 'Á'], [/Ã‰/g, 'É'], [/Ã/g, 'Í'], [/Ã“/g, 'Ó'], [/Ãš/g, 'Ú'],
+    [/Âº/g, 'º'], [/Âª/g, 'ª'], [/Â°/g, '°'], [/Â/g, '']
+  ];
+  replacements.forEach(([a,b]) => { s = s.replace(a,b); });
+
+  return s;
+}
+
+function fixClientEncoding(c){
+  if(!c) return c;
+  return {
+    ...c,
+    cliente: fixMojibakeText(c.cliente || ''),
+    cuit: fixMojibakeText(c.cuit || ''),
+    direccion: fixMojibakeText(c.direccion || ''),
+    telefono: fixMojibakeText(c.telefono || '')
+  };
+}
+
+function fixAllClientsEncoding(){
+  if(!Array.isArray(clients)) return;
+  clients = clients.map(fixClientEncoding);
+}
+
 
 function splitCSVLine(line, delimiter){
   const out = [];
@@ -5823,7 +5859,7 @@ function importClientsCSV(){
       let added = 0;
       let updated = 0;
 
-      imported.forEach(nuevo => {
+      imported.map(fixClientEncoding).forEach(nuevo => {
         const nuevoCuit = norm(nuevo.cuit || '');
         const nuevoNombre = norm(nuevo.cliente || '');
 
@@ -5883,10 +5919,10 @@ function parseClientsCSV(text){
   const out = [];
   for(let i=1;i<lines.length;i++){
     const cols = splitCSVLine(lines[i], delimiter);
-    const cliente = String(cols[idxCliente] || '').replace(/^"|"$/g,'').trim();
-    const cuit = String(cols[idxCuit] || '').replace(/^"|"$/g,'').trim();
-    const direccion = idxDireccion === -1 ? '' : String(cols[idxDireccion] || '').replace(/^"|"$/g,'').trim();
-    const telefono = idxTelefono === -1 ? '' : String(cols[idxTelefono] || '').replace(/^"|"$/g,'').trim();
+    const cliente = fixMojibakeText(String(cols[idxCliente] || '').replace(/^"|"$/g,'').trim());
+    const cuit = fixMojibakeText(String(cols[idxCuit] || '').replace(/^"|"$/g,'').trim());
+    const direccion = idxDireccion === -1 ? '' : fixMojibakeText(String(cols[idxDireccion] || '').replace(/^"|"$/g,'').trim());
+    const telefono = idxTelefono === -1 ? '' : fixMojibakeText(String(cols[idxTelefono] || '').replace(/^"|"$/g,'').trim());
 
     if(!cliente) continue;
 
@@ -6048,7 +6084,8 @@ function renderBundledDataStatus(msg=''){
 async function fetchTextIfOk(url){
   const res = await fetch(url, { cache:'no-store' });
   if(!res.ok) throw new Error(`${url}: ${res.status}`);
-  return await res.text();
+  const buffer = await res.arrayBuffer();
+  return decodeText(buffer);
 }
 
 async function autoLoadBundledData(){
@@ -6085,7 +6122,7 @@ async function autoLoadBundledData(){
 
     if(version.clientes && version.clientes !== loaded.clientes){
       const text = await fetchTextIfOk('data/clientes.csv');
-      const imported = parseClientsCSV(text);
+      const imported = parseClientsCSV(text).map(fixClientEncoding);
       if(imported.length){
         clients = imported;
         loaded.clientes = version.clientes;
