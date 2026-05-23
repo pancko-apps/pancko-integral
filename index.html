@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Pancko"/>
   <meta name="theme-color" content="#0a2a5e"/>
-  <title>Pancko Integral v0.7.4</title>
+  <title>Pancko Integral v0.7.5</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -902,6 +902,18 @@
 
     .lab-fav-row.compact{gap:6px;padding:0 0 8px;margin-top:-4px;}
     .lab-fav-row.compact .lab-fav-btn{padding:6px 9px;font-size:.72rem;opacity:.86;background:rgba(74,179,255,.08);}
+
+    html.keyboard-lift,
+    body.keyboard-lift{
+      scroll-behavior:smooth;
+    }
+    body.keyboard-lift::after{
+      content:"";
+      display:block;
+      height:46vh;
+      pointer-events:none;
+    }
+
   </style>
 </head>
 <body>
@@ -1051,7 +1063,7 @@
       <div class="lab-fav-row compact" id="labPatternButtons"></div>
       <div class="field">
         <label>Producto tintable</label>
-        <input id="labProductInput" type="text" placeholder="Buscar producto o código..." autocomplete="off" data-cleared="0" onfocus="focusAndLiftLabInput(this);setTimeout(()=>focusAndLiftLabInput(this),450);selectedLabProduct=null;renderLabProductOptions(true)" oninput="renderLabProductOptions(true);selectLabProductFromInput(false)" />
+        <input id="labProductInput" type="text" placeholder="Buscar producto o código..." autocomplete="off" data-cleared="0" onfocus="focusAndLiftLabInput(this);setTimeout(()=>focusAndLiftLabInput(this),450);selectedLabProduct=null;renderLabProductOptions(true);setTimeout(()=>focusAndLiftLabInput(this),220)" oninput="renderLabProductOptions(true);selectLabProductFromInput(false)" />
         <div id="labProductSuggest" class="lab-suggest-box"></div>
       </div>
 
@@ -1059,7 +1071,7 @@
 
       <div class="field">
         <label>Código o descripción del color</label>
-        <input id="labColorInput" type="text" placeholder="Ej: 8302 / Great Graphite" autocomplete="off" data-cleared="0" onfocus="focusAndLiftLabInput(this);setTimeout(()=>focusAndLiftLabInput(this),450);renderLabColorOptions(true)" oninput="renderLabColorOptions(true);renderLabFormula()" />
+        <input id="labColorInput" type="text" placeholder="Ej: 8302 / Great Graphite" autocomplete="off" data-cleared="0" onfocus="focusAndLiftLabInput(this);setTimeout(()=>focusAndLiftLabInput(this),450);renderLabColorOptions(true);setTimeout(()=>focusAndLiftLabInput(this),220)" oninput="renderLabColorOptions(true);renderLabFormula()" />
         <div id="labColorSuggest" class="lab-color-suggest-box"></div>
       </div>
 
@@ -1290,7 +1302,7 @@
       <div class="divider"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.7.4</div>
+          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.7.5</div>
           <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">Lanzamiento: Abril 2026</div>
         </div>
         <div style="font-size:2rem;opacity:.25;">🚀</div>
@@ -1695,14 +1707,25 @@ function clearTintInputOnce(input){
 }
 function focusAndLiftLabInput(input){
   clearTintInputOnce(input);
-  setTimeout(()=>{
+
+  // En Android/Chrome el teclado aparece con delay y a veces no resizea bien.
+  // Forzamos espacio inferior y varios intentos de scroll contra el input real.
+  document.body.classList.add('keyboard-lift');
+  document.documentElement.classList.add('keyboard-lift');
+
+  const lift = () => {
     try{
-      const hero = input.closest('.lab-hero') || input;
-      const rect = hero.getBoundingClientRect();
-      const targetY = window.scrollY + rect.top - 118;
-      window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' });
+      const rect = input.getBoundingClientRect();
+      const desiredTop = 92; // dejar el campo bien arriba, debajo del header
+      const delta = rect.top - desiredTop;
+      if(Math.abs(delta) > 6){
+        window.scrollBy({ top: delta, behavior: 'smooth' });
+      }
     }catch(e){}
-  },160);
+  };
+
+  lift();
+  [120, 280, 520, 820].forEach(t => setTimeout(lift, t));
 }
 function parseTintFormula(str){
   return String(str||'')
@@ -3918,6 +3941,18 @@ function buildA4HTML(payload){
 
     .lab-fav-row.compact{gap:6px;padding:0 0 8px;margin-top:-4px;}
     .lab-fav-row.compact .lab-fav-btn{padding:6px 9px;font-size:.72rem;opacity:.86;background:rgba(74,179,255,.08);}
+
+    html.keyboard-lift,
+    body.keyboard-lift{
+      scroll-behavior:smooth;
+    }
+    body.keyboard-lift::after{
+      content:"";
+      display:block;
+      height:46vh;
+      pointer-events:none;
+    }
+
   </style></head><body>
   <div class="print-a4">
     <div class="a4-header">
