@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Pancko"/>
   <meta name="theme-color" content="#0a2a5e"/>
-  <title>Pancko Integral v0.4</title>
+  <title>Pancko Integral v0.4.1</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -966,7 +966,7 @@
       <div class="divider"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.4</div>
+          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.4.1</div>
           <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">Lanzamiento: Abril 2026</div>
         </div>
         <div style="font-size:2rem;opacity:.25;">🚀</div>
@@ -1287,6 +1287,15 @@ function extractColorId(value){
   if(s.includes(' - ')) return s.split(' - ')[0].trim();
   return s;
 }
+
+function clearTintInputOnce(input){
+  if(!input) return;
+  if(input.dataset.cleared === '1') return;
+  if(String(input.value || '').trim()){
+    input.value = '';
+    input.dataset.cleared = '1';
+  }
+}
 function parseTintFormula(str){
   return String(str||'')
     .split(/\s*\|\s*|\s*;\s*/)
@@ -1593,7 +1602,7 @@ function openDetail(cod){
         <div class="sec-title" style="font-size:1rem;margin-bottom:8px;">Tintométrico</div>
         <div class="field autocomplete-wrap" style="margin-bottom:6px;">
           <label>Código o descripción del color</label>
-          <input id="detTintColor" list="detTintColorList" type="text" placeholder="Ej: 8302 / graphite" onfocus="renderTintColorOptions()" oninput="renderTintColorOptions();updateTintPreview()"/>
+          <input id="detTintColor" list="detTintColorList" type="text" placeholder="Ej: 8302 / graphite" data-cleared="0" onfocus="clearTintInputOnce(this);renderTintColorOptions()" oninput="renderTintColorOptions();updateTintPreview()"/>
           <datalist id="detTintColorList"></datalist>
         </div>
         <div id="detTintPreview" class="tinto-preview"><span class="muted">Ingresá un color para calcular tintas.</span></div>
@@ -1690,6 +1699,7 @@ function openTintEditModal(key){
 
   const inp = document.getElementById('tintEditColorInput');
   inp.value = `${item.tintData.color} — ${item.tintData.descripcion || ''}`;
+  inp.dataset.cleared = '0';
 
   renderTintEditOptions();
   previewTintEdit();
@@ -2707,7 +2717,7 @@ function buildA4HTML(payload){
     <div id="tintEditProductInfo" class="muted" style="line-height:1.35;margin-bottom:12px;"></div>
     <div class="field">
       <label>Código o descripción del color</label>
-      <input id="tintEditColorInput" list="tintEditColorList" type="text" placeholder="Ej: 8250 / October Sky" onfocus="renderTintEditOptions()" oninput="renderTintEditOptions();previewTintEdit()"/>
+      <input id="tintEditColorInput" list="tintEditColorList" type="text" placeholder="Ej: 8250 / October Sky" data-cleared="0" onfocus="clearTintInputOnce(this);renderTintEditOptions()" oninput="renderTintEditOptions();previewTintEdit()"/>
       <datalist id="tintEditColorList"></datalist>
     </div>
     <div id="tintEditPreview" class="tint-edit-preview">
@@ -3443,7 +3453,7 @@ function useClientForBudget(id){
     <div id="tintEditProductInfo" class="muted" style="line-height:1.35;margin-bottom:12px;"></div>
     <div class="field">
       <label>Código o descripción del color</label>
-      <input id="tintEditColorInput" list="tintEditColorList" type="text" placeholder="Ej: 8250 / October Sky" onfocus="renderTintEditOptions()" oninput="renderTintEditOptions();previewTintEdit()"/>
+      <input id="tintEditColorInput" list="tintEditColorList" type="text" placeholder="Ej: 8250 / October Sky" data-cleared="0" onfocus="clearTintInputOnce(this);renderTintEditOptions()" oninput="renderTintEditOptions();previewTintEdit()"/>
       <datalist id="tintEditColorList"></datalist>
     </div>
     <div id="tintEditPreview" class="tint-edit-preview">
