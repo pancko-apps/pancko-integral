@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Pancko"/>
   <meta name="theme-color" content="#0a2a5e"/>
-  <title>Pancko Integral v0.7.2</title>
+  <title>Pancko Integral v0.7.3</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -899,6 +899,9 @@
       white-space:nowrap;
     }
 
+
+    .lab-fav-row.compact{gap:6px;padding:0 0 8px;margin-top:-4px;}
+    .lab-fav-row.compact .lab-fav-btn{padding:6px 9px;font-size:.72rem;opacity:.86;background:rgba(74,179,255,.08);}
   </style>
 </head>
 <body>
@@ -1045,10 +1048,10 @@
     <div class="sec-title">Laboratorio tintométrico</div>
 
     <div class="lab-hero">
-      <div class="lab-fav-row" id="labPatternButtons"></div>
+      <div class="lab-fav-row compact" id="labPatternButtons"></div>
       <div class="field">
         <label>Producto tintable</label>
-        <input id="labProductInput" type="text" placeholder="Buscar producto o código..." autocomplete="off" data-cleared="0" onfocus="clearTintInputOnce(this);selectedLabProduct=null;renderLabProductOptions(true)" oninput="renderLabProductOptions(true);selectLabProductFromInput(false)" />
+        <input id="labProductInput" type="text" placeholder="Buscar producto o código..." autocomplete="off" data-cleared="0" onfocus="focusAndLiftLabInput(this);selectedLabProduct=null;renderLabProductOptions(true)" oninput="renderLabProductOptions(true);selectLabProductFromInput(false)" />
         <div id="labProductSuggest" class="lab-suggest-box"></div>
       </div>
 
@@ -1056,7 +1059,7 @@
 
       <div class="field">
         <label>Código o descripción del color</label>
-        <input id="labColorInput" type="text" placeholder="Ej: 8302 / Great Graphite" autocomplete="off" data-cleared="0" onfocus="clearTintInputOnce(this);renderLabColorOptions(true)" oninput="renderLabColorOptions(true);renderLabFormula()" />
+        <input id="labColorInput" type="text" placeholder="Ej: 8302 / Great Graphite" autocomplete="off" data-cleared="0" onfocus="focusAndLiftLabInput(this);renderLabColorOptions(true)" oninput="renderLabColorOptions(true);renderLabFormula()" />
         <div id="labColorSuggest" class="lab-color-suggest-box"></div>
       </div>
 
@@ -1287,7 +1290,7 @@
       <div class="divider"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.7.2</div>
+          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.7.3</div>
           <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">Lanzamiento: Abril 2026</div>
         </div>
         <div style="font-size:2rem;opacity:.25;">🚀</div>
@@ -1445,6 +1448,7 @@ let selectedProduct = null;
 let selectedTintCalc = null;
 let selectedLabProduct = null;
 let selectedLabCalc = null;
+let selectedLabColorRecipe = null;
 let editingTintKey = null;
 let editingItemKey = null;
 let editingTintCalc = null;
@@ -1688,6 +1692,10 @@ function clearTintInputOnce(input){
     input.value = '';
     input.dataset.cleared = '1';
   }
+}
+function focusAndLiftLabInput(input){
+  clearTintInputOnce(input);
+  setTimeout(()=>{try{(input.closest('.lab-hero')||input).scrollIntoView({behavior:'smooth',block:'start'});}catch(e){}},120);
 }
 function parseTintFormula(str){
   return String(str||'')
@@ -1951,7 +1959,6 @@ function productFamilyKey(p){
   let s = normKey(p.ARTIC || '');
   s = s.replace(/\b\d+(?:[.,]\d+)?\s*(LTS?|LT|L|KGS?|KG|KL)\b/g, '');
   s = s.replace(/\b0[.,]\d+\s*(LTS?|LT|L)\b/g, '');
-  s = s.replace(/\b(BLANCO|PASTEL|TINT|DEEP|ACCENT|MATE|SATINADO|BRILLANTE)\b/g, '');
   return s.replace(/\s+/g,' ').trim();
 }
 
@@ -1960,12 +1967,27 @@ function labProductSort(a,b){
   if(fa !== fb) return fa.localeCompare(fb);
   return productSizeRank(a) - productSizeRank(b);
 }
+function currentLabColorBase(){
+  if(selectedLabColorRecipe) return normKey(selectedLabColorRecipe.base);
+  const v = document.getElementById('labColorInput')?.value || '';
+  const id = extractColorId(v);
+  if(!id) return '';
+  const exact = tintRecipes.find(r => normKey(r.idcolor || r.codigo_formula) === normKey(id));
+  return exact ? normKey(exact.base) : '';
+}
+function productCompatibleWithColorBase(p){
+  const cb = currentLabColorBase();
+  if(!cb) return true;
+  return compatibleBasesForProduct(p).includes(cb);
+}
 
 function findPatternProductBySize(size){
   const sizeText = String(size);
+  const baseWanted = currentLabColorBase() || 'PASTEL';
   const candidates = products
     .filter(p => isTintableProduct(p))
-    .filter(p => normKey(p.ARTIC).includes('RECUPLAST') && normKey(p.ARTIC).includes('INT') && normKey(p.base_tinto)==='PASTEL')
+    .filter(p => normKey(p.ARTIC).includes('RECUPLAST') && normKey(p.ARTIC).includes('INT'))
+    .filter(p => compatibleBasesForProduct(p).includes(baseWanted))
     .filter(p => {
       const n = normKey(p.ARTIC);
       if(sizeText === '1') return /\b1\s*L(T|TS)?\b/.test(n);
@@ -1982,7 +2004,7 @@ function renderLabPatternButtons(){
   const box = document.getElementById('labPatternButtons');
   if(!box) return;
   const sizes = [1,4,10,20];
-  box.innerHTML = sizes.map(s => `<button class="lab-fav-btn" onclick="chooseLabPattern(${s})">Patrón ${s} LT</button>`).join('');
+  box.innerHTML = sizes.map(s => `<button class="lab-fav-btn" onclick="chooseLabPattern(${s})">Patrón ${s}L</button>`).join('');
 }
 
 function chooseLabPattern(size){
@@ -2002,6 +2024,7 @@ function renderLabProductOptions(forceShow=false){
   const q = normKey(input.value);
   const matches = products
     .filter(p => isTintableProduct(p))
+    .filter(p => productCompatibleWithColorBase(p))
     .filter(p => {
       if(!q) return true;
       return normKey(p.COD).includes(q) || normKey(p.ARTIC).includes(q);
@@ -2112,19 +2135,18 @@ function renderLabColorOptions(forceShow=false){
 
 function chooseLabColor(base, idcolor){
   const r = tintRecipes.find(x => normKey(x.base)===normKey(base) && normKey(x.idcolor || x.codigo_formula)===normKey(idcolor));
+  selectedLabColorRecipe = r || null;
   const input = document.getElementById('labColorInput');
   const box = document.getElementById('labColorSuggest');
-  if(input && r){
-    input.value = tintRecipeLabel(r);
-    input.dataset.cleared = '0';
-  }
+  if(input && r){ input.value = tintRecipeLabel(r); input.dataset.cleared = '0'; }
   if(box){ box.classList.remove('show'); box.innerHTML=''; }
-
-  // Si todavía no hay producto, intenta elegir un patrón compatible automáticamente.
-  if(!selectedLabProduct && r){
-    const p = findPatternProductBySize(1) || products.find(x => isTintableProduct(x) && compatibleBasesForProduct(x).includes(normKey(r.base)));
-    if(p) chooseLabProduct(String(p.COD));
+  if(selectedLabProduct && r && !compatibleBasesForProduct(selectedLabProduct).includes(normKey(r.base))){
+    selectedLabProduct = null;
+    const pinput = document.getElementById('labProductInput');
+    if(pinput) pinput.value = '';
+    renderLabProductInfo();
   }
+  renderLabProductOptions(false);
   renderLabFormula();
 }
 
@@ -2135,11 +2157,21 @@ function renderLabFormula(){
   if(!selectedLabProduct) selectLabProductFromInput();
   const p = selectedLabProduct;
   const color = (document.getElementById('labColorInput')?.value || '').trim();
+  const typedId = extractColorId(color);
+  if(typedId){
+    const basesForTyped = p ? compatibleBasesForProduct(p) : ['PASTEL','TINT','DEEP','ACCENT'];
+    selectedLabColorRecipe = tintRecipes.find(r => basesForTyped.includes(normKey(r.base)) && normKey(r.idcolor || r.codigo_formula) === normKey(typedId)) || selectedLabColorRecipe;
+  }
 
   selectedLabCalc = null;
 
   if(!p){
-    result.innerHTML = '<div class="empty-msg">Elegí un producto tintable.</div>';
+    if(color){
+      const cb = currentLabColorBase();
+      result.innerHTML = `<div class="empty-msg">Color detectado${cb ? ` base ${cb}` : ''}. Elegí producto compatible o tocá Patrón 1L/4L/10L/20L.</div>`;
+    }else{
+      result.innerHTML = '<div class="empty-msg">Elegí producto o ingresá un código de color.</div>';
+    }
     return;
   }
   if(!color){
@@ -2190,7 +2222,7 @@ function addLabToBudget(){
   if(!selectedLabProduct) selectLabProductFromInput();
   const p = selectedLabProduct;
   const color = (document.getElementById('labColorInput')?.value || '').trim();
-  if(!p){ alert('Elegí un producto tintable.'); return; }
+  if(!p){ alert('Elegí un producto tintable compatible o tocá un patrón.'); return; }
   const calc = calcTintForProduct(p, color);
   if(!calc.ok){ alert(calc.msg); return; }
 
@@ -3876,6 +3908,9 @@ function buildA4HTML(payload){
       white-space:nowrap;
     }
 
+
+    .lab-fav-row.compact{gap:6px;padding:0 0 8px;margin-top:-4px;}
+    .lab-fav-row.compact .lab-fav-btn{padding:6px 9px;font-size:.72rem;opacity:.86;background:rgba(74,179,255,.08);}
   </style></head><body>
   <div class="print-a4">
     <div class="a4-header">
