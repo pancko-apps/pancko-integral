@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Pancko"/>
   <meta name="theme-color" content="#0a2a5e"/>
-  <title>Pancko Integral v0.6</title>
+  <title>Pancko Integral v0.6.1</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -830,9 +830,7 @@
       <span class="cart-mode-label">Descuento:</span>
       <select id="priceModeSelect" onchange="saveModeAndRender()"></select>
     </div>
-    <div id="manualDiscountWrap" class="manual-discount-wrap">
-      <input id="manualDiscountInput" type="number" min="0" max="100" step="0.01" placeholder="Descuento manual %" oninput="saveCustomDiscountAndRender()" />
-    </div>
+    <!-- descuento manual global se carga por modal/prompt al elegir Manual -->
 
     <div id="cartItems"></div>
 
@@ -1067,7 +1065,7 @@
       <div class="divider"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.6</div>
+          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.6.1</div>
           <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">Lanzamiento: Abril 2026</div>
         </div>
         <div style="font-size:2rem;opacity:.25;">🚀</div>
@@ -1210,6 +1208,7 @@ let config = JSON.parse(localStorage.getItem('pk_config') || 'null') || {
 let selectedProduct = null;
 let selectedTintCalc = null;
 let editingTintKey = null;
+let editingItemKey = null;
 let editingTintCalc = null;
 let tintRecipes = JSON.parse(localStorage.getItem('pk_tint_recipes') || '[]');
 let colorantPrices = JSON.parse(localStorage.getItem('pk_tint_prices') || '{}');
@@ -1332,9 +1331,7 @@ function clampPct(v){
 }
 
 function getCustomDiscount(){
-  const el = document.getElementById('manualDiscountInput');
-  const raw = el ? el.value : localStorage.getItem('pk_custom_discount');
-  return clampPct(raw || 0);
+  return clampPct(localStorage.getItem('pk_custom_discount') || 0);
 }
 
 function itemExtraPct(item){
@@ -1808,6 +1805,8 @@ window.addEventListener('popstate', function(e){
 
 document.addEventListener('keydown', function(e){
   if(e.key === 'Escape'){
+    const im=document.getElementById('itemEditModal');
+    if(im && im.classList.contains('open')){ closeItemEditModal(); return; }
     const tm=document.getElementById('tintEditModal');
     if(tm && tm.classList.contains('open')){ closeTintEditModal(); return; }
     e.preventDefault();
@@ -1818,6 +1817,38 @@ document.addEventListener('keydown', function(e){
 
 function getCartItemByKey(key){
   return cart.find(i=>String(i.uid || i.COD)===String(key));
+}
+
+
+function openItemEditModal(key){
+  const item = getCartItemByKey(key);
+  if(!item) return;
+  editingItemKey = key;
+
+  const info = document.getElementById('itemEditProductInfo');
+  if(info){
+    info.innerHTML = `<b>${esc(item.ARTIC)}</b><br>Código: ${esc(item.COD)}<br>Precio lista: ${$m(num(item.PR_CON_IVA))}`;
+  }
+
+  const disc = document.getElementById('itemEditExtraDiscount');
+  if(disc) disc.value = itemExtraPct(item) || '';
+
+  document.getElementById('itemEditModal').classList.add('open');
+}
+
+function closeItemEditModal(){
+  editingItemKey = null;
+  const modal = document.getElementById('itemEditModal');
+  if(modal) modal.classList.remove('open');
+}
+
+function saveItemEdit(){
+  const item = getCartItemByKey(editingItemKey);
+  if(!item) return;
+  item.extraDiscount = clampPct(document.getElementById('itemEditExtraDiscount')?.value || 0);
+  save();
+  closeItemEditModal();
+  renderCart();
 }
 
 function openTintEditModal(key){
@@ -1835,6 +1866,9 @@ function openTintEditModal(key){
 
   const info = document.getElementById('tintEditProductInfo');
   info.innerHTML = `<b>${esc(item.base_ARTIC || p.ARTIC || item.ARTIC)}</b><br>Código: ${esc(item.COD)}<br>Color actual: ${esc(item.tintData.color)} · ${esc(item.tintData.descripcion || '')}`;
+
+  const disc = document.getElementById('tintEditExtraDiscount');
+  if(disc) disc.value = itemExtraPct(item) || '';
 
   const inp = document.getElementById('tintEditColorInput');
   inp.value = `${item.tintData.color} — ${item.tintData.descripcion || ''}`;
@@ -1909,12 +1943,16 @@ function previewTintEdit(refreshManual=true){
   editingTintCalc = res;
   if(refreshManual) renderTintManualRows(res.lines);
   const basePrice=num(p.PR_CON_IVA);
+  const item=getCartItemByKey(editingTintKey);
+  const extraEl=document.getElementById('tintEditExtraDiscount');
+  const extraPct=clampPct(extraEl ? extraEl.value : itemExtraPct(item));
   const total=basePrice+res.tintCost;
+  const totalConExtra = Math.round(total * (1 - extraPct/100));
 
   box.innerHTML=`
     <div class="tinto-ok"><b>Compatible:</b> ${esc(res.rec.idcolor||'')} · ${esc(res.rec.descripcion||'')}</div>
     <div class="muted">Base fórmula: ${res.base_formula} · Base física: ${res.base_fisica} · Factor: ${Number(res.factor.toFixed(6))}</div>
-    <div style="margin-top:6px">Total lista nuevo: <b>${$m(total)}</b></div>
+    <div style="margin-top:6px">Total lista nuevo: <b>${$m(total)}</b>${extraPct ? ` · Con desc. producto: <b>${$m(totalConExtra)}</b>` : ''}</div>
     <div class="tinto-lines">
       ${res.lines.map(x=>`<div class="tinto-line"><span><b>${esc(x.colorante)}</b></span><span>${fmtPulse(x.pulsos)} pulsos</span><span>${$m(x.subtotal)}</span></div>`).join('')}
     </div>`;
@@ -2019,8 +2057,11 @@ function updateTintManualTotal(){
   const lines = getCurrentTintManualLines();
   const tintCost = lines.reduce((s,x)=>s+x.subtotal,0);
   const total = basePrice + tintCost;
+  const extraEl=document.getElementById('tintEditExtraDiscount');
+  const extraPct=clampPct(extraEl ? extraEl.value : itemExtraPct(item));
+  const totalConExtra = Math.round(total * (1 - extraPct/100));
 
-  out.innerHTML = `Tintas: <b>${$m(tintCost)}</b> · Total lista: <b>${$m(total)}</b>`;
+  out.innerHTML = `Tintas: <b>${$m(tintCost)}</b> · Total lista: <b>${$m(total)}</b>${extraPct ? ` · Con desc. producto: <b>${$m(totalConExtra)}</b>` : ''}`;
 }
 
 function restoreTintOriginalFormula(){
@@ -2073,6 +2114,8 @@ function saveTintEdit(){
   item.PR_SIN_IVA = itemPrice / 1.21;
   item.base_ARTIC = p.ARTIC;
   item.ARTIC = `${p.ARTIC} (${colorLabelWithMod(colorCode, manualModified)})`;
+  item.extraDiscount = clampPct(document.getElementById('tintEditExtraDiscount')?.value || 0);
+
   item.tintData = {
     color: colorCode,
     descripcion: calc.rec.descripcion || '',
@@ -2102,23 +2145,34 @@ function renderModeOptions(){
     `<option value="manual">Manual (${custom || 0}%)</option>`;
   sel.value = cur;
   if(!sel.value) sel.value = discounts[0].key;
+}
 
-  const wrap = document.getElementById('manualDiscountWrap');
-  const inp = document.getElementById('manualDiscountInput');
-  if(inp) inp.value = custom;
-  if(wrap) wrap.classList.toggle('show', sel.value === 'manual');
+function askManualDiscount(defaultValue){
+  const raw = prompt('Descuento manual general (%)', String(defaultValue ?? getCustomDiscount() ?? 0));
+  if(raw === null) return null;
+  return clampPct(String(raw).replace(',', '.'));
 }
 
 function saveModeAndRender(){
   const sel = document.getElementById('priceModeSelect');
-  if(sel) localStorage.setItem('pk_price_mode', sel.value);
+  if(!sel) return;
+  if(sel.value === 'manual'){
+    const pct = askManualDiscount(localStorage.getItem('pk_custom_discount') || 0);
+    if(pct === null){
+      sel.value = localStorage.getItem('pk_price_mode') || discounts[0].key;
+      return;
+    }
+    localStorage.setItem('pk_custom_discount', pct);
+  }
+  localStorage.setItem('pk_price_mode', sel.value);
   renderCart();
 }
 
 function saveCustomDiscountAndRender(){
-  const inp = document.getElementById('manualDiscountInput');
-  const pct = clampPct(inp ? inp.value : 0);
+  const pct = askManualDiscount(localStorage.getItem('pk_custom_discount') || 0);
+  if(pct === null) return;
   localStorage.setItem('pk_custom_discount', pct);
+  localStorage.setItem('pk_price_mode', 'manual');
   renderCart();
 }
 
@@ -2153,16 +2207,12 @@ function renderCart(){
           Color ${esc(colorLabelWithMod(item.tintData.color, item.tintData.manualModified))} · ${esc(item.tintData.descripcion || '')}
         </div>` : '';
         const extraTag = extra ? `<span class="item-extra-tag">+ desc. producto ${extra}%</span>` : '';
-        const openAttr = item.tintData ? ` onclick="openTintEditModal('${esc(key)}')"` : '';
-        const tintClass = item.tintData ? ' tint-clickable' : '';
+        const openAttr = item.tintData ? ` onclick="openTintEditModal('${esc(key)}')"` : ` onclick="openItemEditModal('${esc(key)}')"`;
+        const tintClass = ' tint-clickable';
         return `
         <div class="cart-item cart-item-wrap${tintClass}"${openAttr}>
           <div class="cart-item-name">
             ${esc(item.ARTIC)}${tintHtml}${extraTag}
-            <div class="item-extra-discount" onclick="event.stopPropagation()">
-              <span>Desc. adicional</span>
-              <input type="number" min="0" max="100" step="0.01" value="${extra || ''}" placeholder="0" onchange="updateItemExtraDiscount('${esc(key)}',this.value)" oninput="updateItemExtraDiscount('${esc(key)}',this.value)" /> %
-            </div>
           </div>
           <button class="cart-trash" onclick="event.stopPropagation();removeItem('${esc(key)}')">🗑</button>
           <div class="cart-item-row">
@@ -3120,6 +3170,10 @@ function buildA4HTML(payload){
     <div class="tint-edit-title">Editar color del presupuesto</div>
     <div id="tintEditProductInfo" class="muted" style="line-height:1.35;margin-bottom:12px;"></div>
     <div class="field">
+      <label>Descuento adicional del producto (%)</label>
+      <input id="tintEditExtraDiscount" type="number" min="0" max="100" step="0.01" placeholder="0" oninput="previewTintEdit(false)" />
+    </div>
+    <div class="field">
       <label>Código o descripción del color</label>
       <input id="tintEditColorInput" list="tintEditColorList" type="text" placeholder="Ej: 8250 / October Sky" data-cleared="0" onfocus="clearTintInputOnce(this);renderTintEditOptions()" oninput="renderTintEditOptions();previewTintEdit()"/>
       <datalist id="tintEditColorList"></datalist>
@@ -3145,6 +3199,23 @@ function buildA4HTML(payload){
     <div style="display:flex;gap:10px;margin-top:14px;">
       <button class="btn btn-primary" style="flex:1" onclick="saveTintEdit()">Guardar cambio</button>
       <button class="btn btn-back" style="flex:1" onclick="closeTintEditModal()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- MODAL EDITAR ITEM COMÚN -->
+<div class="tint-edit-modal" id="itemEditModal">
+  <div class="tint-edit-card">
+    <div class="tint-edit-title">Editar producto del presupuesto</div>
+    <div id="itemEditProductInfo" class="muted" style="line-height:1.35;margin-bottom:12px;"></div>
+    <div class="field">
+      <label>Descuento adicional del producto (%)</label>
+      <input id="itemEditExtraDiscount" type="number" min="0" max="100" step="0.01" placeholder="0" />
+    </div>
+    <div style="display:flex;gap:10px;margin-top:14px;">
+      <button class="btn btn-primary" style="flex:1" onclick="saveItemEdit()">Guardar cambio</button>
+      <button class="btn btn-back" style="flex:1" onclick="closeItemEditModal()">Cancelar</button>
     </div>
   </div>
 </div>
@@ -3871,6 +3942,10 @@ function useClientForBudget(id){
     <div class="tint-edit-title">Editar color del presupuesto</div>
     <div id="tintEditProductInfo" class="muted" style="line-height:1.35;margin-bottom:12px;"></div>
     <div class="field">
+      <label>Descuento adicional del producto (%)</label>
+      <input id="tintEditExtraDiscount" type="number" min="0" max="100" step="0.01" placeholder="0" oninput="previewTintEdit(false)" />
+    </div>
+    <div class="field">
       <label>Código o descripción del color</label>
       <input id="tintEditColorInput" list="tintEditColorList" type="text" placeholder="Ej: 8250 / October Sky" data-cleared="0" onfocus="clearTintInputOnce(this);renderTintEditOptions()" oninput="renderTintEditOptions();previewTintEdit()"/>
       <datalist id="tintEditColorList"></datalist>
@@ -3896,6 +3971,23 @@ function useClientForBudget(id){
     <div style="display:flex;gap:10px;margin-top:14px;">
       <button class="btn btn-primary" style="flex:1" onclick="saveTintEdit()">Guardar cambio</button>
       <button class="btn btn-back" style="flex:1" onclick="closeTintEditModal()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- MODAL EDITAR ITEM COMÚN -->
+<div class="tint-edit-modal" id="itemEditModal">
+  <div class="tint-edit-card">
+    <div class="tint-edit-title">Editar producto del presupuesto</div>
+    <div id="itemEditProductInfo" class="muted" style="line-height:1.35;margin-bottom:12px;"></div>
+    <div class="field">
+      <label>Descuento adicional del producto (%)</label>
+      <input id="itemEditExtraDiscount" type="number" min="0" max="100" step="0.01" placeholder="0" />
+    </div>
+    <div style="display:flex;gap:10px;margin-top:14px;">
+      <button class="btn btn-primary" style="flex:1" onclick="saveItemEdit()">Guardar cambio</button>
+      <button class="btn btn-back" style="flex:1" onclick="closeItemEditModal()">Cancelar</button>
     </div>
   </div>
 </div>
