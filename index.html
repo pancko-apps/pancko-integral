@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Pancko"/>
   <meta name="theme-color" content="#0a2a5e"/>
-  <title>Pancko Integral v0.10.4</title>
+  <title>Pancko Integral v0.10.5</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -1321,6 +1321,20 @@
       visibility:hidden;
     }
 
+
+    /* v0.10.5 - descuento de producto en zona fija */
+    .item-extra-zone{
+      min-height:24px;
+      display:flex;
+      align-items:center;
+      margin-top:5px;
+    }
+    .cart-item-name .item-extra-zone:empty::after{
+      content:'';
+      display:block;
+      height:1px;
+    }
+
   </style>
 </head>
 <body>
@@ -1749,7 +1763,7 @@
       <div class="divider"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.4</div>
+          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.5</div>
           <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">Lanzamiento: Abril 2026</div>
         </div>
         <div style="font-size:2rem;opacity:.25;">🚀</div>
@@ -2079,15 +2093,59 @@ function itemExtraPct(item){
   return clampPct(item && item.extraDiscount);
 }
 
-function finalUnitPrice(item, modePct){
-  const base = num(item.PR_CON_IVA);
-  const globalPct = clampPct(modePct);
-  const extraPct = itemExtraPct(item);
-  return Math.round(base * (1 - globalPct/100) * (1 - extraPct/100));
+function itemQty(item){
+  return Math.max(1, Number(item && item.qty) || 1);
+}
+
+function itemListUnit(item){
+  return Math.round(num(item && item.PR_CON_IVA));
+}
+
+function itemListTotal(item){
+  return itemListUnit(item) * itemQty(item);
+}
+
+function itemSpecialDiscountTotal(item){
+  const pct = itemExtraPct(item);
+  if(!pct) return 0;
+  return Math.round(itemListTotal(item) * pct / 100);
+}
+
+function itemAfterSpecialTotal(item){
+  return itemListTotal(item) - itemSpecialDiscountTotal(item);
+}
+
+function itemAfterSpecialUnit(item){
+  return Math.round(itemAfterSpecialTotal(item) / itemQty(item));
 }
 
 function finalItemTotal(item, modePct){
-  return finalUnitPrice(item, modePct) * (Number(item.qty) || 1);
+  const globalPct = clampPct(modePct);
+  return Math.round(itemAfterSpecialTotal(item) * (1 - globalPct/100));
+}
+
+function finalUnitPrice(item, modePct){
+  return Math.round(finalItemTotal(item, modePct) / itemQty(item));
+}
+
+function budgetListTotal(items){
+  return (items || []).reduce((s,i)=>s+itemListTotal(i),0);
+}
+
+function budgetSpecialDiscountTotal(items){
+  return (items || []).reduce((s,i)=>s+itemSpecialDiscountTotal(i),0);
+}
+
+function budgetAfterSpecialTotal(items){
+  return (items || []).reduce((s,i)=>s+itemAfterSpecialTotal(i),0);
+}
+
+function budgetFinalTotal(items, modePct){
+  return (items || []).reduce((s,i)=>s+finalItemTotal(i, modePct),0);
+}
+
+function budgetGeneralDiscountTotal(items, modePct){
+  return budgetAfterSpecialTotal(items) - budgetFinalTotal(items, modePct);
 }
 
 function modeLabel(mode){
@@ -3597,24 +3655,24 @@ function renderCart(){
       </div>
       ${cart.map(item=>{
         const key = item.uid || item.COD;
-        const ls = num(item.PR_CON_IVA) * item.qty;
+        const ls = itemListTotal(item);
         const fn = finalItemTotal(item, mode.percent);
         const extra = itemExtraPct(item);
         const tintHtml = item.tintData ? `<div style="font-size:.74rem;color:var(--text-muted);line-height:1.35;margin-top:4px;">
           Color ${esc(colorLabelWithMod(item.tintData.color, item.tintData.manualModified))} · ${esc(item.tintData.descripcion || '')}
         </div>` : '';
         const extraTag = extra ? `<span class="item-extra-tag">+ desc. producto ${extra}%</span>` : '';
+        const extraZone = `<div class="item-extra-zone">${extraTag}</div>`;
         const openAttr = item.tintData ? ` onclick="openTintEditModal('${esc(key)}')"` : ` onclick="openItemEditModal('${esc(key)}')"`;
         const tintClass = ' tint-clickable';
         return `
         <div class="cart-item cart-item-wrap${tintClass}"${openAttr}>
           <div class="cart-item-name">
-            ${esc(item.ARTIC)}${tintHtml}${extraTag}
+            ${esc(item.ARTIC)}${tintHtml}${extraZone}
           </div>
           <button class="cart-trash" onclick="event.stopPropagation();removeItem('${esc(key)}')">🗑</button>
           <div class="cart-item-row">
-            <input class="qty-input" type="number" inputmode="numeric" min="1" step="1" value="${item.qty}"
-              onclick="event.stopPropagation()" onfocus="this.value=''" onchange="updateQty('${esc(key)}',this.value)"/>
+            <input class="qty-input" type="number" inputmode="numeric" min="1" value="${item.qty}" onclick="event.stopPropagation()" onchange="updateQty('${esc(key)}',this.value)">
             <div></div>
             <div class="cart-val">${$m(ls)}</div>
             <div class="cart-val final">${$m(fn)}</div>
@@ -3623,8 +3681,8 @@ function renderCart(){
       }).join('')}
     </div>`;
 
-  const base = cart.reduce((s,i)=>s+num(i.PR_CON_IVA)*i.qty,0);
-  const final = cart.reduce((s,i)=>s+finalItemTotal(i,mode.percent),0);
+  const base = budgetListTotal(cart);
+  const final = budgetFinalTotal(cart, mode.percent);
   document.getElementById('baseTotalVal').textContent = $m(base);
   document.getElementById('finalTotalVal').textContent = $m(final);
 }
@@ -4215,8 +4273,11 @@ function drawAndShowTicket(cartData, cfg, client, clientData, modeLabel, modePct
     return { item, finalT, articleLines };
   });
 
-  const baseTotal  = cartData.reduce((s, i) => s + i.PR_CON_IVA * i.qty, 0);
-  const finalTotal = cartData.reduce((s, i) => s + finalItemTotal(i, modePct), 0);
+  const listTotal = budgetListTotal(cartData);
+  const specialDiscount = budgetSpecialDiscountTotal(cartData);
+  const afterSpecial = budgetAfterSpecialTotal(cartData);
+  const finalTotal = budgetFinalTotal(cartData, modePct);
+  const generalDiscount = afterSpecial - finalTotal;
 
   const G6=6, G8=8, G10=10, G12=12, G14=14, G16=16;
 
@@ -4235,7 +4296,7 @@ function drawAndShowTicket(cartData, cfg, client, clientData, modeLabel, modePct
   h += RH_MD + G6 + 1 + G8;
   rows.forEach(r => { h += Math.max(RH_MD, r.articleLines.length * RH_MD) + G8; });
   h += G6 + 1 + G8;
-  h += RH_MD + RH_MD;
+  h += RH_MD + RH_MD + RH_MD;
   h += G10 + 1 + G10;
   h += RH_TOT;
   h += G14 + 1 + G12;
@@ -4305,12 +4366,16 @@ function drawAndShowTicket(cartData, cfg, client, clientData, modeLabel, modePct
   L(y, '#999');
   y += G8;
 
-  T('Precio lista:', PAD, y, F_SM, 'left', '#777');
-  T($m(baseTotal), W - PAD, y, F_SM, 'right', '#777');
+  T('P. Lista:', PAD, y, F_SM, 'left', '#777');
+  T($m(listTotal), W - PAD, y, F_SM, 'right', '#777');
   y += RH_MD;
 
-  T('Descuento: ' + modeLabel + ' (' + modePct + '%)', PAD, y, F_SM, 'left', '#777');
-  T('-' + $m(baseTotal - finalTotal), W - PAD, y, F_SM, 'right', '#777');
+  T('Desc. especiales:', PAD, y, F_SM, 'left', '#777');
+  T('-' + $m(specialDiscount), W - PAD, y, F_SM, 'right', '#777');
+  y += RH_MD;
+
+  T('Descuento general:', PAD, y, F_SM, 'left', '#777');
+  T('-' + $m(generalDiscount), W - PAD, y, F_SM, 'right', '#777');
   y += RH_MD;
 
   y += G10;
@@ -4360,19 +4425,32 @@ function buildA4HTML(payload){
   const cfg = payload.cfg || {};
   const clientData = payload.clientData || null;
   const clientName = (clientData && clientData.nombre) ? clientData.nombre : (payload.client || '');
-  const baseTotal = items.reduce((s,i)=>s+i.PR_CON_IVA*i.qty,0);
-  const finalTotal = items.reduce((s,i)=>s+finalItemTotal(i,payload.mode.percent),0);
-  const discountAmount = baseTotal - finalTotal;
+  const listTotal = budgetListTotal(items);
+  const specialDiscount = budgetSpecialDiscountTotal(items);
+  const subtotal = budgetAfterSpecialTotal(items);
+  const finalTotal = budgetFinalTotal(items, payload.mode.percent);
+  const generalDiscount = subtotal - finalTotal;
+
+  function formulaText(item){
+    if(item && item.tintData && item.tintData.color) return colorLabelWithMod(item.tintData.color, item.tintData.manualModified);
+    const m = String(item && item.ARTIC || '').match(/\(([^()]{2,18})\)\s*$/);
+    return m ? m[1] : '';
+  }
 
   const rows = items.map(item => {
-    const unit = finalUnitPrice(item, payload.mode.percent);
-    const subtotal = unit * item.qty;
-    const code = item.COD ? `<div class="code">Código: ${esc(item.COD)}</div>` : '';
+    const qty = itemQty(item);
+    const price = itemListUnit(item);
+    const dto = itemSpecialDiscountTotal(item);
+    const importe = itemAfterSpecialTotal(item);
+    const formula = formulaText(item);
     return `<tr>
-      <td class="qty">${item.qty}</td>
-      <td class="article">${code}<div>${esc(item.ARTIC || '')}</div></td>
-      <td class="money">${$m(unit)}</td>
-      <td class="money">${$m(subtotal)}</td>
+      <td class="qty">${qty}</td>
+      <td class="code">${esc(item.COD || '')}</td>
+      <td class="desc">${esc(item.ARTIC || '')}</td>
+      <td class="formula">${esc(formula)}</td>
+      <td class="money">${$m(price)}</td>
+      <td class="money">${dto ? '-' + $m(dto) : '0,00'}</td>
+      <td class="money">${$m(importe)}</td>
     </tr>`;
   }).join('');
 
@@ -4383,29 +4461,34 @@ function buildA4HTML(payload){
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Presupuesto ${esc(payload.codigo || '')}</title>
 <style>
-  @page{size:A4;margin:12mm}
+  @page{size:A4;margin:10mm}
   *{box-sizing:border-box}
-  body{font-family:Arial,Helvetica,sans-serif;color:#111;background:#fff;margin:0;padding:0}
-  .page{width:100%;max-width:190mm;margin:0 auto;background:#fff}
-  .header{text-align:center;margin-bottom:12mm}
-  .header h1{font-size:24px;margin:0 0 5px;font-weight:800}
-  .header p{margin:2px 0;font-size:12px;color:#555}
-  .line{border-top:2px solid #111;margin:10px 0 12px}
-  .info{display:grid;grid-template-columns:110px 1fr;gap:4px 8px;font-size:13px;margin-bottom:12px}
-  .info b{font-weight:700}
-  table{width:100%;border-collapse:collapse;table-layout:fixed}
-  th{font-size:12px;text-align:left;border-bottom:2px solid #111;padding:7px 5px}
-  td{font-size:12px;border-bottom:1px solid #ddd;padding:7px 5px;vertical-align:top}
-  .qty{width:13%;font-weight:700}
-  .article{width:51%;word-break:break-word}
-  .money{width:18%;text-align:right;white-space:nowrap}
-  .code{font-size:11px;color:#555;margin-bottom:2px;font-weight:700}
-  .totals{margin-top:14px;margin-left:auto;width:78mm;border-collapse:collapse}
-  .totals td{border:none;padding:4px 0;font-size:13px}
-  .totals .label{color:#555}
-  .totals .value{text-align:right;white-space:nowrap}
-  .grand td{border-top:2px solid #111;padding-top:9px;font-size:20px;font-weight:800;color:#111}
-  .footer{text-align:center;margin-top:18mm;font-size:12px;color:#666}
+  body{font-family:Arial,Helvetica,sans-serif;color:#111;background:#fff;margin:0;padding:0;font-size:12px}
+  .page{width:100%;max-width:190mm;margin:0 auto;background:#fff;min-height:270mm;position:relative;padding-bottom:25mm}
+  .top{display:grid;grid-template-columns:42mm 1fr 58mm;gap:8mm;align-items:start;margin-bottom:6mm}
+  .logoBox{font-size:22px;font-weight:800;color:#1581c4;line-height:1.0;padding-top:7mm}
+  .logoBox small{display:block;font-size:8px;color:#5aa05a;font-weight:700;letter-spacing:.02em}
+  h1{margin:0 0 5mm;text-align:center;font-size:18px;line-height:1.1}
+  .centerInfo{font-size:11px;line-height:1.45;font-weight:700}
+  .rightInfo{font-size:10.5px;line-height:1.55}
+  .storeName{font-weight:700;margin-top:2mm}
+  .clientGrid{border-top:1px solid #999;border-bottom:1px solid #999;padding:2mm 0;margin-bottom:3mm;display:grid;grid-template-columns:1fr 52mm;gap:5mm;font-size:11px;line-height:1.45}
+  .clientGrid b{font-weight:700}
+  .valid{font-size:11px;margin-top:5mm}
+  table.items{width:100%;border-collapse:collapse;table-layout:fixed;font-size:10.5px}
+  .items th{border-bottom:1px solid #777;text-align:left;padding:2mm 1mm;font-weight:800}
+  .items td{padding:1.9mm 1mm;vertical-align:top;border-bottom:0}
+  .qty{width:9mm;text-align:left}
+  .code{width:24mm;text-align:left;word-break:break-word}
+  .desc{width:auto;word-break:break-word}
+  .formula{width:22mm;text-align:center;word-break:break-word}
+  .money{width:24mm;text-align:right;white-space:nowrap}
+  .summary{position:absolute;left:0;right:0;bottom:8mm;border-top:1px solid #999;padding-top:2mm}
+  .summaryGrid{display:grid;grid-template-columns:28mm 32mm 1fr 32mm;align-items:start;gap:8mm;font-size:12px}
+  .summaryGrid .lbl{font-weight:800;text-align:center}
+  .summaryGrid .val{text-align:center;margin-top:2mm}
+  .attended{font-size:10.5px;margin-top:4mm}
+  .comment{font-size:11px;margin-top:3mm}
   @media print{
     html,body{background:#fff!important}
     .page{max-width:none;margin:0}
@@ -4414,45 +4497,72 @@ function buildA4HTML(payload){
 </head>
 <body>
 <div class="page">
-  <div class="header">
-    <h1>${esc(cfg.nombre || 'Colorshop Cañada')}</h1>
-    ${cfg.direccion ? `<p>${esc(cfg.direccion)}</p>` : ''}
-    ${cfg.telefono ? `<p>Tel: ${esc(cfg.telefono)}</p>` : ''}
-    ${cfg.whatsapp ? `<p>WhatsApp: ${esc(cfg.whatsapp)}</p>` : ''}
+  <div class="top">
+    <div>
+      <div class="logoBox">Colorshop<small>sabemos de pintura</small></div>
+      <div class="storeName">${esc(cfg.nombre || 'Colorshop Cañada')}</div>
+      <div>Responsable Inscripto</div>
+    </div>
+    <div>
+      <h1>Presupuesto</h1>
+      <div class="centerInfo">
+        ${payload.codigo ? `Comprobante: ${esc(payload.codigo)}<br>` : ''}
+        Fecha: ${esc(payload.fecha || '')}<br>
+        C.U.I.T.: 20-23457899-6<br>
+        Nº IIBB : 1110193718<br>
+        Sucursal: ${esc(cfg.nombre || 'Colorshop Cañada')}<br>
+        Dirección: ${esc(cfg.direccion || 'Ocampo 502')}<br>
+        Teléfono: ${esc(cfg.telefono || '422533')}
+      </div>
+    </div>
+    <div class="rightInfo">
+      <br><br><br>
+      ${clientName ? `<b>Cliente:</b><br>${esc(clientName)}<br>` : ''}
+      ${clientData && clientData.cuit ? `<b>C.U.I.T.:</b> ${esc(clientData.cuit)}<br>` : ''}
+      ${clientData && clientData.telefono ? `<b>Teléfono:</b> ${esc(clientData.telefono)}<br>` : ''}
+      ${clientData && clientData.direccion ? `<b>Domicilio:</b> ${esc(clientData.direccion)}<br>` : ''}
+    </div>
   </div>
 
-  <div class="line"></div>
-
-  <div class="info">
-    <b>Fecha:</b><span>${esc(payload.fecha || '')}</span>
-    ${payload.codigo ? `<b>Código:</b><span>${esc(payload.codigo)}</span>` : ''}
-    ${clientName ? `<b>Cliente:</b><span>${esc(clientName)}</span>` : ''}
-    ${clientData && clientData.cuit ? `<b>CUIT/DNI:</b><span>${esc(clientData.cuit)}</span>` : ''}
-    ${clientData && clientData.direccion ? `<b>Dirección:</b><span>${esc(clientData.direccion)}</span>` : ''}
-    <b>Descuento:</b><span>${esc(payload.mode.label)} (${payload.mode.percent}%)</span>
+  <div class="clientGrid">
+    <div>
+      <b>Cliente:</b> ${esc(clientName || '')}<br>
+      <b>Cond. IVA:</b> Exento<br>
+      <b>Domicilio:</b> ${esc(clientData && clientData.direccion ? clientData.direccion : '')}
+    </div>
+    <div>
+      <b>C.U.I.T.:</b> ${esc(clientData && clientData.cuit ? clientData.cuit : '')}<br>
+      <b>Teléfono:</b> ${esc(clientData && clientData.telefono ? clientData.telefono : '')}<br>
+      <b>Localidad:</b>
+    </div>
   </div>
 
-  <table>
+  <table class="items">
     <thead>
       <tr>
-        <th class="qty">Cant.</th>
-        <th class="article">Artículo</th>
-        <th class="money">Unit.</th>
-        <th class="money">Total</th>
+        <th class="qty">Cantidad</th>
+        <th class="code">Artículo</th>
+        <th class="desc">Descripción</th>
+        <th class="formula">Fórmula</th>
+        <th class="money">Precio</th>
+        <th class="money">Dto.</th>
+        <th class="money">Importe</th>
       </tr>
     </thead>
     <tbody>${rows}</tbody>
   </table>
 
-  <table class="totals">
-    <tr><td class="label">Precio lista</td><td class="value">${$m(baseTotal)}</td></tr>
-    <tr><td class="label">Descuento</td><td class="value">-${$m(discountAmount)}</td></tr>
-    <tr class="grand"><td>TOTAL</td><td class="value">${$m(finalTotal)}</td></tr>
-  </table>
+  <div class="valid">Comprobante válido por 7 días.</div>
+  <div class="comment">Comentario:</div>
 
-  <div class="footer">
-    <div>${esc(cfg.pie || '¡Gracias por su visita!')}</div>
-    <div>Pancko · Sistema de precios</div>
+  <div class="summary">
+    <div class="summaryGrid">
+      <div><div class="lbl">Importe</div><div class="val">${$m(subtotal)}</div></div>
+      <div><div class="lbl">Descuento</div><div class="val">${$m(generalDiscount)}</div></div>
+      <div></div>
+      <div><div class="lbl">Total</div><div class="val">${$m(finalTotal)}</div></div>
+    </div>
+    <div class="attended">Usted fue atendido por: mjs-Martin Siara</div>
   </div>
 </div>
 </body>
