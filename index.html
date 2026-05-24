@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Pancko"/>
   <meta name="theme-color" content="#0a2a5e"/>
-  <title>Pancko Integral v0.10.6</title>
+  <title>Pancko Integral v0.10.7</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -1830,7 +1830,7 @@
       <div class="divider"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.6</div>
+          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.7</div>
           <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">Lanzamiento: Abril 2026</div>
         </div>
         <div style="font-size:2rem;opacity:.25;">🚀</div>
@@ -4498,16 +4498,18 @@ function buildA4HTML(payload){
   const cfg = payload.cfg || {};
   const clientData = payload.clientData || null;
   const clientName = (clientData && clientData.nombre) ? clientData.nombre : (payload.client || '');
-  const listTotal = budgetListTotal(items);
-  const specialDiscount = budgetSpecialDiscountTotal(items);
   const subtotal = budgetAfterSpecialTotal(items);
   const finalTotal = budgetFinalTotal(items, payload.mode.percent);
   const generalDiscount = subtotal - finalTotal;
 
-  function formulaText(item){
-    if(item && item.tintData && item.tintData.color) return colorLabelWithMod(item.tintData.color, item.tintData.manualModified);
-    const m = String(item && item.ARTIC || '').match(/\(([^()]{2,18})\)\s*$/);
-    return m ? m[1] : '';
+  function extraDescLine(item){
+    if(item && item.tintData){
+      const parts = [];
+      if(item.tintData.color) parts.push(colorLabelWithMod(item.tintData.color, item.tintData.manualModified));
+      if(item.tintData.descripcion) parts.push(item.tintData.descripcion);
+      if(parts.length) return parts.join(' · ');
+    }
+    return '';
   }
 
   const rows = items.map(item => {
@@ -4515,14 +4517,15 @@ function buildA4HTML(payload){
     const price = itemListUnit(item);
     const dto = itemSpecialDiscountTotal(item);
     const importe = itemAfterSpecialTotal(item);
-    const formula = formulaText(item);
+    const extraLine = extraDescLine(item);
     return `<tr>
       <td class="qty">${qty}</td>
-      <td class="code">${esc(item.COD || '')}</td>
-      <td class="desc">${esc(item.ARTIC || '')}</td>
-      <td class="formula">${esc(formula)}</td>
+      <td class="desc">
+        <div class="desc-main">${esc(item.ARTIC || '')}</div>
+        ${extraLine ? `<div class="desc-sub">${esc(extraLine)}</div>` : ''}
+      </td>
       <td class="money">${$m(price)}</td>
-      <td class="money">${dto ? '-' + $m(dto) : '0,00'}</td>
+      <td class="money">${dto ? '- ' + $m(dto) : '0,00'}</td>
       <td class="money">${$m(importe)}</td>
     </tr>`;
   }).join('');
@@ -4536,32 +4539,34 @@ function buildA4HTML(payload){
 <style>
   @page{size:A4;margin:10mm}
   *{box-sizing:border-box}
-  body{font-family:Arial,Helvetica,sans-serif;color:#111;background:#fff;margin:0;padding:0;font-size:12px}
+  body{font-family:Arial,Helvetica,sans-serif;color:#111;background:#fff;margin:0;padding:0;font-size:12.2px;font-weight:500}
   .page{width:100%;max-width:190mm;margin:0 auto;background:#fff;min-height:270mm;position:relative;padding-bottom:25mm}
-  .top{display:grid;grid-template-columns:42mm 1fr 58mm;gap:8mm;align-items:start;margin-bottom:6mm}
-  .logoBox{font-size:22px;font-weight:800;color:#1581c4;line-height:1.0;padding-top:7mm}
-  .logoBox small{display:block;font-size:8px;color:#5aa05a;font-weight:700;letter-spacing:.02em}
-  h1{margin:0 0 5mm;text-align:center;font-size:18px;line-height:1.1}
-  .centerInfo{font-size:11px;line-height:1.45;font-weight:700}
-  .rightInfo{font-size:10.5px;line-height:1.55}
-  .storeName{font-weight:700;margin-top:2mm}
-  .clientGrid{border-top:1px solid #999;border-bottom:1px solid #999;padding:2mm 0;margin-bottom:3mm;display:grid;grid-template-columns:1fr 52mm;gap:5mm;font-size:11px;line-height:1.45}
-  .clientGrid b{font-weight:700}
-  .valid{font-size:11px;margin-top:5mm}
-  table.items{width:100%;border-collapse:collapse;table-layout:fixed;font-size:10.5px}
-  .items th{border-bottom:1px solid #777;text-align:left;padding:2mm 1mm;font-weight:800}
-  .items td{padding:1.9mm 1mm;vertical-align:top;border-bottom:0}
-  .qty{width:9mm;text-align:left}
-  .code{width:24mm;text-align:left;word-break:break-word}
+  .top{display:grid;grid-template-columns:42mm 1fr;gap:10mm;align-items:start;margin-bottom:5mm}
+  .logoBox{font-size:22px;font-weight:900;color:#1581c4;line-height:1.0;padding-top:2mm}
+  .logoBox small{display:block;font-size:8px;color:#5aa05a;font-weight:800;letter-spacing:.02em}
+  .storeName{font-weight:800;margin-top:3mm;font-size:11.8px}
+  h1{margin:0 0 2.5mm;text-align:center;font-size:18px;line-height:1.1;font-weight:900}
+  .headerRight{display:flex;flex-direction:column;align-items:flex-end}
+  .centerInfo{font-size:11.2px;line-height:1.45;font-weight:700;text-align:right;min-width:75mm}
+  .centerInfo b{font-weight:800}
+  .clientGrid{border-top:1px solid #999;border-bottom:1px solid #999;padding:2.3mm 0;margin-bottom:3mm;display:grid;grid-template-columns:1fr 55mm;gap:6mm;font-size:11.3px;line-height:1.45}
+  .clientGrid b{font-weight:800}
+  .valid{font-size:11px;margin-top:5mm;font-weight:600}
+  .comment{font-size:11px;margin-top:3mm;font-weight:600}
+  table.items{width:100%;border-collapse:collapse;table-layout:fixed;font-size:10.9px}
+  .items th{border-bottom:1px solid #777;text-align:left;padding:2mm 1mm;font-weight:900}
+  .items td{padding:2.1mm 1mm;vertical-align:top;border-bottom:0;font-weight:600}
+  .qty{width:12mm;text-align:left;font-weight:700}
   .desc{width:auto;word-break:break-word}
-  .formula{width:22mm;text-align:center;word-break:break-word}
-  .money{width:24mm;text-align:right;white-space:nowrap}
+  .desc-main{font-weight:800;line-height:1.35}
+  .desc-sub{font-size:10px;line-height:1.3;margin-top:.6mm;font-weight:700;color:#333}
+  .money{width:25mm;text-align:right;white-space:nowrap;font-weight:700}
+  .money-h{text-align:right !important;padding-right:1mm !important}
   .summary{position:absolute;left:0;right:0;bottom:8mm;border-top:1px solid #999;padding-top:2mm}
-  .summaryGrid{display:grid;grid-template-columns:28mm 32mm 1fr 32mm;align-items:start;gap:8mm;font-size:12px}
-  .summaryGrid .lbl{font-weight:800;text-align:center}
-  .summaryGrid .val{text-align:center;margin-top:2mm}
-  .attended{font-size:10.5px;margin-top:4mm}
-  .comment{font-size:11px;margin-top:3mm}
+  .summaryGrid{display:grid;grid-template-columns:28mm 32mm 1fr 32mm;align-items:start;gap:8mm;font-size:12.4px}
+  .summaryGrid .lbl{font-weight:900;text-align:center}
+  .summaryGrid .val{text-align:center;margin-top:2mm;font-weight:700}
+  .attended{font-size:10.8px;margin-top:4mm;font-weight:600}
   @media print{
     html,body{background:#fff!important}
     .page{max-width:none;margin:0}
@@ -4574,26 +4579,19 @@ function buildA4HTML(payload){
     <div>
       <div class="logoBox">Colorshop<small>sabemos de pintura</small></div>
       <div class="storeName">${esc(cfg.nombre || 'Colorshop Cañada')}</div>
-      <div>Responsable Inscripto</div>
+      <div style="font-weight:600">Responsable Inscripto</div>
     </div>
-    <div>
+    <div class="headerRight">
       <h1>Presupuesto</h1>
       <div class="centerInfo">
-        ${payload.codigo ? `Comprobante: ${esc(payload.codigo)}<br>` : ''}
-        Fecha: ${esc(payload.fecha || '')}<br>
-        C.U.I.T.: 20-23457899-6<br>
-        Nº IIBB : 1110193718<br>
-        Sucursal: ${esc(cfg.nombre || 'Colorshop Cañada')}<br>
-        Dirección: ${esc(cfg.direccion || 'Ocampo 502')}<br>
-        Teléfono: ${esc(cfg.telefono || '422533')}
+        ${payload.codigo ? `<b>Comprobante:</b> ${esc(payload.codigo)}<br>` : ''}
+        <b>Fecha:</b> ${esc(payload.fecha || '')}<br>
+        <b>C.U.I.T.:</b> 20-23457899-6<br>
+        <b>Nº IIBB:</b> 1110193718<br>
+        <b>Sucursal:</b> ${esc(cfg.nombre || 'Colorshop Cañada')}<br>
+        <b>Dirección:</b> ${esc(cfg.direccion || 'Ocampo 502')}<br>
+        <b>Teléfono:</b> ${esc(cfg.telefono || '422533')}
       </div>
-    </div>
-    <div class="rightInfo">
-      <br><br><br>
-      ${clientName ? `<b>Cliente:</b><br>${esc(clientName)}<br>` : ''}
-      ${clientData && clientData.cuit ? `<b>C.U.I.T.:</b> ${esc(clientData.cuit)}<br>` : ''}
-      ${clientData && clientData.telefono ? `<b>Teléfono:</b> ${esc(clientData.telefono)}<br>` : ''}
-      ${clientData && clientData.direccion ? `<b>Domicilio:</b> ${esc(clientData.direccion)}<br>` : ''}
     </div>
   </div>
 
@@ -4613,13 +4611,11 @@ function buildA4HTML(payload){
   <table class="items">
     <thead>
       <tr>
-        <th class="qty">Cantidad</th>
-        <th class="code">Artículo</th>
+        <th class="qty">Cant.</th>
         <th class="desc">Descripción</th>
-        <th class="formula">Fórmula</th>
-        <th class="money">Precio</th>
-        <th class="money">Dto.</th>
-        <th class="money">Importe</th>
+        <th class="money money-h">Precio</th>
+        <th class="money money-h">Dto.</th>
+        <th class="money money-h">Importe</th>
       </tr>
     </thead>
     <tbody>${rows}</tbody>
