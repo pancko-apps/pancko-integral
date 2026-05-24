@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Pancko"/>
   <meta name="theme-color" content="#0a2a5e"/>
-  <title>Pancko Integral v0.10.10</title>
+  <title>Pancko Integral v0.10.11</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -1411,6 +1411,27 @@
       font-size:1.35rem;
     }
 
+
+    /* Clientes / colores v0.10.11 */
+    .client-card-v1011 .history-actions{align-items:stretch}
+    .client-main-v1011{
+      min-width:0;
+      flex:1;
+      display:flex;
+      flex-direction:column;
+    }
+    .color-btn-v1011{
+      align-self:flex-start;
+      margin-top:auto;
+      transform:translateY(2px);
+      background:rgba(69,188,255,.16);
+      border:1px solid rgba(122,211,255,.18);
+      color:#c9edff;
+    }
+    .client-color-card{
+      border-color:rgba(122,211,255,.15);
+    }
+
   </style>
 </head>
 <body>
@@ -1569,6 +1590,11 @@
         <div id="labClientAutocompleteList" class="autocomplete-list"></div>
       </div>
 
+      <div class="field">
+        <label>Nota / ambiente</label>
+        <input type="text" id="labNoteInput" placeholder="Ej: Dormitorio niños, frente, reja, damero..." autocomplete="off"/>
+      </div>
+
       <div style="display:flex;gap:10px;flex-wrap:wrap;">
         <button class="btn btn-primary" style="flex:1" onclick="renderLabFormula()">Actualizar fórmula</button>
         <button class="btn btn-green" style="flex:1" onclick="addLabToBudget()">Agregar al presupuesto</button>
@@ -1603,6 +1629,21 @@
       <div id="clientsStatus" style="font-size:.9rem;"></div>
     </div>
     <div id="clientsList"></div>
+  </section>
+
+  <!-- COLORES POR CLIENTE -->
+  <section class="screen" id="clientColorsScreen">
+    <div class="top-bar">
+      <button class="btn btn-back" onclick="showScreen('clientsScreen')">← Clientes</button>
+      <button class="btn btn-primary" onclick="newLabRecordForCurrentClient()">＋ Nuevo registro</button>
+    </div>
+    <div class="sec-title" id="clientColorsTitle">Colores del cliente</div>
+    <div class="card" style="padding:10px 14px;">
+      <div class="total-label" style="margin-bottom:4px;">Cliente / registro</div>
+      <div id="clientColorsName" style="font-size:.95rem;font-weight:700;"></div>
+    </div>
+    <input id="clientColorsSearchInput" class="lab-record-search" type="text" placeholder="Buscar color, producto o nota..." oninput="renderClientColorRecords()" />
+    <div id="clientColorsList"></div>
   </section>
 
   <!-- FORMULARIO CLIENTE -->
@@ -1830,7 +1871,7 @@
       <div class="divider"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.10</div>
+          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.11</div>
           <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">Lanzamiento: Abril 2026</div>
         </div>
         <div style="font-size:2rem;opacity:.25;">🚀</div>
@@ -1987,6 +2028,7 @@ let colorantPrices = JSON.parse(localStorage.getItem('pk_tint_prices') || '{}');
 let tintRecipeIndex = new Map();
 let currentHistoryEntry = null;
 let currentClientEditId = null;
+let currentClientColorsName = '';
 
 function save(){
   localStorage.setItem('pk_products', JSON.stringify(products));
@@ -2963,6 +3005,8 @@ function getLabRecordPayload(){
   if(!calc.ok) return {ok:false,msg:calc.msg || 'No se pudo calcular la fórmula.'};
 
   const client = currentLabClientData();
+  const clientInput = (document.getElementById('labClientInput')?.value || '').trim();
+  const nota = (document.getElementById('labNoteInput')?.value || '').trim();
   const now = new Date();
 
   return {
@@ -2971,8 +3015,9 @@ function getLabRecordPayload(){
       id:'lab_'+Date.now()+'_'+Math.random().toString(16).slice(2),
       fecha: now.toLocaleString('es-AR'),
       timestamp: now.toISOString(),
-      cliente: client ? client.cliente : '',
+      cliente: client ? client.cliente : clientInput,
       clienteData: client,
+      nota,
       COD:p.COD,
       ARTIC:p.ARTIC,
       color: colorLabelWithMod(calc.rec.idcolor || extractColorId(color), labFormulaModified()),
@@ -3001,6 +3046,7 @@ function saveLabRecord(){
   labRecords = labRecords.slice(0, 300);
   save();
   renderLabRecords();
+  if(document.getElementById('clientColorsScreen')?.classList.contains('active')) renderClientColorRecords();
   showToast('Registro de laboratorio guardado');
 }
 
@@ -3009,7 +3055,7 @@ function renderLabRecords(){
   if(!box) return;
 
   const q = normKey(document.getElementById('labRecordSearchInput')?.value || '');
-  const filtered = labRecords.filter(r => !q || normKey(`${r.cliente || ''} ${r.color || ''} ${r.descripcion || ''} ${r.ARTIC || ''} ${r.COD || ''}`).includes(q));
+  const filtered = labRecords.filter(r => !q || normKey(`${r.cliente || ''} ${r.color || ''} ${r.descripcion || ''} ${r.ARTIC || ''} ${r.COD || ''} ${r.nota || ''}`).includes(q));
   if(!filtered.length){
     box.innerHTML = '<div class="empty-msg" style="padding:14px;">Sin registros encontrados.</div>';
     return;
@@ -3021,6 +3067,7 @@ function renderLabRecords(){
       <div class="lab-record-meta">
         ${esc(r.fecha || '')}<br>
         ${esc(r.ARTIC || '')}<br>
+        ${r.nota ? `<b>Nota:</b> ${esc(r.nota)}<br>` : ''}
         Base ${esc(r.base_formula || '')} · Física ${esc(r.base_fisica || '')}
       </div>
       <div class="lab-record-actions">
@@ -3060,7 +3107,7 @@ function renderLabSavedRecord(r){
       <div class="lab-formula-title">${esc(r.color || r.color_original || '')} · ${esc(r.descripcion || '')}</div>
       <div class="lab-meta">
         Producto: <b>${esc(r.ARTIC || '')}</b><br>
-        Cliente: <b>${esc(r.cliente || 'Sin cliente')}</b><br>
+        Cliente: <b>${esc(r.cliente || 'Sin cliente')}</b>${r.nota ? `<br>Nota: <b>${esc(r.nota)}</b>` : ''}<br>
         Base fórmula: <b>${esc(r.base_formula || '')}</b> · Base física: <b>${esc(r.base_fisica || '')}</b> · Factor: <b>${esc(r.factor || '')}</b><br>
         Registro guardado: ${esc(r.fecha || '')}${r.manualModified ? '<br><b style="color:#ffd477">Fórmula modificada manualmente</b>' : ''}
       </div>
@@ -3099,6 +3146,8 @@ function loadLabRecord(id){
 
   const clientInput = document.getElementById('labClientInput');
   if(clientInput) clientInput.value = r.cliente || '';
+  const noteInput = document.getElementById('labNoteInput');
+  if(noteInput) noteInput.value = r.nota || '';
 
   renderLabProductInfo();
   renderLabColorOptions();
@@ -5301,22 +5350,26 @@ function renderClientsList(){
     return;
   }
 
-  list.innerHTML = filtered.map(c => `
-    <div class="history-item">
+  list.innerHTML = filtered.map(c => {
+    const colorCount = labRecords.filter(r => sameClientName(r.cliente, c.cliente)).length;
+    const colorLabel = colorCount ? `Colores (${colorCount})` : 'Colores';
+    return `
+    <div class="history-item client-card-v1011">
       <div class="history-actions">
-        <div style="min-width:0;flex:1;">
-          <div style="font-weight:600;font-size:.95rem;">${c.cliente || 'Sin nombre'}</div>
-          <div class="history-meta">${c.cuit || 'Sin DNI/CUIT'}${c.telefono ? ' · ' + c.telefono : ''}</div>
-          <div style="font-size:.78rem;color:var(--text-muted);margin-top:4px;">${c.direccion || 'Dirección sin completar'}</div>
+        <div class="client-main-v1011">
+          <div style="font-weight:600;font-size:.95rem;">${esc(c.cliente || 'Sin nombre')}</div>
+          <div class="history-meta">${esc(c.cuit || 'Sin DNI/CUIT')}${c.telefono ? ' · ' + esc(c.telefono) : ''}</div>
+          <div style="font-size:.78rem;color:var(--text-muted);margin-top:4px;">${esc(c.direccion || 'Dirección sin completar')}</div>
+          <button class="mini-btn color-btn-v1011" onclick="openClientColors('${esc(c.id)}')">🎨 ${colorLabel}</button>
         </div>
         <div style="display:flex;gap:6px;flex-direction:column;">
-          <button class="mini-btn edit" onclick="openClientForm('${c.id}')">Editar</button>
-          <button class="mini-btn delete" onclick="deleteClient('${c.id}')">Eliminar</button>
-          <button class="mini-btn edit" onclick="useClientForBudget('${c.id}')">Usar</button>
+          <button class="mini-btn edit" onclick="openClientForm('${esc(c.id)}')">Editar</button>
+          <button class="mini-btn delete" onclick="deleteClient('${esc(c.id)}')">Eliminar</button>
+          <button class="mini-btn edit" onclick="useClientForBudget('${esc(c.id)}')">Usar</button>
         </div>
       </div>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
 }
 
 function openClientForm(id){
@@ -5394,6 +5447,83 @@ function useClientForBudget(id){
   hideClientAutocomplete();
   showScreen('cartScreen');
   showToast('Cliente cargado en presupuesto');
+}
+
+
+
+
+function sameClientName(a,b){
+  return normKey(a || '') && normKey(a || '') === normKey(b || '');
+}
+
+function clientColorRecords(name){
+  const n = normKey(name || '');
+  if(!n) return [];
+  return labRecords.filter(r => sameClientName(r.cliente, name));
+}
+
+function openClientColors(idOrName){
+  const client = clients.find(c => c.id === idOrName);
+  currentClientColorsName = client ? (client.cliente || '') : (idOrName || '');
+  const title = document.getElementById('clientColorsTitle');
+  const nameBox = document.getElementById('clientColorsName');
+  const search = document.getElementById('clientColorsSearchInput');
+  if(title) title.textContent = 'Colores del cliente';
+  if(nameBox) nameBox.textContent = currentClientColorsName || 'Sin nombre';
+  if(search) search.value = '';
+  showScreen('clientColorsScreen');
+  renderClientColorRecords();
+}
+
+function renderClientColorRecords(){
+  const box = document.getElementById('clientColorsList');
+  if(!box) return;
+  const q = normKey(document.getElementById('clientColorsSearchInput')?.value || '');
+  let rows = clientColorRecords(currentClientColorsName);
+
+  if(q){
+    rows = rows.filter(r => normKey(`${r.color || ''} ${r.descripcion || ''} ${r.ARTIC || ''} ${r.COD || ''} ${r.nota || ''} ${r.fecha || ''}`).includes(q));
+  }
+
+  if(!rows.length){
+    box.innerHTML = `<div class="empty-msg" style="padding:16px;">Este cliente todavía no tiene colores registrados.</div>`;
+    return;
+  }
+
+  box.innerHTML = rows.map(r => `
+    <div class="lab-record-card client-color-card" onclick="openLabRecordFromClient('${esc(r.id)}')">
+      <div class="lab-record-title">${esc(r.color || '')} ${r.descripcion ? '· ' + esc(r.descripcion) : ''}</div>
+      <div class="lab-record-meta">
+        ${esc(r.fecha || '')}<br>
+        ${esc(r.ARTIC || '')}<br>
+        ${r.nota ? `<b>Nota:</b> ${esc(r.nota)}<br>` : ''}
+        Base ${esc(r.base_formula || '')} · Física ${esc(r.base_fisica || '')}
+      </div>
+      <div class="lab-record-actions">
+        <button class="mini-btn edit" onclick="event.stopPropagation();openLabRecordFromClient('${esc(r.id)}')">Abrir</button>
+        <button class="mini-btn delete" onclick="event.stopPropagation();deleteLabRecord('${esc(r.id)}');renderClientColorRecords();">Borrar</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function openLabRecordFromClient(id){
+  showScreen('labScreen');
+  setTimeout(()=>loadLabRecord(id), 30);
+}
+
+function newLabRecordForCurrentClient(){
+  showScreen('labScreen');
+  setTimeout(()=>{
+    const input = document.getElementById('labClientInput');
+    if(input){
+      input.value = currentClientColorsName || '';
+      input.dataset.cleared = '0';
+    }
+    const note = document.getElementById('labNoteInput');
+    if(note) note.value = '';
+    window.scrollTo({top:0, behavior:'smooth'});
+  }, 30);
 }
 
 
