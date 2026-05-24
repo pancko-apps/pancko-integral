@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Pancko"/>
   <meta name="theme-color" content="#0a2a5e"/>
-  <title>Pancko Integral v0.10.8</title>
+  <title>Pancko Integral v0.10.9</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -1830,7 +1830,7 @@
       <div class="divider"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.8</div>
+          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.9</div>
           <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">Lanzamiento: Abril 2026</div>
         </div>
         <div style="font-size:2rem;opacity:.25;">🚀</div>
@@ -4502,6 +4502,15 @@ function buildA4HTML(payload){
   const finalTotal = budgetFinalTotal(items, payload.mode.percent);
   const generalDiscount = subtotal - finalTotal;
 
+  function m2(v){
+    return new Intl.NumberFormat('es-AR',{
+      style:'currency',
+      currency:'ARS',
+      minimumFractionDigits:2,
+      maximumFractionDigits:2
+    }).format(Number(v)||0);
+  }
+
   function splitAddress(address){
     const raw = String(address || '').trim();
     if(!raw) return {street:'', city:''};
@@ -4522,11 +4531,18 @@ function buildA4HTML(payload){
     return `<tr>
       <td class="qty">${qty}</td>
       <td class="desc"><div class="desc-main">${esc(item.ARTIC || '')}</div></td>
-      <td class="money">${$m(price)}</td>
-      <td class="money">${dto ? '- ' + $m(dto) : '0,00'}</td>
-      <td class="money">${$m(importe)}</td>
+      <td class="money">${m2(price)}</td>
+      <td class="money">${dto ? '- ' + m2(dto) : m2(0)}</td>
+      <td class="money">${m2(importe)}</td>
     </tr>`;
   }).join('');
+
+  const paymentOptions = (discounts || [])
+    .filter(d => d && d.key !== 'manual')
+    .map(d => {
+      const total = Math.round(subtotal * (1 - clampPct(d.percent)/100));
+      return `<div class="payOpt"><span>${esc(d.label)} ${clampPct(d.percent)}%</span><b>${m2(total)}</b></div>`;
+    }).join('');
 
   return `<!DOCTYPE html>
 <html lang="es">
@@ -4538,7 +4554,7 @@ function buildA4HTML(payload){
   @page{size:A4;margin:10mm}
   *{box-sizing:border-box}
   body{font-family:Arial,Helvetica,sans-serif;color:#111;background:#fff;margin:0;padding:0;font-size:12.6px;font-weight:600}
-  .page{width:100%;max-width:190mm;margin:0 auto;background:#fff;min-height:270mm;position:relative;padding-bottom:25mm}
+  .page{width:100%;max-width:190mm;margin:0 auto;background:#fff;min-height:270mm;position:relative;padding-bottom:34mm}
   .top{display:grid;grid-template-columns:50mm 1fr;gap:12mm;align-items:start;margin-bottom:5mm;padding:0 6mm}
   .logoBox{font-size:28px;font-weight:900;color:#1581c4;line-height:.95;padding-top:1mm;letter-spacing:-.03em}
   .logoBox small{display:block;font-size:8.5px;color:#5aa05a;font-weight:900;letter-spacing:.02em;margin-top:1mm}
@@ -4558,13 +4574,18 @@ function buildA4HTML(payload){
   .qty{width:12mm;text-align:left;font-weight:800}
   .desc{width:auto;word-break:normal;overflow:hidden}
   .desc-main{font-weight:900;line-height:1.16;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .money{width:26mm;text-align:right;white-space:nowrap;font-weight:800}
+  .money{width:29mm;text-align:right;white-space:nowrap;font-weight:800}
   .money-h{text-align:right !important;padding-right:1mm !important}
   .summary{position:absolute;left:0;right:0;bottom:8mm;border-top:1px solid #999;padding-top:2mm}
-  .summaryGrid{display:grid;grid-template-columns:30mm 34mm 1fr 34mm;align-items:start;gap:8mm;font-size:13.2px}
+  .summaryGrid{display:grid;grid-template-columns:35mm 38mm 1fr 38mm;align-items:start;gap:7mm;font-size:13.2px}
   .summaryGrid .lbl{font-weight:900;text-align:center}
-  .summaryGrid .val{text-align:center;margin-top:2mm;font-weight:800;font-size:13.2px}
-  .attended{font-size:11px;margin-top:4mm;font-weight:700}
+  .summaryGrid .val{text-align:center;margin-top:2mm;font-weight:800;font-size:13.2px;white-space:nowrap}
+  .paymentBox{border-top:1px solid #ccc;margin-top:3mm;padding-top:2mm}
+  .paymentTitle{font-weight:900;font-size:11.5px;margin-bottom:1.5mm}
+  .paymentGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:3mm;font-size:10.8px}
+  .payOpt{display:flex;justify-content:space-between;gap:2mm;border:1px solid #ddd;padding:1.2mm 1.5mm;border-radius:2mm;white-space:nowrap}
+  .payOpt b{font-weight:900}
+  .attended{font-size:11px;margin-top:3mm;font-weight:700}
   @media print{
     html,body{background:#fff!important}
     .page{max-width:none;margin:0}
@@ -4624,10 +4645,14 @@ function buildA4HTML(payload){
 
   <div class="summary">
     <div class="summaryGrid">
-      <div><div class="lbl">Importe</div><div class="val">${$m(subtotal)}</div></div>
-      <div><div class="lbl">Descuento</div><div class="val">${$m(generalDiscount)}</div></div>
+      <div><div class="lbl">Importe</div><div class="val">${m2(subtotal)}</div></div>
+      <div><div class="lbl">Descuento</div><div class="val">${m2(generalDiscount)}</div></div>
       <div></div>
-      <div><div class="lbl">Total</div><div class="val">${$m(finalTotal)}</div></div>
+      <div><div class="lbl">Total</div><div class="val">${m2(finalTotal)}</div></div>
+    </div>
+    <div class="paymentBox">
+      <div class="paymentTitle">Opciones de pago</div>
+      <div class="paymentGrid">${paymentOptions}</div>
     </div>
     <div class="attended">Usted fue atendido por: mjs-Martin Siara</div>
   </div>
