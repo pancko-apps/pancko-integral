@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Pancko"/>
   <meta name="theme-color" content="#0a2a5e"/>
-  <title>Pancko Integral v0.10.12</title>
+  <title>Pancko Integral v0.10.13</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -1871,7 +1871,7 @@
       <div class="divider"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.12</div>
+          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.13</div>
           <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">Lanzamiento: Abril 2026</div>
         </div>
         <div style="font-size:2rem;opacity:.25;">🚀</div>
@@ -3059,6 +3059,45 @@ function saveLabRecord(){
   syncLabRecordToCloud(payload.record);
 }
 
+
+function labRecordDateRaw(r){
+  return (r && (r.fecha || r.timestamp || r.created_at)) || '';
+}
+
+function formatLabRecordDate(value){
+  const s = String(value || '').trim();
+  if(!s) return '';
+
+  // Apps Script puede devolver una celda de fecha como ISO.
+  // Para "fecha" lo mostramos como creación humana, sin exponer el formato técnico.
+  let m = s.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+  if(m) return `${m[3]}/${m[2]}/${m[1]} ${m[4]}:${m[5]}`;
+
+  m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4}),?\s+(\d{1,2}):(\d{2})/);
+  if(m){
+    const dd = String(m[1]).padStart(2,'0');
+    const mm = String(m[2]).padStart(2,'0');
+    const yy = m[3];
+    const hh = String(m[4]).padStart(2,'0');
+    return `${dd}/${mm}/${yy} ${hh}:${m[5]}`;
+  }
+
+  return s.replace(',', '').slice(0,16);
+}
+
+function labSyncLabel(r){
+  if(!r) return '';
+  if(r._sync === 'pending') return '☁️ pendiente';
+  if(r._sync === 'synced') return '☁️ sync';
+  return '';
+}
+
+function labDateAndSyncHTML(r){
+  const date = formatLabRecordDate(labRecordDateRaw(r));
+  const sync = labSyncLabel(r);
+  return `${date ? `Creado: ${esc(date)}` : ''}${date && sync ? ' · ' : ''}${sync ? esc(sync) : ''}`;
+}
+
 function renderLabRecords(){
   const box = document.getElementById('labRecordsList');
   if(!box) return;
@@ -3072,9 +3111,9 @@ function renderLabRecords(){
 
   box.innerHTML = filtered.slice(0, 40).map(r => `
     <div class="lab-record-card" onclick="loadLabRecord('${esc(r.id)}')">
-      <div class="lab-record-title">${esc(r.cliente || 'Sin cliente')} · ${esc(r.color)} ${r.descripcion ? '· ' + esc(r.descripcion) : ''}</div>
+      <div class="lab-record-title">${esc(r.cliente || 'Sin cliente')} · ${esc(r.color || '')}${r.descripcion ? ' · ' + esc(r.descripcion) : ''}</div>
       <div class="lab-record-meta">
-        ${esc(r.fecha || '')}${r._sync === 'pending' ? ' · ☁️ pendiente' : (r._sync === 'synced' ? ' · ☁️ sync' : '')}<br>
+        ${labDateAndSyncHTML(r)}<br>
         ${esc(r.ARTIC || '')}<br>
         ${r.nota ? `<b>Nota:</b> ${esc(r.nota)}<br>` : ''}
         Base ${esc(r.base_formula || '')} · Física ${esc(r.base_fisica || '')}
@@ -5503,9 +5542,9 @@ function renderClientColorRecords(){
 
   box.innerHTML = rows.map(r => `
     <div class="lab-record-card client-color-card" onclick="openLabRecordFromClient('${esc(r.id)}')">
-      <div class="lab-record-title">${esc(r.color || '')} ${r.descripcion ? '· ' + esc(r.descripcion) : ''}</div>
+      <div class="lab-record-title">${esc(r.color || '')}${r.descripcion ? ' · ' + esc(r.descripcion) : ''}</div>
       <div class="lab-record-meta">
-        ${esc(r.fecha || '')}${r._sync === 'pending' ? ' · ☁️ pendiente' : (r._sync === 'synced' ? ' · ☁️ sync' : '')}<br>
+        ${labDateAndSyncHTML(r)}<br>
         ${esc(r.ARTIC || '')}<br>
         ${r.nota ? `<b>Nota:</b> ${esc(r.nota)}<br>` : ''}
         Base ${esc(r.base_formula || '')} · Física ${esc(r.base_fisica || '')}
