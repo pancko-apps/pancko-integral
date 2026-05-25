@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Pancko"/>
   <meta name="theme-color" content="#0a2a5e"/>
-  <title>Pancko Integral v0.10.11</title>
+  <title>Pancko Integral v0.10.12</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -1871,7 +1871,7 @@
       <div class="divider"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.11</div>
+          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.12</div>
           <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">Lanzamiento: Abril 2026</div>
         </div>
         <div style="font-size:2rem;opacity:.25;">🚀</div>
@@ -2029,6 +2029,11 @@ let tintRecipeIndex = new Map();
 let currentHistoryEntry = null;
 let currentClientEditId = null;
 let currentClientColorsName = '';
+
+// Pancko Integral sync cloud v0.10.12
+const PANCKO_API_URL = 'https://pancko-integral-api.tinchosiara.workers.dev';
+const LAB_DELETED_KEY = 'pk_lab_deleted_ids';
+let labCloudSyncRunning = false;
 
 function save(){
   localStorage.setItem('pk_products', JSON.stringify(products));
@@ -3042,12 +3047,16 @@ function saveLabRecord(){
   const payload = getLabRecordPayload();
   if(!payload.ok){ alert(payload.msg); return; }
 
+  payload.record._sync = 'pending';
   labRecords.unshift(payload.record);
   labRecords = labRecords.slice(0, 300);
   save();
   renderLabRecords();
   if(document.getElementById('clientColorsScreen')?.classList.contains('active')) renderClientColorRecords();
   showToast('Registro de laboratorio guardado');
+
+  // Sync online no bloqueante: si falla, el registro queda local.
+  syncLabRecordToCloud(payload.record);
 }
 
 function renderLabRecords(){
@@ -3065,7 +3074,7 @@ function renderLabRecords(){
     <div class="lab-record-card" onclick="loadLabRecord('${esc(r.id)}')">
       <div class="lab-record-title">${esc(r.cliente || 'Sin cliente')} · ${esc(r.color)} ${r.descripcion ? '· ' + esc(r.descripcion) : ''}</div>
       <div class="lab-record-meta">
-        ${esc(r.fecha || '')}<br>
+        ${esc(r.fecha || '')}${r._sync === 'pending' ? ' · ☁️ pendiente' : (r._sync === 'synced' ? ' · ☁️ sync' : '')}<br>
         ${esc(r.ARTIC || '')}<br>
         ${r.nota ? `<b>Nota:</b> ${esc(r.nota)}<br>` : ''}
         Base ${esc(r.base_formula || '')} · Física ${esc(r.base_fisica || '')}
@@ -3180,8 +3189,10 @@ function loadLabRecord(id){
 function deleteLabRecord(id){
   if(!confirm('¿Borrar este registro de laboratorio?')) return;
   labRecords = labRecords.filter(x => x.id !== id);
+  rememberDeletedLabRecord(id);
   save();
   renderLabRecords();
+  if(document.getElementById('clientColorsScreen')?.classList.contains('active')) renderClientColorRecords();
 }
 
 function addLabToBudget(){
@@ -5494,7 +5505,7 @@ function renderClientColorRecords(){
     <div class="lab-record-card client-color-card" onclick="openLabRecordFromClient('${esc(r.id)}')">
       <div class="lab-record-title">${esc(r.color || '')} ${r.descripcion ? '· ' + esc(r.descripcion) : ''}</div>
       <div class="lab-record-meta">
-        ${esc(r.fecha || '')}<br>
+        ${esc(r.fecha || '')}${r._sync === 'pending' ? ' · ☁️ pendiente' : (r._sync === 'synced' ? ' · ☁️ sync' : '')}<br>
         ${esc(r.ARTIC || '')}<br>
         ${r.nota ? `<b>Nota:</b> ${esc(r.nota)}<br>` : ''}
         Base ${esc(r.base_formula || '')} · Física ${esc(r.base_fisica || '')}
@@ -5526,6 +5537,131 @@ function newLabRecordForCurrentClient(){
   }, 30);
 }
 
+
+
+
+/* ═══════════════════════════════
+   CLOUD SYNC - REGISTROS DE COLOR
+════════════════════════════════ */
+function getDeletedLabIds(){
+  try{ return new Set(JSON.parse(localStorage.getItem(LAB_DELETED_KEY) || '[]')); }
+  catch(e){ return new Set(); }
+}
+
+function rememberDeletedLabRecord(id){
+  if(!id) return;
+  const ids = Array.from(getDeletedLabIds());
+  if(!ids.includes(id)) ids.push(id);
+  localStorage.setItem(LAB_DELETED_KEY, JSON.stringify(ids.slice(-500)));
+}
+
+function mapCloudColorToLabRecord(r){
+  if(!r) return null;
+  const id = r.id || r.ID || ('cloud_' + Date.now() + '_' + Math.random().toString(16).slice(2));
+  return {
+    id,
+    fecha: r.fecha || '',
+    timestamp: r.timestamp || r.created_at || '',
+    cliente: r.cliente || '',
+    clienteData: r.clienteData || null,
+    cliente_id: r.cliente_id || '',
+    nota: r.nota || '',
+    COD: r.COD || r.cod_producto || '',
+    ARTIC: r.ARTIC || r.producto || '',
+    color: r.color || '',
+    color_original: r.color_original || '',
+    descripcion: r.descripcion || r.descripcion_color || '',
+    base_formula: r.base_formula || '',
+    base_fisica: r.base_fisica || '',
+    factor: num(r.factor || 1),
+    manualModified: String(r.manualModified ?? r.manual_modificado ?? '').toLowerCase() === 'true' || r.manualModified === true || r.manual_modificado === true,
+    formula: Array.isArray(r.formula) ? r.formula : [],
+    formula_original: Array.isArray(r.formula_original) ? r.formula_original : [],
+    usuario: r.usuario || '',
+    origen: r.origen || 'sheet',
+    _sync: 'synced'
+  };
+}
+
+function mergeCloudLabRecords(remoteRows){
+  const deleted = getDeletedLabIds();
+  const byId = new Map(labRecords.map(r => [String(r.id), r]));
+  let added = 0;
+
+  (remoteRows || []).forEach(row => {
+    const rec = mapCloudColorToLabRecord(row);
+    if(!rec || !rec.id || deleted.has(String(rec.id))) return;
+    const existing = byId.get(String(rec.id));
+    if(existing){
+      Object.assign(existing, {...rec, _sync:'synced'});
+    }else{
+      labRecords.push(rec);
+      byId.set(String(rec.id), rec);
+      added++;
+    }
+  });
+
+  labRecords.sort((a,b)=> String(b.timestamp || b.fecha || '').localeCompare(String(a.timestamp || a.fecha || '')));
+  labRecords = labRecords.slice(0, 500);
+  save();
+  renderLabRecords();
+  if(document.getElementById('clientColorsScreen')?.classList.contains('active')) renderClientColorRecords();
+  return added;
+}
+
+async function syncLabRecordToCloud(record){
+  if(!record || !PANCKO_API_URL) return false;
+  try{
+    const res = await fetch(PANCKO_API_URL + '/color', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(record)
+    });
+    const data = await res.json().catch(()=>({ok:false,error:'Respuesta no JSON'}));
+    if(!res.ok || !data.ok) throw new Error(data.error || data.message || ('HTTP ' + res.status));
+
+    const local = labRecords.find(r => r.id === record.id);
+    if(local){
+      local._sync = 'synced';
+      local._cloudId = data.id || record.id;
+      save();
+      renderLabRecords();
+      if(document.getElementById('clientColorsScreen')?.classList.contains('active')) renderClientColorRecords();
+    }
+    showToast('Registro sincronizado con Sheets');
+    return true;
+  }catch(err){
+    const local = labRecords.find(r => r.id === record.id);
+    if(local){ local._sync = 'pending'; save(); }
+    console.warn('syncLabRecordToCloud:', err);
+    showToast('Guardado local. Pendiente de sincronizar.');
+    return false;
+  }
+}
+
+async function syncPendingLabRecords(){
+  const pending = labRecords.filter(r => r._sync !== 'synced');
+  for(const r of pending){
+    await syncLabRecordToCloud(r);
+  }
+}
+
+async function syncLabRecordsFromCloud(){
+  if(labCloudSyncRunning || !PANCKO_API_URL) return;
+  labCloudSyncRunning = true;
+  try{
+    const res = await fetch(PANCKO_API_URL + '/colors', {cache:'no-store'});
+    const data = await res.json().catch(()=>({ok:false,error:'Respuesta no JSON'}));
+    if(!res.ok || !data.ok) throw new Error(data.error || ('HTTP ' + res.status));
+    const added = mergeCloudLabRecords(data.colors || []);
+    await syncPendingLabRecords();
+    if(added) showToast(`Colores sincronizados: ${added}`);
+  }catch(err){
+    console.warn('syncLabRecordsFromCloud:', err);
+  }finally{
+    labCloudSyncRunning = false;
+  }
+}
 
 
 /* ═══════════════════════════════
@@ -5619,6 +5755,8 @@ async function autoLoadBundledData(){
 }
 
 autoLoadBundledData();
+
+syncLabRecordsFromCloud();
 
 
 document.addEventListener('click', function(e){
