@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Pancko"/>
   <meta name="theme-color" content="#0a2a5e"/>
-  <title>Pancko Integral v0.10.13</title>
+  <title>Pancko Integral v0.10.14</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -1432,6 +1432,15 @@
       border-color:rgba(122,211,255,.15);
     }
 
+
+    /* Buscador por tintas v0.10.14 */
+    .tint-comp-card{
+      border-color:rgba(122,211,255,.14);
+    }
+    .tint-comp-card .lab-record-title{
+      letter-spacing:.01em;
+    }
+
   </style>
 </head>
 <body>
@@ -1602,6 +1611,7 @@
       <div class="lab-save-row">
         <button class="btn btn-amber" style="width:100%" onclick="saveLabRecord()">Guardar registro de laboratorio</button>
       </div>
+      <button class="btn btn-back" style="width:100%;margin-top:10px" onclick="openTintCompositionSearch()">🔎 Buscar fórmula por tintas</button>
     </div>
 
     <div id="labResult"></div>
@@ -1611,6 +1621,55 @@
       <input id="labRecordSearchInput" class="lab-record-search" type="text" placeholder="Buscar por cliente, color, producto..." oninput="renderLabRecords()" />
       <div id="labRecordsList"></div>
     </div>
+  </section>
+
+  <!-- BUSCADOR POR TINTAS -->
+  <section class="screen" id="tintCompositionSearchScreen">
+    <div class="top-bar">
+      <button class="btn btn-back" onclick="showScreen('labScreen')">← Laboratorio</button>
+      <button class="btn btn-green" onclick="showScreen('cartScreen')">🧾 Presupuesto</button>
+    </div>
+    <div class="sec-title">Buscar fórmula por tintas</div>
+
+    <div class="card">
+      <div class="note-box" style="margin-bottom:12px;">
+        Buscá colores por composición de tintas. Ejemplos:<br>
+        <b>L</b> busca recetas que usen L.<br>
+        <b>E=50, D=50</b> busca mezclas parecidas 50/50.
+      </div>
+
+      <div class="field">
+        <label>Tintas / proporción</label>
+        <input id="tintCompQuery" type="text" placeholder="Ej: L  ·  E=50, D=50" autocomplete="off" oninput="debouncedTintCompositionSearch()" />
+      </div>
+
+      <div class="field">
+        <label>Base</label>
+        <select id="tintCompBase" onchange="runTintCompositionSearch()">
+          <option value="">Todas las bases</option>
+          <option value="PASTEL">PASTEL</option>
+          <option value="TINT">TINT</option>
+          <option value="DEEP">DEEP</option>
+          <option value="ACCENT">ACCENT</option>
+        </select>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="field">
+          <label>Tolerancia %</label>
+          <input id="tintCompTolerance" type="number" value="12" min="0" max="100" step="1" oninput="debouncedTintCompositionSearch()" />
+        </div>
+        <div class="field">
+          <label>Máx. resultados</label>
+          <input id="tintCompMax" type="number" value="50" min="10" max="200" step="10" oninput="debouncedTintCompositionSearch()" />
+        </div>
+      </div>
+
+      <button class="btn btn-primary" style="width:100%;margin-top:4px" onclick="runTintCompositionSearch()">Buscar</button>
+    </div>
+
+    <div id="tintCompSummary" class="muted" style="font-size:.86rem;margin:10px 2px;"></div>
+    <div id="tintCompResults"></div>
   </section>
 
   <!-- CLIENTES -->
@@ -1871,7 +1930,7 @@
       <div class="divider"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.13</div>
+          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.14</div>
           <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">Lanzamiento: Abril 2026</div>
         </div>
         <div style="font-size:2rem;opacity:.25;">🚀</div>
@@ -5577,6 +5636,217 @@ function newLabRecordForCurrentClient(){
 }
 
 
+
+
+
+/* ═══════════════════════════════
+   BUSCADOR DE FÓRMULAS POR TINTAS
+════════════════════════════════ */
+let tintCompSearchTimer = null;
+
+function openTintCompositionSearch(){
+  showScreen('tintCompositionSearchScreen');
+  const baseSel = document.getElementById('tintCompBase');
+  if(baseSel && selectedLabProduct){
+    const bases = compatibleBasesForProduct(selectedLabProduct);
+    if(bases.length === 1) baseSel.value = bases[0];
+  }
+  setTimeout(()=>document.getElementById('tintCompQuery')?.focus(), 80);
+  runTintCompositionSearch();
+}
+
+function debouncedTintCompositionSearch(){
+  clearTimeout(tintCompSearchTimer);
+  tintCompSearchTimer = setTimeout(runTintCompositionSearch, 220);
+}
+
+function parseTintCompositionQuery(text){
+  const raw = String(text || '').trim().toUpperCase();
+  if(!raw) return {tokens:[], target:null, mode:'empty'};
+
+  const parts = raw
+    .replace(/[+|;]/g, ',')
+    .split(',')
+    .map(x=>x.trim())
+    .filter(Boolean);
+
+  let tokens = [];
+  let target = {};
+  let hasPct = false;
+
+  for(const part of parts){
+    const m = part.match(/^([A-Z]{1,3})\s*(?:=|:)\s*(-?\d+(?:[.,]\d+)?)\s*%?$/);
+    if(m){
+      const t = m[1].trim().toUpperCase();
+      const p = num(m[2]);
+      if(t && p >= 0){
+        target[t] = p;
+        tokens.push(t);
+        hasPct = true;
+      }
+      continue;
+    }
+
+    // Acepta "E 50 D 50" o "E D L"
+    const bits = part.split(/\s+/).filter(Boolean);
+    for(let i=0;i<bits.length;i++){
+      const t = (bits[i] || '').replace(/[^A-Z]/g,'').toUpperCase();
+      const next = bits[i+1] && bits[i+1].match(/^-?\d+(?:[.,]\d+)?%?$/);
+      if(t){
+        tokens.push(t);
+        if(next){
+          target[t] = num(bits[i+1]);
+          hasPct = true;
+          i++;
+        }
+      }
+    }
+  }
+
+  tokens = Array.from(new Set(tokens.filter(Boolean)));
+
+  if(hasPct){
+    const sum = Object.values(target).reduce((a,b)=>a+num(b),0);
+    if(sum > 0){
+      for(const k of Object.keys(target)) target[k] = num(target[k]) * 100 / sum;
+    }
+  }
+
+  return {tokens, target: hasPct ? target : null, mode: hasPct ? 'ratio' : 'contains'};
+}
+
+function recipeComposition(r){
+  const lines = parseTintFormula(r.formula_1l || '');
+  const total = lines.reduce((s,x)=>s+num(x.pulsos1),0);
+  const map = {};
+  for(const x of lines){
+    const t = String(x.colorante || '').toUpperCase();
+    if(!t) continue;
+    map[t] = (map[t] || 0) + num(x.pulsos1);
+  }
+  const pct = {};
+  if(total > 0){
+    for(const k of Object.keys(map)) pct[k] = map[k] * 100 / total;
+  }
+  return {lines, total, map, pct, keys:Object.keys(map).sort()};
+}
+
+function formatPct(v){
+  const n = num(v);
+  if(!isFinite(n)) return '0%';
+  return (Math.round(n * 10) / 10).toString().replace('.', ',') + '%';
+}
+
+function compositionText(comp){
+  return comp.keys.map(k => `${k} ${formatPct(comp.pct[k])}`).join(' · ');
+}
+
+function tintCompositionScore(comp, parsed){
+  if(!parsed.tokens.length) return null;
+
+  const keys = comp.keys;
+  if(parsed.target){
+    for(const t of parsed.tokens){
+      if(!comp.pct[t]) return null;
+    }
+    let diff = 0;
+    for(const t of parsed.tokens){
+      diff += Math.abs(num(comp.pct[t]) - num(parsed.target[t]));
+    }
+    const extras = keys.filter(k => !parsed.tokens.includes(k));
+    const extrasPct = extras.reduce((s,k)=>s+num(comp.pct[k]),0);
+    return diff + extrasPct * 0.35 + extras.length * 3;
+  }
+
+  for(const t of parsed.tokens){
+    if(!comp.map[t]) return null;
+  }
+  const mainPct = parsed.tokens.reduce((s,t)=>s+num(comp.pct[t]),0);
+  const extras = keys.filter(k => !parsed.tokens.includes(k));
+  return (100 - mainPct) + extras.length * 4;
+}
+
+function runTintCompositionSearch(){
+  const out = document.getElementById('tintCompResults');
+  const summary = document.getElementById('tintCompSummary');
+  if(!out) return;
+
+  const parsed = parseTintCompositionQuery(document.getElementById('tintCompQuery')?.value || '');
+  const baseFilter = normKey(document.getElementById('tintCompBase')?.value || '');
+  const tolerance = Math.max(0, num(document.getElementById('tintCompTolerance')?.value || 12));
+  const max = Math.max(10, Math.min(200, Math.round(num(document.getElementById('tintCompMax')?.value || 50))));
+
+  if(!tintRecipes.length){
+    out.innerHTML = '<div class="empty-msg" style="padding:14px;">Primero cargá recetas tintométricas.</div>';
+    if(summary) summary.textContent = '';
+    return;
+  }
+
+  if(parsed.mode === 'empty'){
+    out.innerHTML = '<div class="empty-msg" style="padding:14px;">Ingresá una tinta, por ejemplo L, o una mezcla como E=50, D=50.</div>';
+    if(summary) summary.textContent = `Recetas disponibles: ${tintRecipes.length}`;
+    return;
+  }
+
+  const found = [];
+  for(const r of tintRecipes){
+    if(baseFilter && normKey(r.base) !== baseFilter) continue;
+    const comp = recipeComposition(r);
+    if(!comp.total) continue;
+    const score = tintCompositionScore(comp, parsed);
+    if(score === null) continue;
+    if(parsed.target && score > tolerance + 35) continue;
+    found.push({r, comp, score});
+  }
+
+  found.sort((a,b)=>a.score-b.score || String(a.r.idcolor||'').localeCompare(String(b.r.idcolor||'')));
+  const rows = found.slice(0, max);
+
+  if(summary){
+    const modeText = parsed.target ? 'mezcla aproximada' : 'contiene tintas';
+    summary.textContent = `${rows.length} de ${found.length} resultados · ${modeText}${baseFilter ? ' · base ' + baseFilter : ''}`;
+  }
+
+  if(!rows.length){
+    out.innerHTML = '<div class="empty-msg" style="padding:14px;">No encontré fórmulas con esa composición.</div>';
+    return;
+  }
+
+  out.innerHTML = rows.map(x => {
+    const r = x.r;
+    const id = r.idcolor || r.codigo_formula || '';
+    const base = normKey(r.base || '');
+    const exactish = x.score <= tolerance ? 'match bueno' : 'similar';
+    const compatible = selectedLabProduct ? compatibleBasesForProduct(selectedLabProduct).includes(base) : false;
+    const compText = compositionText(x.comp);
+    return `
+      <div class="lab-record-card tint-comp-card">
+        <div class="lab-record-title">${esc(id)} · ${esc(r.descripcion || '')}</div>
+        <div class="lab-record-meta">
+          Base ${esc(base)} · ${esc(exactish)} · score ${Math.round(x.score * 10)/10}<br>
+          ${esc(compText)}<br>
+          ${compatible ? '<b>Compatible con producto actual</b>' : (selectedLabProduct ? 'No compatible con producto actual' : 'Elegí producto en Laboratorio para validar compatibilidad')}
+        </div>
+        <div class="lab-record-actions">
+          <button class="mini-btn edit" onclick="useTintCompositionResult('${esc(id)}','${esc(base)}')">Usar en laboratorio</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function useTintCompositionResult(id, base){
+  const rec = tintRecipes.find(r => normKey(r.idcolor || r.codigo_formula) === normKey(id) && (!base || normKey(r.base) === normKey(base)));
+  const input = document.getElementById('labColorInput');
+  if(input && rec) input.value = tintRecipeLabel(rec);
+  showScreen('labScreen');
+  setTimeout(()=>{
+    renderLabColorOptions(false);
+    renderLabFormula();
+    const compatible = selectedLabProduct && compatibleBasesForProduct(selectedLabProduct).includes(normKey(base));
+    showToast(compatible ? 'Color cargado en laboratorio' : 'Color cargado. Elegí producto compatible si hace falta.');
+  }, 60);
+}
 
 
 /* ═══════════════════════════════
