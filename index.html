@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Pancko"/>
   <meta name="theme-color" content="#0a2a5e"/>
-  <title>Pancko Integral v0.10.27</title>
+  <title>Pancko Integral v0.10.29</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -1628,6 +1628,12 @@
       overflow:auto;
     }
 
+
+    /* Importador precios v0.10.28 */
+    #priceUpdateCsvInput{
+      width:100%;
+    }
+
   </style>
 </head>
 <body>
@@ -1971,13 +1977,22 @@
     </div>
     <div class="sec-title">Importar lista de precios</div>
     <div class="card">
-      <div class="note-box" style="margin-bottom:12px;">Formato CSV requerido:<br><b>COD, ARTIC, PR_CON_IVA</b><br><span style="font-size:.78rem;opacity:.9">También conserva columnas tintométricas si vienen en el maestro.</span></div>
+      <div class="note-box" style="margin-bottom:12px;">
+        <b>Maestro completo:</b> reemplaza toda la lista.<br>
+        <b>Actualizar precios:</b> cruza por COD, actualiza precio lista y conserva columnas tintométricas.
+      </div>
       <div class="field">
-        <label>Archivo CSV</label>
+        <label>CSV maestro completo</label>
         <input type="file" id="csvFileInput" accept=".csv"/>
       </div>
-      <button class="btn btn-primary" style="width:100%" onclick="importCSV()">Importar</button>
-        <button class="btn btn-back" style="flex:1" onclick="exportProductsCSV()">Exportar CSV</button>
+      <button class="btn btn-primary" style="width:100%" onclick="importCSV()">Importar maestro completo</button>
+      <div class="divider"></div>
+      <div class="field">
+        <label>CSV solo precios / aumento</label>
+        <input type="file" id="priceUpdateCsvInput" accept=".csv"/>
+      </div>
+      <button class="btn btn-amber" style="width:100%" onclick="updatePricesFromCSV()">Actualizar precios sin tocar tintométrico</button>
+      <button class="btn btn-back" style="width:100%;margin-top:10px" onclick="exportProductsCSV()">Exportar CSV full actualizado</button>
     </div>
 
     <div class="card">
@@ -2159,7 +2174,7 @@
       <div class="divider"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.27</div>
+          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.29</div>
           <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">Lanzamiento: Abril 2026</div>
         </div>
         <div style="font-size:2rem;opacity:.25;">🚀</div>
@@ -4352,6 +4367,87 @@ function importCSV(){
   reader.readAsArrayBuffer(file);
 }
 
+function updatePricesFromCSV(){
+  const file = document.getElementById('priceUpdateCsvInput')?.files?.[0];
+  if(!file){ alert('Seleccioná un CSV de actualización de precios'); return; }
+  if(!products.length){
+    alert('Primero cargá o importá un maestro completo de artículos.');
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    try{
+      const text = decodeText(e.target.result);
+      const incoming = parseCSV(text);
+      if(!incoming.length) throw new Error('No se pudieron leer artículos válidos');
+
+      const byCod = new Map(products.map((p,i)=>[String(p.COD), {p,i}]));
+      let updated = 0;
+      let added = 0;
+      let unchanged = 0;
+      let missingPrice = 0;
+
+      incoming.forEach(row => {
+        const cod = String(row.COD || '').trim();
+        if(!cod) return;
+
+        const newPrice = parseAmount(row.PR_CON_IVA);
+        if(Number.isNaN(newPrice)){
+          missingPrice++;
+          return;
+        }
+
+        const found = byCod.get(cod);
+
+        if(found){
+          const p = found.p;
+          const oldPrice = num(p.PR_CON_IVA);
+          const newArtic = String(row.ARTIC || p.ARTIC || '').trim();
+
+          if(Math.round(oldPrice) !== Math.round(newPrice) || String(p.ARTIC || '') !== newArtic){
+            p.ARTIC = newArtic || p.ARTIC;
+            p.PR_CON_IVA = newPrice;
+            // No tocamos PR_SIN_IVA: Pancko trabaja con precio lista final.
+            updated++;
+          }else{
+            unchanged++;
+          }
+        }else{
+          const obj = {...row};
+          obj.COD = cod;
+          obj.ARTIC = String(row.ARTIC || '').trim();
+          obj.PR_CON_IVA = newPrice;
+          // No generamos PR_SIN_IVA en artículos nuevos.
+          delete obj.PR_SIN_IVA;
+          products.push(obj);
+          byCod.set(cod, {p:obj, i:products.length-1});
+          added++;
+        }
+      });
+
+      save();
+      syncTintPricesFromProducts(false);
+      buildTintIndex();
+      renderImportStatus();
+      renderTintStatus();
+      renderSearch();
+
+      alert(
+        `✅ Actualización de precios lista\n\n` +
+        `Actualizados: ${updated}\n` +
+        `Nuevos: ${added}\n` +
+        `Sin cambios: ${unchanged}\n` +
+        (missingPrice ? `Sin precio válido: ${missingPrice}\n` : '') +
+        `\nSe conservaron las columnas tintométricas existentes.`
+      );
+    }catch(err){
+      alert('Error al actualizar precios: ' + err.message);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
 function decodeText(buffer){
   const u8 = new Uint8Array(buffer);
 
@@ -5486,10 +5582,33 @@ function removeArticle(i){
 
 function exportProductsCSV(){
   if(!products.length){ alert('No hay artículos'); return; }
-  const cols = Array.from(products.reduce((set,p)=>{ Object.keys(p).forEach(k=>set.add(k)); return set; }, new Set(['COD','ARTIC','PR_CON_IVA'])));
-  const lines = [cols.join(';')];
+
+  const preferred = [
+    'COD','ARTIC','PR_CON_IVA',
+    'usa_tinto','tipo_tinto','base_tinto','base_fisica_tinto',
+    'factor_envase_tinto','ajuste_formula_tinto','factor_tinto',
+    'litros_reales','kilos_reales','unidad_detectada',
+    'confianza_tinto','regla_tinto','observacion_tinto'
+  ];
+
+  const found = Array.from(products.reduce((set,p)=>{
+    Object.keys(p).forEach(k=>{
+      if(k !== 'PR_SIN_IVA') set.add(k);
+    });
+    return set;
+  }, new Set()));
+
+  const cols = [...preferred.filter(c=>found.includes(c)), ...found.filter(c=>!preferred.includes(c))];
+
+  const csvCell = v => {
+    let s = String(v ?? '');
+    if(/[;"\n\r]/.test(s)) s = '"' + s.replace(/"/g,'""') + '"';
+    return s;
+  };
+
+  const lines = [cols.map(csvCell).join(';')];
   products.forEach(p=>{
-    lines.push(cols.map(c=>String(p[c] ?? '').replace(/;/g, ',')).join(';'));
+    lines.push(cols.map(c=>csvCell(p[c])).join(';'));
   });
   downloadCSV('articulos_pancko.csv', lines.join('\n'));
 }
