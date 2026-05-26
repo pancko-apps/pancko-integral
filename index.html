@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Pancko"/>
   <meta name="theme-color" content="#0a2a5e"/>
-  <title>Pancko Integral v0.10.17</title>
+  <title>Pancko Integral v0.10.18</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -1696,18 +1696,13 @@
     <div class="sec-title">Latas en espera</div>
 
     <div class="card stack">
-      <div class="note-box">Carga local para rescatar latas empezadas. No sincroniza con Sheets.</div>
       <div class="field autocomplete-wrap">
         <label>Producto / lata</label>
         <input id="pendingCanProductInput" type="text" placeholder="Buscar producto o código..." autocomplete="off" data-cod="" data-cleared="0" onfocus="clearPendingCanProductInputOnce(this);renderPendingCanProductOptions(true)" oninput="this.dataset.cod='';renderPendingCanProductOptions(true);selectPendingCanProductFromInput(false)"/>
         <div id="pendingCanProductSuggest" class="lab-suggest-box"></div>
         <div id="pendingCanProductInfo" class="muted" style="font-size:.80rem;line-height:1.35;margin-top:6px;">Elegí un producto de la lista para evitar diferencias de nombre.</div>
       </div>
-      <div class="field">
-        <label>Base detectada</label>
-        <div id="pendingCanBaseDisplay" class="note-box" style="margin-bottom:0;">Elegí un producto.</div>
-        <input id="pendingCanBaseInput" type="hidden" value="">
-      </div>
+      <input id="pendingCanBaseInput" type="hidden" value="">
       <div class="field">
         <label>Nota</label>
         <input id="pendingCanNoteInput" type="text" placeholder="Ej: error de tinta, lata empezada..."/>
@@ -1982,7 +1977,7 @@
       <div class="divider"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.17</div>
+          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.18</div>
           <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">Lanzamiento: Abril 2026</div>
         </div>
         <div style="font-size:2rem;opacity:.25;">🚀</div>
@@ -5714,12 +5709,10 @@ function pendingCanProductLabel(p){
 
 function renderPendingCanProductInfo(p){
   const box = document.getElementById('pendingCanProductInfo');
-  const baseDisplay = document.getElementById('pendingCanBaseDisplay');
   const baseInput = document.getElementById('pendingCanBaseInput');
 
   if(!p){
     if(box) box.innerHTML = 'Elegí un producto de la lista para evitar diferencias de nombre.';
-    if(baseDisplay) baseDisplay.innerHTML = 'Elegí un producto.';
     if(baseInput) baseInput.value = '';
     return;
   }
@@ -5727,7 +5720,6 @@ function renderPendingCanProductInfo(p){
   const bases = compatibleBasesForProduct(p);
   const baseValue = bases.length === 1 ? bases[0] : (normKey(p.base_tinto || p.base_fisica_tinto || '') || '');
   if(baseInput) baseInput.value = baseValue;
-  if(baseDisplay) baseDisplay.innerHTML = `<b>${esc(baseValue || '—')}</b><br><span style="opacity:.8">viene del artículo seleccionado</span>`;
 
   const tint = isTintableProduct(p) ? ` · Base ${esc(baseValue || p.base_tinto || p.base_fisica_tinto || '')}` : '';
   if(box) box.innerHTML = `<b>${esc(p.COD || '')}</b> · ${esc(p.ARTIC || '')}${tint}`;
@@ -5963,9 +5955,7 @@ function loadPendingCanIntoForm(id){
     input.dataset.cleared = '0';
     renderPendingCanProductInfo(p || null);
     const baseInput = document.getElementById('pendingCanBaseInput');
-    const baseDisplay = document.getElementById('pendingCanBaseDisplay');
     if(baseInput) baseInput.value = c.base || '';
-    if(baseDisplay) baseDisplay.innerHTML = `<b>${esc(c.base || '—')}</b><br><span style="opacity:.8">guardada en esta lata</span>`;
   }
   document.getElementById('pendingCanNoteInput').value=c.note || '';
   renderPendingCanRows(c.lines || []);
