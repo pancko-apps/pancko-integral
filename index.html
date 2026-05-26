@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Pancko"/>
   <meta name="theme-color" content="#0a2a5e"/>
-  <title>Pancko Integral v0.10.29</title>
+  <title>Pancko Integral v0.10.30</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -2174,7 +2174,7 @@
       <div class="divider"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.29</div>
+          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.30</div>
           <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">Lanzamiento: Abril 2026</div>
         </div>
         <div style="font-size:2rem;opacity:.25;">🚀</div>
@@ -2260,7 +2260,7 @@
     <div class="modal-title">Salida del presupuesto</div>
     <div class="stack">
       <button class="btn btn-primary" style="width:100%" onclick="handleBudgetOutput('thermal')">Ticket térmico (PNG)</button>
-      <button class="btn btn-green" style="width:100%" onclick="handleBudgetOutput('a4')">Imprimir A4</button>
+      <button class="btn btn-green" style="width:100%" onclick="handleBudgetOutput('a4')">A4 · Imprimir</button>
       <button class="btn btn-amber" style="width:100%" onclick="handleBudgetOutput('whatsapp_ticket')">WhatsApp · Ticket térmico</button>
       <button class="btn btn-back" style="width:100%" onclick="handleBudgetOutput('save')">Guardar presupuesto</button>
       <button class="btn btn-danger" style="width:100%" onclick="closeBudgetOutputMenu()">Cancelar</button>
@@ -5182,6 +5182,13 @@ function buildA4HTML(payload){
     }).format(Number(v)||0);
   }
 
+  function n2(v){
+    return new Intl.NumberFormat('es-AR',{
+      minimumFractionDigits:2,
+      maximumFractionDigits:2
+    }).format(Number(v)||0);
+  }
+
   function splitAddress(address){
     const raw = String(address || '').trim();
     if(!raw) return {street:'', city:''};
@@ -5202,9 +5209,9 @@ function buildA4HTML(payload){
     return `<tr>
       <td class="qty">${qty}</td>
       <td class="desc"><div class="desc-main">${esc(item.ARTIC || '')}</div></td>
-      <td class="money">${m2(price)}</td>
-      <td class="money">${dto ? '- ' + m2(dto) : m2(0)}</td>
-      <td class="money">${m2(importe)}</td>
+      <td class="money">${n2(price)}</td>
+      <td class="money">${dto ? '- ' + n2(dto) : n2(0)}</td>
+      <td class="money">${n2(importe)}</td>
     </tr>`;
   }).join('');
 
@@ -5235,7 +5242,7 @@ function buildA4HTML(payload){
   .headerRight{display:flex;flex-direction:column;align-items:flex-end;padding-right:6mm;padding-top:1mm}
   .centerInfo{font-size:11.9px;line-height:1.3;font-weight:700;text-align:right;min-width:78mm}
   .centerInfo b{font-weight:900}
-  .clientGrid{border-top:1px solid #999;border-bottom:1px solid #999;padding:2.1mm 0;margin-bottom:3mm;display:grid;grid-template-columns:1fr 55mm;gap:6mm;font-size:12px;line-height:1.3}
+  .clientGrid{border-top:1px solid #999;border-bottom:1px solid #999;padding:2.1mm 0;margin-bottom:3mm;display:grid;grid-template-columns:1fr 63mm;gap:10mm;font-size:12px;line-height:1.3}
   .clientGrid b{font-weight:900}
   .valid{font-size:11.6px;margin-top:5mm;font-weight:700}
   .comment{font-size:11.6px;margin-top:2.5mm;font-weight:700}
@@ -5253,9 +5260,10 @@ function buildA4HTML(payload){
   .summaryGrid .val{text-align:center;margin-top:1.8mm;font-weight:800;font-size:13.8px;white-space:nowrap}
   .paymentBox{border-top:1px solid #ccc;margin-top:3mm;padding-top:2mm}
   .paymentTitle{font-weight:900;font-size:11.5px;margin-bottom:1.5mm}
-  .paymentGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:3mm;font-size:10.8px}
-  .payOpt{display:flex;justify-content:space-between;gap:2mm;border:1px solid #ddd;padding:1.2mm 1.5mm;border-radius:2mm;white-space:nowrap}
-  .payOpt b{font-weight:900}
+  .paymentGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:3.5mm;font-size:10.8px}
+  .payOpt{display:flex;justify-content:space-between;align-items:center;gap:2.4mm;border:1.2px solid #9d9d9d;background:#f1f1f1;padding:1.8mm 2.2mm;border-radius:2.4mm;white-space:nowrap;box-shadow:inset 0 0 0 1px #fff}
+  .payOpt span{font-weight:800}
+  .payOpt b{font-weight:900;font-size:11.2px}
   .attended{font-size:11px;margin-top:3mm;font-weight:700}
   @media print{
     html,body{background:#fff!important}
@@ -5291,7 +5299,7 @@ function buildA4HTML(payload){
       <b>Cond. IVA:</b> Exento<br>
       <b>Domicilio:</b> ${esc(clientAddr.street)}
     </div>
-    <div>
+    <div style="padding-right:8mm;">
       <b>C.U.I.T.:</b> ${esc(clientData && clientData.cuit ? clientData.cuit : '')}<br>
       <b>Teléfono:</b> ${esc(clientData && clientData.telefono ? clientData.telefono : '')}<br>
       <b>Localidad:</b> ${esc(clientAddr.city)}
@@ -5342,25 +5350,36 @@ function printBudgetA4(payload){
   };
 
   const html = buildA4HTML(printPayload);
-  const blob = new Blob([html], {type:'text/html;charset=utf-8'});
-  const url = URL.createObjectURL(blob);
-  const win = window.open(url, '_blank');
+  const iframe = document.createElement('iframe');
+  iframe.style.position = 'fixed';
+  iframe.style.right = '0';
+  iframe.style.bottom = '0';
+  iframe.style.width = '0';
+  iframe.style.height = '0';
+  iframe.style.border = '0';
+  iframe.setAttribute('aria-hidden','true');
+  document.body.appendChild(iframe);
 
-  if(!win){
-    URL.revokeObjectURL(url);
-    alert('No se pudo abrir la vista A4. Revisá si el navegador bloqueó ventanas emergentes.');
-    return;
-  }
+  const cleanup = () => {
+    try{ iframe.remove(); }catch(e){}
+  };
 
-  setTimeout(() => {
-    try{
-      win.focus();
-      win.print();
-    }catch(e){
-      // Si Android no permite auto-imprimir el blob, al menos queda abierta la vista A4 para imprimir/guardar desde menú.
-    }
-    setTimeout(() => URL.revokeObjectURL(url), 12000);
-  }, 900);
+  iframe.onload = () => {
+    setTimeout(() => {
+      try{
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+      }catch(e){
+        alert('No se pudo abrir la impresión A4 en este dispositivo.');
+      }
+      setTimeout(cleanup, 1500);
+    }, 250);
+  };
+
+  const doc = iframe.contentWindow.document;
+  doc.open();
+  doc.write(html);
+  doc.close();
 }
 
 async function shareBudgetWhatsApp(payload){
