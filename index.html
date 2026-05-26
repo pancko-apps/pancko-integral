@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Pancko"/>
   <meta name="theme-color" content="#0a2a5e"/>
-  <title>Pancko Integral v0.10.26</title>
+  <title>Pancko Integral v0.10.27</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -1613,6 +1613,21 @@
       background:var(--surface) !important;
     }
 
+
+    /* Presupuesto ágil v0.10.27 */
+    .cart-client-field-v1027,
+    .cart-add-product-field-v1027{
+      margin-bottom:10px;
+    }
+    .cart-client-field-v1027 input,
+    .cart-add-product-field-v1027 input{
+      min-height:54px;
+    }
+    .cart-product-suggest-v1027{
+      max-height:330px;
+      overflow:auto;
+    }
+
   </style>
 </head>
 <body>
@@ -1723,15 +1738,18 @@
   <section class="screen" id="cartScreen">
     <div class="top-bar">
       <button class="btn btn-back" onclick="showScreen('homeScreen')">← Inicio</button>
-      <button class="btn btn-back" onclick="showScreen('searchScreen')">＋ Agregar</button>
       <button class="btn btn-amber" onclick="openBudgetOutputMenu()">📤 Salidas</button>
       <button class="btn btn-danger" onclick="clearCart()">🗑</button>
     </div>
 
-    <div class="field autocomplete-wrap">
-      <label>Cliente</label>
-      <input type="text" id="clientName" placeholder="Nombre del cliente (opcional)" autocomplete="off" oninput="renderClientAutocomplete()" onfocus="renderClientAutocomplete()"/>
+    <div class="field autocomplete-wrap cart-client-field-v1027">
+      <input type="text" id="clientName" placeholder="Cliente (opcional)" autocomplete="off" oninput="renderClientAutocomplete()" onfocus="renderClientAutocomplete()"/>
       <div id="clientAutocompleteList" class="autocomplete-list"></div>
+    </div>
+
+    <div class="field autocomplete-wrap cart-add-product-field-v1027">
+      <input id="cartQuickProductInput" type="text" placeholder="Agregar producto por código o descripción..." autocomplete="off" data-cod="" data-cleared="0" onfocus="clearCartQuickProductInputOnce(this);renderCartQuickProductOptions(true)" oninput="this.dataset.cod='';renderCartQuickProductOptions(true)" />
+      <div id="cartQuickProductSuggest" class="lab-suggest-box cart-product-suggest-v1027"></div>
     </div>
 
     <div class="cart-mode-row">
@@ -2141,7 +2159,7 @@
       <div class="divider"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.26</div>
+          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.27</div>
           <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">Lanzamiento: Abril 2026</div>
         </div>
         <div style="font-size:2rem;opacity:.25;">🚀</div>
@@ -3555,6 +3573,103 @@ function addLabToBudget(){
 }
 
 
+
+/* ═══════════════════════════════
+   AGREGADO RÁPIDO DESDE PRESUPUESTO
+═══════════════════════════════ */
+function cartQuickProductLabel(p){
+  if(!p) return '';
+  return `${p.COD ? p.COD + ' — ' : ''}${p.ARTIC || ''}`;
+}
+
+function clearCartQuickProductInputOnce(input){
+  if(!input) return;
+  if(input.dataset.cleared === '1') return;
+  if(String(input.value || '').trim()){
+    input.value = '';
+    input.dataset.cod = '';
+    input.dataset.cleared = '1';
+  }
+}
+
+function productLitersSortValue(p){
+  const s = normKey(`${p.ARTIC || ''} ${p.presentacion || ''} ${p.litros || ''}`);
+  const m = s.match(/(\d+(?:[.,]\d+)?)\s*(LTS?|LT|L|KG|KGS)/);
+  if(!m) return 999999;
+  return num(m[1]);
+}
+
+function cartQuickProductSort(a,b){
+  if(typeof labProductSort === 'function') return labProductSort(a,b);
+  const an = normKey(a.ARTIC || '');
+  const bn = normKey(b.ARTIC || '');
+  const fam = an.localeCompare(bn);
+  if(fam) return fam;
+  return productLitersSortValue(a) - productLitersSortValue(b);
+}
+
+function renderCartQuickProductOptions(show=true){
+  const input = document.getElementById('cartQuickProductInput');
+  const box = document.getElementById('cartQuickProductSuggest');
+  if(!input || !box) return;
+
+  const q = normKey(input.value || '');
+  const list = products
+    .filter(p => !q || normKey(`${p.COD || ''} ${p.ARTIC || ''}`).includes(q))
+    .sort(cartQuickProductSort)
+    .slice(0, 60);
+
+  if(!show || !list.length){
+    box.classList.remove('show');
+    box.innerHTML = '';
+    return;
+  }
+
+  box.innerHTML = list.map(p => {
+    const tint = isTintableProduct(p);
+    const bases = tint ? (compatibleBasesForProduct(p).join(' / ') || p.base_tinto || '') : '';
+    return `
+      <div class="lab-suggest-item" onclick="selectCartQuickProduct('${esc(String(p.COD || ''))}')">
+        <div class="lab-suggest-title">${esc(p.ARTIC || '')}</div>
+        <div class="lab-suggest-sub">
+          Código ${esc(p.COD || '')} · ${$m(num(p.PR_CON_IVA))}
+          ${tint ? ` · Tinto · Base ${esc(bases)}` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+  box.classList.add('show');
+}
+
+function selectCartQuickProduct(cod){
+  const p = products.find(x => String(x.COD) === String(cod));
+  if(!p) return;
+
+  const input = document.getElementById('cartQuickProductInput');
+  if(input){
+    input.value = cartQuickProductLabel(p);
+    input.dataset.cod = p.COD || '';
+    input.dataset.cleared = '0';
+  }
+
+  const box = document.getElementById('cartQuickProductSuggest');
+  if(box){
+    box.classList.remove('show');
+    box.innerHTML = '';
+  }
+
+  openDetail(p.COD);
+}
+
+document.addEventListener('click', function(e){
+  const box = document.getElementById('cartQuickProductSuggest');
+  const input = document.getElementById('cartQuickProductInput');
+  if(box && input && !box.contains(e.target) && e.target !== input){
+    box.classList.remove('show');
+  }
+});
+
+
 /* ═══════════════════════════════
    SEARCH
 ═══════════════════════════════ */
@@ -3694,6 +3809,8 @@ function addToCart(){
   save();
   const si = document.getElementById('searchInput');
   if(si) si.value = '';
+  const cq = document.getElementById('cartQuickProductInput');
+  if(cq){ cq.value=''; cq.dataset.cod=''; cq.dataset.cleared='0'; }
   showScreen('cartScreen');
 }
 
