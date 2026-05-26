@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Pancko"/>
   <meta name="theme-color" content="#0a2a5e"/>
-  <title>Pancko Integral v0.10.20</title>
+  <title>Pancko Integral v0.10.21</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -1523,6 +1523,38 @@
       color:#bfffee;
     }
 
+
+    /* Modal Cta CTE en elaboración v0.10.21 */
+    .wip-modal-card{
+      text-align:center;
+      max-width:360px;
+    }
+    .wip-icon{
+      font-size:3rem;
+      line-height:1;
+      margin-bottom:10px;
+      filter:drop-shadow(0 0 14px rgba(255,214,99,.22));
+    }
+    .wip-title{
+      font-family:var(--font-head);
+      font-size:1.5rem;
+      font-weight:900;
+      color:#fff;
+      letter-spacing:.03em;
+    }
+    .wip-client{
+      margin-top:6px;
+      color:#7bd3ff;
+      font-weight:700;
+      font-size:.94rem;
+    }
+    .wip-text{
+      margin-top:12px;
+      color:var(--text-muted);
+      line-height:1.45;
+      font-size:.94rem;
+    }
+
   </style>
 </head>
 <body>
@@ -1532,7 +1564,7 @@
   <div class="header">
     <div class="header-left">
       <div class="brand" id="brandName">Pancko Integral</div>
-      <div class="subtitle">Precios · laboratorio · presupuestos</div>
+      <div class="subtitle">Presupuestos · Tintométrico · Ctas Ctes</div>
     </div>
     <div class="header-badge header-badge-interactive" aria-label="Soporte Pancko" onclick="showScreen('supportScreen')" style="cursor:pointer;">
       <svg viewBox="0 0 64 64" width="28" height="28" aria-hidden="true">
@@ -1568,7 +1600,7 @@
       <div class="tile tile-lab" onclick="showScreen('labScreen')">
         <div class="tile-icon">🧪</div>
         <div class="tile-copy">
-          <div class="tile-name">Laboratorio</div>
+          <div class="tile-name">Laboratorio · Tintométrico</div>
           <div class="tile-desc">Fórmulas, colores y latas en espera</div>
         </div>
       </div>
@@ -1581,10 +1613,10 @@
         </div>
       </div>
 
-      <div class="tile tile-cc" onclick="showToast('Cuenta corriente: módulo pendiente')">
-        <div class="tile-icon">💳</div>
+      <div class="tile tile-cc" onclick="openCtaCteWipModal()">
+        <div class="tile-icon">📒</div>
         <div class="tile-copy">
-          <div class="tile-name">Cta CTE</div>
+          <div class="tile-name">Cuentas corrientes</div>
           <div class="tile-desc">Saldos y movimientos</div>
         </div>
       </div>
@@ -2051,7 +2083,7 @@
       <div class="divider"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.20</div>
+          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.21</div>
           <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">Lanzamiento: Abril 2026</div>
         </div>
         <div style="font-size:2rem;opacity:.25;">🚀</div>
@@ -4940,6 +4972,22 @@ function buildA4HTML(payload){
     </div>
     <div class="attended">Usted fue atendido por: mjs-Martin Siara</div>
   </div>
+
+  <!-- MODAL CTA CTE EN ELABORACIÓN -->
+  <div id="ctaCteWipModal" class="modal hidden">
+    <div class="modal-card wip-modal-card">
+      <button class="modal-close" onclick="closeCtaCteWipModal()">×</button>
+      <div class="wip-icon">👷‍♂️🚧</div>
+      <div class="wip-title">Cuentas corrientes</div>
+      <div id="ctaCteWipClient" class="wip-client"></div>
+      <div class="wip-text">
+        Módulo en elaboración.<br>
+        Próximamente: saldos, movimientos, abonos, cargos y consulta por cliente.
+      </div>
+      <button class="btn btn-primary" style="width:100%;margin-top:12px" onclick="closeCtaCteWipModal()">Entendido</button>
+    </div>
+  </div>
+
 </div>
 </body>
 </html>`;
@@ -5609,10 +5657,24 @@ function renderClientsList(){
   }).join('');
 }
 
+
+function openCtaCteWipModal(clientName=''){
+  const modal = document.getElementById('ctaCteWipModal');
+  const client = document.getElementById('ctaCteWipClient');
+  if(client){
+    client.textContent = clientName ? `Cliente: ${clientName}` : 'Estamos preparando este módulo.';
+  }
+  if(modal) modal.classList.remove('hidden');
+}
+function closeCtaCteWipModal(){
+  const modal = document.getElementById('ctaCteWipModal');
+  if(modal) modal.classList.add('hidden');
+}
+
 function openClientCC(id){
   const c = clients.find(x => x.id === id);
   const name = c ? (c.cliente || 'cliente') : 'cliente';
-  showToast(`Cuenta corriente de ${name}: módulo pendiente`);
+  openCtaCteWipModal(name);
 }
 
 function openClientForm(id){
