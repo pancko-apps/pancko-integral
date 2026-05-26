@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Pancko"/>
   <meta name="theme-color" content="#0a2a5e"/>
-  <title>Pancko Integral v0.10.15</title>
+  <title>Pancko Integral v0.10.16</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -1697,9 +1697,11 @@
 
     <div class="card stack">
       <div class="note-box">Carga local para rescatar latas empezadas. No sincroniza con Sheets.</div>
-      <div class="field">
+      <div class="field autocomplete-wrap">
         <label>Producto / lata</label>
-        <input id="pendingCanProductInput" type="text" placeholder="Ej: ACRILPLAST IE TINT 4 LTS"/>
+        <input id="pendingCanProductInput" type="text" placeholder="Buscar producto o código..." autocomplete="off" data-cod="" onfocus="renderPendingCanProductOptions(true)" oninput="renderPendingCanProductOptions(true);selectPendingCanProductFromInput(false)"/>
+        <div id="pendingCanProductSuggest" class="lab-suggest-box"></div>
+        <div id="pendingCanProductInfo" class="muted" style="font-size:.80rem;line-height:1.35;margin-top:6px;">Elegí un producto de la lista para evitar diferencias de nombre.</div>
       </div>
       <div class="field">
         <label>Base</label>
@@ -1984,7 +1986,7 @@
       <div class="divider"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.15</div>
+          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.16</div>
           <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">Lanzamiento: Abril 2026</div>
         </div>
         <div style="font-size:2rem;opacity:.25;">🚀</div>
@@ -5707,6 +5709,105 @@ function openPendingCans(){
   renderPendingCansList();
 }
 
+
+function pendingCanProductLabel(p){
+  if(!p) return '';
+  const code = p.COD ? `${p.COD} — ` : '';
+  return `${code}${p.ARTIC || ''}`;
+}
+
+function renderPendingCanProductInfo(p){
+  const box = document.getElementById('pendingCanProductInfo');
+  if(!box) return;
+  if(!p){
+    box.innerHTML = 'Elegí un producto de la lista para evitar diferencias de nombre.';
+    return;
+  }
+  const tint = isTintableProduct(p) ? ` · Base ${esc(p.base_tinto || p.base_fisica_tinto || '')}` : '';
+  box.innerHTML = `<b>${esc(p.COD || '')}</b> · ${esc(p.ARTIC || '')}${tint}`;
+}
+
+function renderPendingCanProductOptions(show=true){
+  const input = document.getElementById('pendingCanProductInput');
+  const box = document.getElementById('pendingCanProductSuggest');
+  if(!input || !box) return;
+
+  const q = normKey(input.value || '');
+  const list = products
+    .filter(p => isTintableProduct(p))
+    .filter(p => !q || normKey(`${p.COD || ''} ${p.ARTIC || ''}`).includes(q))
+    .slice(0, 80);
+
+  if(!show || !list.length){
+    box.style.display = 'none';
+    box.innerHTML = '';
+    return;
+  }
+
+  box.innerHTML = list.map(p => `
+    <button type="button" class="lab-suggest-item" onclick="selectPendingCanProduct('${esc(p.COD || '')}')">
+      <div><b>${esc(p.COD || '')}</b> · ${esc(p.ARTIC || '')}</div>
+      <small>${esc(p.tipo_tinto || '')}${p.base_tinto ? ' · Base ' + esc(p.base_tinto) : ''}</small>
+    </button>
+  `).join('');
+  box.style.display = 'block';
+}
+
+function selectPendingCanProduct(cod){
+  const p = products.find(x => String(x.COD) === String(cod));
+  if(!p) return;
+  const input = document.getElementById('pendingCanProductInput');
+  if(input){
+    input.value = pendingCanProductLabel(p);
+    input.dataset.cod = p.COD || '';
+  }
+  const base = document.getElementById('pendingCanBaseInput');
+  if(base){
+    const bases = compatibleBasesForProduct(p);
+    if(bases.length === 1) base.value = bases[0];
+    else if(normKey(p.base_tinto) && ['PASTEL','TINT','DEEP','ACCENT'].includes(normKey(p.base_tinto))) base.value = normKey(p.base_tinto);
+  }
+  renderPendingCanProductInfo(p);
+  const box = document.getElementById('pendingCanProductSuggest');
+  if(box) box.style.display = 'none';
+}
+
+function selectPendingCanProductFromInput(requireExact=true){
+  const input = document.getElementById('pendingCanProductInput');
+  if(!input) return null;
+  const value = String(input.value || '').trim();
+  const q = normKey(value);
+  const currentCod = input.dataset.cod || '';
+
+  if(currentCod){
+    const p = products.find(x => String(x.COD) === String(currentCod));
+    if(p){
+      renderPendingCanProductInfo(p);
+      return p;
+    }
+  }
+
+  const p = products.find(x =>
+    isTintableProduct(x) &&
+    (normKey(x.COD) === q || normKey(pendingCanProductLabel(x)) === q || normKey(x.ARTIC) === q)
+  );
+
+  if(p){
+    input.dataset.cod = p.COD || '';
+    renderPendingCanProductInfo(p);
+    return p;
+  }
+
+  input.dataset.cod = '';
+  renderPendingCanProductInfo(null);
+  return requireExact ? null : null;
+}
+
+function pendingCanSelectedProduct(){
+  return selectPendingCanProductFromInput(false);
+}
+
+
 function pendingCanLineOptions(selected='B'){
   const keys = Object.keys(colorantPrices || {}).sort();
   const fallback = ['B','C','D','E','F','KX','L','M','SS','T','V','Y'];
@@ -5738,17 +5839,24 @@ function getPendingCanInputLines(){
 }
 
 function pendingCanProductCodeFromName(name){
+  const p = pendingCanSelectedProduct();
+  if(p) return p.COD || '';
   const n=normKey(name);
-  const p=products.find(x=>normKey(x.ARTIC)===n || normKey(x.COD)===n || n.includes(normKey(x.ARTIC)));
-  return p ? p.COD : '';
+  const found=products.find(x=>isTintableProduct(x) && (normKey(x.ARTIC)===n || normKey(x.COD)===n || n.includes(normKey(x.ARTIC))));
+  return found ? found.COD : '';
 }
 
 function savePendingCanManual(){
-  const product=(document.getElementById('pendingCanProductInput')?.value || '').trim();
+  const p = selectPendingCanProductFromInput(true);
+  if(!p){
+    alert('Elegí el producto desde la lista de artículos. Así evitamos que después no coincida.');
+    return;
+  }
+
+  const product = p.ARTIC || '';
   const base=normKey(document.getElementById('pendingCanBaseInput')?.value || '');
   const note=(document.getElementById('pendingCanNoteInput')?.value || '').trim();
   const lines=getPendingCanInputLines();
-  if(!product){ alert('Completá producto/lata.'); return; }
   if(!base){ alert('Elegí base.'); return; }
   if(!lines.length){ alert('Agregá al menos una tinta.'); return; }
   const can={
@@ -5756,9 +5864,9 @@ function savePendingCanManual(){
     fecha:new Date().toLocaleString('es-AR'),
     timestamp:new Date().toISOString(),
     productName:product,
-    productCode:pendingCanProductCodeFromName(product),
+    productCode:p.COD || '',
     base,
-    factor:num(selectedLabCalc?.factor || 0),
+    factor:num(p.factor_tinto || p.factor_envase_tinto || selectedLabCalc?.factor || 0),
     lines,
     note,
     status:'available'
@@ -5828,7 +5936,13 @@ function renderPendingCansList(){
 
 function loadPendingCanIntoForm(id){
   const c=pendingCans.find(x=>x.id===id); if(!c) return;
-  document.getElementById('pendingCanProductInput').value=c.productName || '';
+  const input = document.getElementById('pendingCanProductInput');
+  if(input){
+    const p = products.find(x => String(x.COD) === String(c.productCode));
+    input.value = p ? pendingCanProductLabel(p) : (c.productName || '');
+    input.dataset.cod = c.productCode || '';
+    renderPendingCanProductInfo(p || null);
+  }
   document.getElementById('pendingCanBaseInput').value=c.base || 'TINT';
   document.getElementById('pendingCanNoteInput').value=c.note || '';
   renderPendingCanRows(c.lines || []);
@@ -5917,6 +6031,15 @@ function renderPendingCanAlerts(calc, product){
     </div>`;
   }).join('');
 }
+
+
+document.addEventListener('click', function(e){
+  const box = document.getElementById('pendingCanProductSuggest');
+  const input = document.getElementById('pendingCanProductInput');
+  if(box && input && !box.contains(e.target) && e.target !== input){
+    box.style.display = 'none';
+  }
+});
 
 /* ═══════════════════════════════
    BUSCADOR DE FÓRMULAS POR TINTAS
