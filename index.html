@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Pancko"/>
   <meta name="theme-color" content="#0a2a5e"/>
-  <title>Pancko Integral v0.10.22</title>
+  <title>Pancko Integral v0.10.23</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -1733,7 +1733,7 @@
       <div id="labProductInfo" class="muted" style="font-size:.86rem;line-height:1.4;margin-bottom:10px;"></div>
 
       <div class="field">
-        <label>Código o descripción del color</label>
+        <label>Código o descripción del color <span style="color:var(--text-muted);font-weight:500;">(opcional)</span></label>
         <input id="labColorInput" type="text" placeholder="Ej: 8302 / Great Graphite" autocomplete="off" data-cleared="0" onfocus="focusAndLiftLabInput(this);setTimeout(()=>focusAndLiftLabInput(this),450);renderLabColorOptions(true);setTimeout(()=>focusAndLiftLabInput(this),220)" oninput="renderLabColorOptions(true);renderLabFormula()" />
         <div id="labColorSuggest" class="lab-color-suggest-box"></div>
       </div>
@@ -2108,7 +2108,7 @@
       <div class="divider"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.22</div>
+          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.23</div>
           <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">Lanzamiento: Abril 2026</div>
         </div>
         <div style="font-size:2rem;opacity:.25;">🚀</div>
@@ -2747,7 +2747,12 @@ function updateTintPreview(){
   selectedTintCalc=null;
   if(!box || !input || !selectedProduct) return;
   const value=input.value.trim();
-  if(!value){ box.innerHTML='<span class="muted">Ingresá código o descripción de color.</span>'; return; }
+
+  if(!value){
+    box.innerHTML='<span class="muted">Sin color: se agrega el producto/base tal cual. Ingresá un color solo si querés calcular tintas.</span>';
+    return;
+  }
+
   const res=calcTintForProduct(selectedProduct,value);
   if(!res.ok){ box.innerHTML=`<div class="tinto-bad">${esc(res.msg)}</div>`; return; }
   selectedTintCalc=res;
@@ -3587,13 +3592,13 @@ function openDetail(cod){
 
       ${tintable ? `
       <div class="tinto-box">
-        <div class="sec-title" style="font-size:1rem;margin-bottom:8px;">Tintométrico</div>
+        <div class="sec-title" style="font-size:1rem;margin-bottom:8px;">Tintométrico opcional</div>
         <div class="field autocomplete-wrap" style="margin-bottom:6px;">
           <label>Código o descripción del color</label>
           <input id="detTintColor" list="detTintColorList" type="text" placeholder="Ej: 8302 / graphite" data-cleared="0" onfocus="clearTintInputOnce(this);renderTintColorOptions()" oninput="renderTintColorOptions();updateTintPreview()"/>
           <datalist id="detTintColorList"></datalist>
         </div>
-        <div id="detTintPreview" class="tinto-preview"><span class="muted">Ingresá un color para calcular tintas.</span></div>
+        <div id="detTintPreview" class="tinto-preview"><span class="muted">Sin color: se agrega el producto/base tal cual. Ingresá un color solo si querés calcular tintas.</span></div>
       </div>` : ''}
 
       <div class="divider"></div>
@@ -3619,24 +3624,29 @@ function addToCart(){
 
   if(tintable){
     const colorVal = (document.getElementById('detTintColor')?.value || '').trim();
-    const calc = calcTintForProduct(p, colorVal);
-    if(!calc.ok){ alert(calc.msg); return; }
-    itemPrice += calc.tintCost;
-    itemName = `${p.ARTIC} (${calc.rec.idcolor || extractColorId(colorVal)})`;
-    tintData = {
-      color: calc.rec.idcolor || extractColorId(colorVal),
-      descripcion: calc.rec.descripcion || '',
-      manualModified: false,
-      base_formula: calc.base_formula,
-      base_fisica: calc.base_fisica,
-      factor: calc.factor,
-      tintCost: calc.tintCost,
-      formula_original: calc.lines.map(x=>({colorante:x.colorante,pulsos:x.pulsos,precioPulso:x.precioPulso,subtotal:x.subtotal})),
-      formula: calc.lines.map(x=>({colorante:x.colorante,pulsos:x.pulsos,precioPulso:x.precioPulso,subtotal:x.subtotal}))
-    };
+
+    // Importante: hay productos tintables que también se venden como blanco/base sin preparar color.
+    // Si no se cargó color, se agrega al presupuesto como artículo común.
+    if(colorVal){
+      const calc = calcTintForProduct(p, colorVal);
+      if(!calc.ok){ alert(calc.msg); return; }
+      itemPrice += calc.tintCost;
+      itemName = `${p.ARTIC} (${calc.rec.idcolor || extractColorId(colorVal)})`;
+      tintData = {
+        color: calc.rec.idcolor || extractColorId(colorVal),
+        descripcion: calc.rec.descripcion || '',
+        manualModified: false,
+        base_formula: calc.base_formula,
+        base_fisica: calc.base_fisica,
+        factor: calc.factor,
+        tintCost: calc.tintCost,
+        formula_original: calc.lines.map(x=>({colorante:x.colorante,pulsos:x.pulsos,precioPulso:x.precioPulso,subtotal:x.subtotal})),
+        formula: calc.lines.map(x=>({colorante:x.colorante,pulsos:x.pulsos,precioPulso:x.precioPulso,subtotal:x.subtotal}))
+      };
+    }
   }
 
-  if(!tintable){
+  if(!tintData){
     const ex = cart.find(i=>!i.tintData && String(i.COD)===String(p.COD));
     if(ex) ex.qty += qty;
     else cart.push({uid:'u_'+Date.now()+'_'+Math.random().toString(16).slice(2), COD:p.COD, ARTIC:itemName, base_ARTIC:p.ARTIC, PR_SIN_IVA:p.PR_SIN_IVA || (itemPrice/1.21), PR_CON_IVA:itemPrice, qty, extraDiscount:0});
