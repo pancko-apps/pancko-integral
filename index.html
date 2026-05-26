@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Pancko"/>
   <meta name="theme-color" content="#0a2a5e"/>
-  <title>Pancko Integral v0.10.18</title>
+  <title>Pancko Integral v0.10.20</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -1455,6 +1455,74 @@
     .pending-can-title{font-weight:900;margin-bottom:6px}
     .pending-can-meta{font-size:.82rem;color:var(--text-muted);line-height:1.42}
 
+
+    /* Home refinado v0.10.19 */
+    .tile-cc{
+      background:linear-gradient(135deg,#0f7b78,#108a68 58%,#0b694f);
+      border-color:rgba(117,255,215,.16);
+    }
+    .brand-logo-interactive{
+      position:relative;
+      isolation:isolate;
+    }
+    .brand-logo-interactive::after{
+      content:"";
+      position:absolute;
+      inset:-5px;
+      border-radius:18px;
+      background:radial-gradient(circle at 50% 50%, rgba(106,205,255,.22), transparent 62%);
+      opacity:.72;
+      z-index:-1;
+      animation:panckoSoftPulse 2.8s ease-in-out infinite;
+      pointer-events:none;
+    }
+    @keyframes panckoSoftPulse{
+      0%,100%{transform:scale(.985);opacity:.28;filter:blur(0)}
+      50%{transform:scale(1.045);opacity:.82;filter:blur(.2px)}
+    }
+
+
+    .header-badge-interactive{
+      position:relative;
+      isolation:isolate;
+      animation:panckoBadgeBreath 3.2s ease-in-out infinite;
+    }
+    .header-badge-interactive::after{
+      content:"";
+      position:absolute;
+      inset:-6px;
+      border-radius:20px;
+      background:radial-gradient(circle at 50% 50%, rgba(115,207,255,.28), transparent 64%);
+      opacity:.55;
+      z-index:-1;
+      animation:panckoBadgeGlow 3.2s ease-in-out infinite;
+      pointer-events:none;
+    }
+    @keyframes panckoBadgeBreath{
+      0%,100%{box-shadow:0 0 0 rgba(120,210,255,0)}
+      50%{box-shadow:0 0 18px rgba(120,210,255,.18)}
+    }
+    @keyframes panckoBadgeGlow{
+      0%,100%{transform:scale(.98);opacity:.24}
+      50%{transform:scale(1.05);opacity:.75}
+    }
+
+
+    /* Clientes: accesos rápidos v0.10.20 */
+    .client-quick-actions-v1020{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      flex-wrap:wrap;
+      margin-top:auto;
+      transform:translateY(2px);
+    }
+    .cc-btn-v1020{
+      background:rgba(71,255,197,.14);
+      border:1px solid rgba(117,255,215,.20);
+      color:#bfffee;
+    }
+
   </style>
 </head>
 <body>
@@ -1464,9 +1532,9 @@
   <div class="header">
     <div class="header-left">
       <div class="brand" id="brandName">Pancko Integral</div>
-      <div class="subtitle">Consulta de precios · <span id="brandSystem">Pancko</span></div>
+      <div class="subtitle">Precios · laboratorio · presupuestos</div>
     </div>
-    <div class="header-badge" aria-label="Soporte Pancko" onclick="showScreen('supportScreen')" style="cursor:pointer;">
+    <div class="header-badge header-badge-interactive" aria-label="Soporte Pancko" onclick="showScreen('supportScreen')" style="cursor:pointer;">
       <svg viewBox="0 0 64 64" width="28" height="28" aria-hidden="true">
         <rect x="1" y="1" width="62" height="62" rx="14" fill="#0f4c9a"/>
         <path d="M16 50 L22 14 H36 C44 14 49 18 49 25 C49 35 42 41 31 41 H24 L22 50 Z" fill="#ff8a24"/>
@@ -1485,37 +1553,42 @@
         <div class="tile-icon">🖌️</div>
         <div class="tile-copy">
           <div class="tile-name">Artículos</div>
-          <div class="tile-desc">Código o descripción</div>
+          <div class="tile-desc">Código, descripción y precios</div>
         </div>
       </div>
+
       <div class="tile tile-budget" onclick="showScreen('cartScreen')">
         <div class="tile-icon">🧾</div>
         <div class="tile-copy">
           <div class="tile-name">Presupuesto</div>
-          <div class="tile-desc">Lista y totalizador</div>
+          <div class="tile-desc">Lista, descuentos e impresión</div>
         </div>
       </div>
+
       <div class="tile tile-lab" onclick="showScreen('labScreen')">
         <div class="tile-icon">🧪</div>
         <div class="tile-copy">
           <div class="tile-name">Laboratorio</div>
-          <div class="tile-desc">Ver fórmula grande para preparar color</div>
+          <div class="tile-desc">Fórmulas, colores y latas en espera</div>
         </div>
       </div>
+
       <div class="tile tile-client" onclick="showScreen('clientsScreen')">
         <div class="tile-icon">👤</div>
         <div class="tile-copy">
           <div class="tile-name">Clientes</div>
-          <div class="tile-desc">Listado y alta manual</div>
+          <div class="tile-desc">Datos, historial y colores</div>
         </div>
       </div>
-      <div class="tile tile-config" onclick="showScreen('configScreen')">
-        <div class="tile-icon">⚙️</div>
+
+      <div class="tile tile-cc" onclick="showToast('Cuenta corriente: módulo pendiente')">
+        <div class="tile-icon">💳</div>
         <div class="tile-copy">
-          <div class="tile-name">Parámetros</div>
-          <div class="tile-desc">Comercio, descuentos e importación</div>
+          <div class="tile-name">Cta CTE</div>
+          <div class="tile-desc">Saldos y movimientos</div>
         </div>
       </div>
+
       <div class="tile tile-history" onclick="showScreen('historyScreen')">
         <div class="tile-icon">📋</div>
         <div class="tile-copy">
@@ -1523,11 +1596,12 @@
           <div class="tile-desc">Presupuestos guardados</div>
         </div>
       </div>
-      <div class="tile tile-support" onclick="showScreen('supportScreen')">
-        <div class="tile-icon">💬</div>
+
+      <div class="tile tile-config" onclick="showScreen('configScreen')">
+        <div class="tile-icon">⚙️</div>
         <div class="tile-copy">
-          <div class="tile-name">Soporte</div>
-          <div class="tile-desc">WhatsApp, mail e info</div>
+          <div class="tile-name">Parámetros</div>
+          <div class="tile-desc">Datos, listas e importación</div>
         </div>
       </div>
     </div>
@@ -1977,7 +2051,7 @@
       <div class="divider"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.18</div>
+          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.20</div>
           <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">Lanzamiento: Abril 2026</div>
         </div>
         <div style="font-size:2rem;opacity:.25;">🚀</div>
@@ -5520,7 +5594,10 @@ function renderClientsList(){
           <div style="font-weight:600;font-size:.95rem;">${esc(c.cliente || 'Sin nombre')}</div>
           <div class="history-meta">${esc(c.cuit || 'Sin DNI/CUIT')}${c.telefono ? ' · ' + esc(c.telefono) : ''}</div>
           <div style="font-size:.78rem;color:var(--text-muted);margin-top:4px;">${esc(c.direccion || 'Dirección sin completar')}</div>
-          <button class="mini-btn color-btn-v1011" onclick="openClientColors('${esc(c.id)}')">🎨 ${colorLabel}</button>
+          <div class="client-quick-actions-v1020">
+            <button class="mini-btn color-btn-v1011" onclick="openClientColors('${esc(c.id)}')">🎨 ${colorLabel}</button>
+            <button class="mini-btn cc-btn-v1020" onclick="openClientCC('${esc(c.id)}')">💳 Cta CTE</button>
+          </div>
         </div>
         <div style="display:flex;gap:6px;flex-direction:column;">
           <button class="mini-btn edit" onclick="openClientForm('${esc(c.id)}')">Editar</button>
@@ -5530,6 +5607,12 @@ function renderClientsList(){
       </div>
     </div>`;
   }).join('');
+}
+
+function openClientCC(id){
+  const c = clients.find(x => x.id === id);
+  const name = c ? (c.cliente || 'cliente') : 'cliente';
+  showToast(`Cuenta corriente de ${name}: módulo pendiente`);
 }
 
 function openClientForm(id){
