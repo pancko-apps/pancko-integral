@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Pancko"/>
   <meta name="theme-color" content="#0a2a5e"/>
-  <title>Pancko Integral v0.10.14</title>
+  <title>Pancko Integral v0.10.15</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -1441,6 +1441,20 @@
       letter-spacing:.01em;
     }
 
+
+    /* Latas en espera v0.10.15 */
+    .pending-can-alert{
+      margin-top:12px;
+      border:1px solid rgba(255,255,255,.14);
+      border-radius:18px;
+      padding:12px;
+      background:rgba(255,255,255,.055);
+    }
+    .pending-can-alert.ok{border-color:rgba(50,220,140,.34);background:rgba(50,220,140,.08)}
+    .pending-can-alert.warn{border-color:rgba(255,210,110,.38);background:rgba(255,210,110,.10)}
+    .pending-can-title{font-weight:900;margin-bottom:6px}
+    .pending-can-meta{font-size:.82rem;color:var(--text-muted);line-height:1.42}
+
   </style>
 </head>
 <body>
@@ -1612,6 +1626,7 @@
         <button class="btn btn-amber" style="width:100%" onclick="saveLabRecord()">Guardar registro de laboratorio</button>
       </div>
       <button class="btn btn-back" style="width:100%;margin-top:10px" onclick="openTintCompositionSearch()">🔎 Buscar fórmula por tintas</button>
+      <button class="btn btn-back" style="width:100%;margin-top:10px" onclick="openPendingCans()">🪣 Latas en espera</button>
     </div>
 
     <div id="labResult"></div>
@@ -1670,6 +1685,45 @@
 
     <div id="tintCompSummary" class="muted" style="font-size:.86rem;margin:10px 2px;"></div>
     <div id="tintCompResults"></div>
+  </section>
+
+  <!-- LATAS EN ESPERA -->
+  <section class="screen" id="pendingCansScreen">
+    <div class="top-bar">
+      <button class="btn btn-back" onclick="showScreen('labScreen')">← Laboratorio</button>
+      <button class="btn btn-primary" onclick="addPendingCanFromCurrentLab()">＋ Desde fórmula actual</button>
+    </div>
+    <div class="sec-title">Latas en espera</div>
+
+    <div class="card stack">
+      <div class="note-box">Carga local para rescatar latas empezadas. No sincroniza con Sheets.</div>
+      <div class="field">
+        <label>Producto / lata</label>
+        <input id="pendingCanProductInput" type="text" placeholder="Ej: ACRILPLAST IE TINT 4 LTS"/>
+      </div>
+      <div class="field">
+        <label>Base</label>
+        <select id="pendingCanBaseInput">
+          <option value="PASTEL">PASTEL</option>
+          <option value="TINT">TINT</option>
+          <option value="DEEP">DEEP</option>
+          <option value="ACCENT">ACCENT</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Nota</label>
+        <input id="pendingCanNoteInput" type="text" placeholder="Ej: error de tinta, lata empezada..."/>
+      </div>
+      <div class="lab-manual-head"><div>Tinta</div><div>Pulsos</div><div></div></div>
+      <div id="pendingCanRows"></div>
+      <button class="btn btn-back" style="width:100%" onclick="addPendingCanRow()">＋ Agregar tinta</button>
+      <button class="btn btn-amber" style="width:100%" onclick="savePendingCanManual()">Guardar lata en espera</button>
+    </div>
+
+    <div class="card">
+      <div class="sec-title" style="font-size:1rem;margin-bottom:8px;">Disponibles</div>
+      <div id="pendingCansList"></div>
+    </div>
   </section>
 
   <!-- CLIENTES -->
@@ -1930,7 +1984,7 @@
       <div class="divider"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.14</div>
+          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.15</div>
           <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">Lanzamiento: Abril 2026</div>
         </div>
         <div style="font-size:2rem;opacity:.25;">🚀</div>
@@ -2078,6 +2132,7 @@ let selectedLabProduct = null;
 let selectedLabCalc = null;
 let selectedLabManualLines = [];
 let labRecords = JSON.parse(localStorage.getItem('pk_lab_records') || '[]');
+let pendingCans = JSON.parse(localStorage.getItem('pk_pending_cans') || '[]');
 let selectedLabColorRecipe = null;
 let editingTintKey = null;
 let editingItemKey = null;
@@ -2103,6 +2158,7 @@ function save(){
   localStorage.setItem('pk_clients', JSON.stringify(clients));
   localStorage.setItem('pk_config', JSON.stringify(config));
   localStorage.setItem('pk_lab_records', JSON.stringify(labRecords));
+  localStorage.setItem('pk_pending_cans', JSON.stringify(pendingCans));
   localStorage.setItem('pk_tint_recipes', JSON.stringify(tintRecipes));
   localStorage.setItem('pk_tint_prices', JSON.stringify(colorantPrices));
 }
@@ -2944,6 +3000,7 @@ function renderLabFormula(){
         Redondeo: 0.125 pulso
       </div>
       <div id="labFormulaTableBox"></div>
+      <div id="pendingCanAlertsBox"></div>
       <div class="lab-manual-box">
         <div style="font-weight:700;margin-bottom:6px;">Editar fórmula usada</div>
         <div class="muted" style="font-size:.78rem;line-height:1.35;margin-bottom:8px;">Ajustá pulsos, agregá una tinta o restaurá la fórmula calculada.</div>
@@ -2956,6 +3013,7 @@ function renderLabFormula(){
   `;
   renderLabManualRows(selectedLabManualLines);
   renderLabFormulaTable(selectedLabManualLines);
+  renderPendingCanAlerts(selectedLabCalc, selectedLabProduct);
 }
 
 
@@ -5638,6 +5696,227 @@ function newLabRecordForCurrentClient(){
 
 
 
+
+
+/* ═══════════════════════════════
+   LATAS EN ESPERA - LOCAL
+════════════════════════════════ */
+function openPendingCans(){
+  showScreen('pendingCansScreen');
+  renderPendingCanRows();
+  renderPendingCansList();
+}
+
+function pendingCanLineOptions(selected='B'){
+  const keys = Object.keys(colorantPrices || {}).sort();
+  const fallback = ['B','C','D','E','F','KX','L','M','SS','T','V','Y'];
+  const arr = keys.length ? keys : fallback;
+  return arr.map(k=>`<option value="${esc(k)}" ${normKey(k)===normKey(selected)?'selected':''}>${esc(k)}</option>`).join('');
+}
+
+function addPendingCanRow(colorante='L', pulsos=1){
+  const box=document.getElementById('pendingCanRows'); if(!box) return;
+  const div=document.createElement('div');
+  div.className='lab-manual-row';
+  div.innerHTML=`<select data-can-tint-color>${pendingCanLineOptions(colorante)}</select>
+    <input data-can-tint-pulses type="number" step="0.125" value="${fmtPulse(pulsos)}"/>
+    <button class="lab-manual-remove" onclick="this.closest('.lab-manual-row').remove()">×</button>`;
+  box.appendChild(div);
+}
+
+function renderPendingCanRows(lines){
+  const box=document.getElementById('pendingCanRows'); if(!box) return;
+  box.innerHTML='';
+  (lines && lines.length ? lines : [{colorante:'L',pulsos:1}]).forEach(x=>addPendingCanRow(x.colorante, x.pulsos));
+}
+
+function getPendingCanInputLines(){
+  return Array.from(document.querySelectorAll('#pendingCanRows .lab-manual-row')).map(row=>({
+    colorante: normKey(row.querySelector('[data-can-tint-color]')?.value || ''),
+    pulsos: roundPulse(row.querySelector('[data-can-tint-pulses]')?.value || 0)
+  })).filter(x=>x.colorante && x.pulsos>0);
+}
+
+function pendingCanProductCodeFromName(name){
+  const n=normKey(name);
+  const p=products.find(x=>normKey(x.ARTIC)===n || normKey(x.COD)===n || n.includes(normKey(x.ARTIC)));
+  return p ? p.COD : '';
+}
+
+function savePendingCanManual(){
+  const product=(document.getElementById('pendingCanProductInput')?.value || '').trim();
+  const base=normKey(document.getElementById('pendingCanBaseInput')?.value || '');
+  const note=(document.getElementById('pendingCanNoteInput')?.value || '').trim();
+  const lines=getPendingCanInputLines();
+  if(!product){ alert('Completá producto/lata.'); return; }
+  if(!base){ alert('Elegí base.'); return; }
+  if(!lines.length){ alert('Agregá al menos una tinta.'); return; }
+  const can={
+    id:'can_'+Date.now()+'_'+Math.random().toString(16).slice(2),
+    fecha:new Date().toLocaleString('es-AR'),
+    timestamp:new Date().toISOString(),
+    productName:product,
+    productCode:pendingCanProductCodeFromName(product),
+    base,
+    factor:num(selectedLabCalc?.factor || 0),
+    lines,
+    note,
+    status:'available'
+  };
+  pendingCans.unshift(can);
+  save();
+  renderPendingCansList();
+  showToast('Lata en espera guardada');
+}
+
+function addPendingCanFromCurrentLab(){
+  if(!selectedLabProduct || !selectedLabCalc){
+    alert('Primero calculá una fórmula en Laboratorio.');
+    return;
+  }
+  const lines=(selectedLabManualLines.length ? selectedLabManualLines : selectedLabCalc.lines).map(x=>({colorante:x.colorante,pulsos:x.pulsos}));
+  const can={
+    id:'can_'+Date.now()+'_'+Math.random().toString(16).slice(2),
+    fecha:new Date().toLocaleString('es-AR'),
+    timestamp:new Date().toISOString(),
+    productName:selectedLabProduct.ARTIC,
+    productCode:selectedLabProduct.COD,
+    base:selectedLabCalc.base_formula,
+    factor:selectedLabCalc.factor,
+    lines,
+    note:'Guardada desde fórmula actual',
+    status:'available'
+  };
+  pendingCans.unshift(can);
+  save();
+  showToast('Lata en espera guardada');
+  openPendingCans();
+}
+
+function deletePendingCan(id){
+  if(!confirm('¿Borrar esta lata en espera?')) return;
+  pendingCans=pendingCans.filter(c=>c.id!==id);
+  save();
+  renderPendingCansList();
+  if(selectedLabCalc) renderPendingCanAlerts(selectedLabCalc, selectedLabProduct);
+}
+
+function markPendingCanUsed(id){
+  const c=pendingCans.find(x=>x.id===id);
+  if(c){ c.status='used'; c.usedAt=new Date().toISOString(); save(); renderPendingCansList(); renderPendingCanAlerts(selectedLabCalc, selectedLabProduct); }
+}
+
+function renderPendingCansList(){
+  const box=document.getElementById('pendingCansList'); if(!box) return;
+  const rows=pendingCans.filter(c=>c.status==='available');
+  if(!rows.length){ box.innerHTML='<div class="empty-msg" style="padding:14px;">No hay latas en espera.</div>'; return; }
+  box.innerHTML=rows.map(c=>`
+    <div class="lab-record-card">
+      <div class="lab-record-title">🪣 ${esc(c.productName || '')}</div>
+      <div class="lab-record-meta">
+        ${esc(formatLabRecordDate(c.fecha || c.timestamp))} · Base ${esc(c.base || '')}<br>
+        Tiene: ${esc(pendingCanLinesText(c.lines))}<br>
+        ${c.note ? `<b>Nota:</b> ${esc(c.note)}<br>` : ''}
+      </div>
+      <div class="lab-record-actions">
+        <button class="mini-btn edit" onclick="loadPendingCanIntoForm('${esc(c.id)}')">Editar carga</button>
+        <button class="mini-btn delete" onclick="deletePendingCan('${esc(c.id)}')">Borrar</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function loadPendingCanIntoForm(id){
+  const c=pendingCans.find(x=>x.id===id); if(!c) return;
+  document.getElementById('pendingCanProductInput').value=c.productName || '';
+  document.getElementById('pendingCanBaseInput').value=c.base || 'TINT';
+  document.getElementById('pendingCanNoteInput').value=c.note || '';
+  renderPendingCanRows(c.lines || []);
+}
+
+function pendingCanLinesText(lines){
+  return (lines||[]).map(x=>`${x.colorante} ${fmtPulse(x.pulsos)}`).join(' · ');
+}
+
+function isAcrilplastToRecuplastInterior(canProduct, targetProduct){
+  const a=normKey(canProduct || '');
+  const b=normKey(targetProduct || '');
+  return a.includes('ACRILPLAST') && (a.includes('IE') || a.includes('I E') || a.includes('INTERIOR EXTERIOR')) && b.includes('RECUPLAST') && (b.includes('INT') || b.includes('INTERIOR'));
+}
+
+function pendingCanProductMatch(can, targetProduct){
+  const canName=can.productName || '';
+  const target=targetProduct?.ARTIC || '';
+  if(can.productCode && targetProduct?.COD && String(can.productCode)===String(targetProduct.COD)) return {ok:true,type:'exact',label:'Mismo producto'};
+  if(normKey(canName) && normKey(canName)===normKey(target)) return {ok:true,type:'exact',label:'Mismo producto'};
+  if(isAcrilplastToRecuplastInterior(canName, target)) return {ok:true,type:'rescue',label:'Posible rescate Acrilplast → Recuplast'};
+  return {ok:false,type:'none',label:''};
+}
+
+function comparePendingCanToFormula(can, calc, targetProduct, tolerancePct=5){
+  if(!can || can.status!=='available' || !calc || !targetProduct) return null;
+  const pm=pendingCanProductMatch(can,targetProduct);
+  if(!pm.ok) return null;
+  if(normKey(can.base) && normKey(can.base)!==normKey(calc.base_formula)) return null;
+
+  const targetLines=(selectedLabManualLines.length ? selectedLabManualLines : calc.lines).map(x=>({colorante:normKey(x.colorante),pulsos:roundPulse(x.pulsos)})).filter(x=>x.colorante && x.pulsos>0);
+  const targetMap={}; targetLines.forEach(x=>targetMap[x.colorante]=(targetMap[x.colorante]||0)+x.pulsos);
+  const canMap={}; (can.lines||[]).forEach(x=>{ const k=normKey(x.colorante); if(k) canMap[k]=(canMap[k]||0)+roundPulse(x.pulsos); });
+
+  let status='compatible';
+  let warnings=[];
+  for(const k of Object.keys(canMap)){
+    const have=canMap[k]||0;
+    const need=targetMap[k]||0;
+    if(need<=0) return null;
+    const excess=have-need;
+    if(excess>0){
+      const pct=need>0 ? excess*100/need : 999;
+      if(pct<=tolerancePct){
+        status='tolerance';
+        warnings.push(`${k} +${fmtPulse(excess)} (${formatPct(pct)})`);
+      }else{
+        return null;
+      }
+    }
+  }
+
+  const add=[];
+  Object.keys(targetMap).sort().forEach(k=>{
+    const diff=roundPulse((targetMap[k]||0)-(canMap[k]||0));
+    if(diff>0) add.push({colorante:k,pulsos:diff});
+  });
+  if(pm.type==='rescue' && status==='compatible') status='rescue';
+  return {can, productMatch:pm, status, warnings, add};
+}
+
+function renderPendingCanAlerts(calc, product){
+  const box=document.getElementById('pendingCanAlertsBox');
+  if(!box || !calc || !product) return;
+  const tol=5;
+  const matches=pendingCans.map(c=>comparePendingCanToFormula(c,calc,product,tol)).filter(Boolean).slice(0,5);
+  if(!matches.length){ box.innerHTML=''; return; }
+
+  box.innerHTML=matches.map(m=>{
+    const label=m.status==='compatible' ? 'Lata compatible' : (m.status==='tolerance' ? 'Compatible con tolerancia' : 'Posible rescate');
+    const cls=m.status==='compatible' ? 'ok' : 'warn';
+    return `<div class="pending-can-alert ${cls}">
+      <div class="pending-can-title">🪣 ${esc(label)}</div>
+      <div class="pending-can-meta">
+        <b>Lata:</b> ${esc(m.can.productName || '')}<br>
+        <b>Tiene:</b> ${esc(pendingCanLinesText(m.can.lines))}<br>
+        <b>Completar:</b> ${m.add.length ? esc(pendingCanLinesText(m.add)) : 'Nada'}<br>
+        ${m.warnings.length ? `<b>Exceso tolerado:</b> ${esc(m.warnings.join(' · '))}<br>` : ''}
+        ${m.productMatch.type==='rescue' ? '<b>Regla:</b> Acrilplast I/E puede rescatarse como Recuplast Interior. Revisar antes de usar.<br>' : ''}
+        ${m.can.note ? `<b>Nota:</b> ${esc(m.can.note)}<br>` : ''}
+      </div>
+      <div class="lab-record-actions">
+        <button class="mini-btn edit" onclick="markPendingCanUsed('${esc(m.can.id)}')">Usar / marcar usada</button>
+        <button class="mini-btn delete" onclick="deletePendingCan('${esc(m.can.id)}')">Descartar</button>
+      </div>
+    </div>`;
+  }).join('');
+}
 
 /* ═══════════════════════════════
    BUSCADOR DE FÓRMULAS POR TINTAS
