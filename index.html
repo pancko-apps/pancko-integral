@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Pancko"/>
   <meta name="theme-color" content="#0a2a5e"/>
-  <title>Pancko Integral v0.10.16</title>
+  <title>Pancko Integral v0.10.17</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -1699,18 +1699,14 @@
       <div class="note-box">Carga local para rescatar latas empezadas. No sincroniza con Sheets.</div>
       <div class="field autocomplete-wrap">
         <label>Producto / lata</label>
-        <input id="pendingCanProductInput" type="text" placeholder="Buscar producto o código..." autocomplete="off" data-cod="" onfocus="renderPendingCanProductOptions(true)" oninput="renderPendingCanProductOptions(true);selectPendingCanProductFromInput(false)"/>
+        <input id="pendingCanProductInput" type="text" placeholder="Buscar producto o código..." autocomplete="off" data-cod="" data-cleared="0" onfocus="clearPendingCanProductInputOnce(this);renderPendingCanProductOptions(true)" oninput="this.dataset.cod='';renderPendingCanProductOptions(true);selectPendingCanProductFromInput(false)"/>
         <div id="pendingCanProductSuggest" class="lab-suggest-box"></div>
         <div id="pendingCanProductInfo" class="muted" style="font-size:.80rem;line-height:1.35;margin-top:6px;">Elegí un producto de la lista para evitar diferencias de nombre.</div>
       </div>
       <div class="field">
-        <label>Base</label>
-        <select id="pendingCanBaseInput">
-          <option value="PASTEL">PASTEL</option>
-          <option value="TINT">TINT</option>
-          <option value="DEEP">DEEP</option>
-          <option value="ACCENT">ACCENT</option>
-        </select>
+        <label>Base detectada</label>
+        <div id="pendingCanBaseDisplay" class="note-box" style="margin-bottom:0;">Elegí un producto.</div>
+        <input id="pendingCanBaseInput" type="hidden" value="">
       </div>
       <div class="field">
         <label>Nota</label>
@@ -1986,7 +1982,7 @@
       <div class="divider"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.16</div>
+          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.17</div>
           <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">Lanzamiento: Abril 2026</div>
         </div>
         <div style="font-size:2rem;opacity:.25;">🚀</div>
@@ -5718,13 +5714,35 @@ function pendingCanProductLabel(p){
 
 function renderPendingCanProductInfo(p){
   const box = document.getElementById('pendingCanProductInfo');
-  if(!box) return;
+  const baseDisplay = document.getElementById('pendingCanBaseDisplay');
+  const baseInput = document.getElementById('pendingCanBaseInput');
+
   if(!p){
-    box.innerHTML = 'Elegí un producto de la lista para evitar diferencias de nombre.';
+    if(box) box.innerHTML = 'Elegí un producto de la lista para evitar diferencias de nombre.';
+    if(baseDisplay) baseDisplay.innerHTML = 'Elegí un producto.';
+    if(baseInput) baseInput.value = '';
     return;
   }
-  const tint = isTintableProduct(p) ? ` · Base ${esc(p.base_tinto || p.base_fisica_tinto || '')}` : '';
-  box.innerHTML = `<b>${esc(p.COD || '')}</b> · ${esc(p.ARTIC || '')}${tint}`;
+
+  const bases = compatibleBasesForProduct(p);
+  const baseValue = bases.length === 1 ? bases[0] : (normKey(p.base_tinto || p.base_fisica_tinto || '') || '');
+  if(baseInput) baseInput.value = baseValue;
+  if(baseDisplay) baseDisplay.innerHTML = `<b>${esc(baseValue || '—')}</b><br><span style="opacity:.8">viene del artículo seleccionado</span>`;
+
+  const tint = isTintableProduct(p) ? ` · Base ${esc(baseValue || p.base_tinto || p.base_fisica_tinto || '')}` : '';
+  if(box) box.innerHTML = `<b>${esc(p.COD || '')}</b> · ${esc(p.ARTIC || '')}${tint}`;
+}
+
+
+function clearPendingCanProductInputOnce(input){
+  if(!input) return;
+  if(input.dataset.cleared === '1') return;
+  if(String(input.value || '').trim()){
+    input.value = '';
+    input.dataset.cod = '';
+    input.dataset.cleared = '1';
+    renderPendingCanProductInfo(null);
+  }
 }
 
 function renderPendingCanProductOptions(show=true){
@@ -5736,21 +5754,25 @@ function renderPendingCanProductOptions(show=true){
   const list = products
     .filter(p => isTintableProduct(p))
     .filter(p => !q || normKey(`${p.COD || ''} ${p.ARTIC || ''}`).includes(q))
-    .slice(0, 80);
+    .sort(labProductSort)
+    .slice(0, 45);
 
   if(!show || !list.length){
-    box.style.display = 'none';
+    box.classList.remove('show');
     box.innerHTML = '';
     return;
   }
 
-  box.innerHTML = list.map(p => `
-    <button type="button" class="lab-suggest-item" onclick="selectPendingCanProduct('${esc(p.COD || '')}')">
-      <div><b>${esc(p.COD || '')}</b> · ${esc(p.ARTIC || '')}</div>
-      <small>${esc(p.tipo_tinto || '')}${p.base_tinto ? ' · Base ' + esc(p.base_tinto) : ''}</small>
-    </button>
-  `).join('');
-  box.style.display = 'block';
+  box.innerHTML = list.map(p => {
+    const bases = compatibleBasesForProduct(p).join(' / ') || (p.base_tinto || '');
+    return `
+      <div class="lab-suggest-item" onclick="selectPendingCanProduct('${esc(String(p.COD || ''))}')">
+        <div class="lab-suggest-title">${esc(p.ARTIC || '')}</div>
+        <div class="lab-suggest-sub">Código ${esc(p.COD || '')} · ${esc(p.tipo_tinto || 'TINTABLE')} · Base ${esc(bases)} · Física ${esc(p.base_fisica_tinto || p.base_tinto || '')}</div>
+      </div>
+    `;
+  }).join('');
+  box.classList.add('show');
 }
 
 function selectPendingCanProduct(cod){
@@ -5760,16 +5782,11 @@ function selectPendingCanProduct(cod){
   if(input){
     input.value = pendingCanProductLabel(p);
     input.dataset.cod = p.COD || '';
-  }
-  const base = document.getElementById('pendingCanBaseInput');
-  if(base){
-    const bases = compatibleBasesForProduct(p);
-    if(bases.length === 1) base.value = bases[0];
-    else if(normKey(p.base_tinto) && ['PASTEL','TINT','DEEP','ACCENT'].includes(normKey(p.base_tinto))) base.value = normKey(p.base_tinto);
+    input.dataset.cleared = '0';
   }
   renderPendingCanProductInfo(p);
   const box = document.getElementById('pendingCanProductSuggest');
-  if(box) box.style.display = 'none';
+  if(box){ box.classList.remove('show'); box.innerHTML=''; }
 }
 
 function selectPendingCanProductFromInput(requireExact=true){
@@ -5794,13 +5811,14 @@ function selectPendingCanProductFromInput(requireExact=true){
 
   if(p){
     input.dataset.cod = p.COD || '';
+    input.dataset.cleared = '0';
     renderPendingCanProductInfo(p);
     return p;
   }
 
   input.dataset.cod = '';
-  renderPendingCanProductInfo(null);
-  return requireExact ? null : null;
+  if(requireExact) renderPendingCanProductInfo(null);
+  return null;
 }
 
 function pendingCanSelectedProduct(){
@@ -5854,10 +5872,11 @@ function savePendingCanManual(){
   }
 
   const product = p.ARTIC || '';
-  const base=normKey(document.getElementById('pendingCanBaseInput')?.value || '');
+  const bases = compatibleBasesForProduct(p);
+  const base = bases.length === 1 ? bases[0] : (normKey(p.base_tinto || p.base_fisica_tinto || '') || '');
   const note=(document.getElementById('pendingCanNoteInput')?.value || '').trim();
   const lines=getPendingCanInputLines();
-  if(!base){ alert('Elegí base.'); return; }
+  if(!base){ alert('No pude detectar la base del artículo seleccionado.'); return; }
   if(!lines.length){ alert('Agregá al menos una tinta.'); return; }
   const can={
     id:'can_'+Date.now()+'_'+Math.random().toString(16).slice(2),
@@ -5941,9 +5960,13 @@ function loadPendingCanIntoForm(id){
     const p = products.find(x => String(x.COD) === String(c.productCode));
     input.value = p ? pendingCanProductLabel(p) : (c.productName || '');
     input.dataset.cod = c.productCode || '';
+    input.dataset.cleared = '0';
     renderPendingCanProductInfo(p || null);
+    const baseInput = document.getElementById('pendingCanBaseInput');
+    const baseDisplay = document.getElementById('pendingCanBaseDisplay');
+    if(baseInput) baseInput.value = c.base || '';
+    if(baseDisplay) baseDisplay.innerHTML = `<b>${esc(c.base || '—')}</b><br><span style="opacity:.8">guardada en esta lata</span>`;
   }
-  document.getElementById('pendingCanBaseInput').value=c.base || 'TINT';
   document.getElementById('pendingCanNoteInput').value=c.note || '';
   renderPendingCanRows(c.lines || []);
 }
@@ -6037,7 +6060,7 @@ document.addEventListener('click', function(e){
   const box = document.getElementById('pendingCanProductSuggest');
   const input = document.getElementById('pendingCanProductInput');
   if(box && input && !box.contains(e.target) && e.target !== input){
-    box.style.display = 'none';
+    box.classList.remove('show');
   }
 });
 
