@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Pancko"/>
   <meta name="theme-color" content="#0a2a5e"/>
-  <title>Pancko Integral v0.10.33</title>
+  <title>Pancko Integral v0.10.34</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -2174,7 +2174,7 @@
       <div class="divider"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.33</div>
+          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.34</div>
           <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">Lanzamiento: Abril 2026</div>
         </div>
         <div style="font-size:2rem;opacity:.25;">🚀</div>
@@ -2339,6 +2339,7 @@ let currentClientColorsName = '';
 const PANCKO_API_URL = 'https://pancko-integral-api.tinchosiara.workers.dev';
 const LAB_DELETED_KEY = 'pk_lab_deleted_ids';
 let labCloudSyncRunning = false;
+let budgetCloudSyncRunning = false;
 
 function save(){
   localStorage.setItem('pk_products', JSON.stringify(products));
@@ -7160,6 +7161,93 @@ async function syncPendingBudgets(){
   }
 }
 
+function mapCloudBudgetToHistoryEntry(b){
+  if(!b) return null;
+  const id = String(b.id || b.id_presupuesto || '').trim();
+  if(!id) return null;
+
+  const cart = Array.isArray(b.cart) ? b.cart : [];
+  const clientData = b.clientData || {
+    id: b.cliente_id || '',
+    nombre: b.cliente || '',
+    cuit: b.cliente_cuit || '',
+    telefono: b.cliente_telefono || '',
+    direccion: b.cliente_direccion || ''
+  };
+
+  return {
+    id,
+    fecha: b.fecha || '',
+    timestamp: b.timestamp || b.updatedAt || '',
+    updatedAt: b.updatedAt || b.created_at || b.timestamp || '',
+    cliente: b.cliente || '',
+    clientData,
+    modo: b.modo || '',
+    modePercent: num(b.modePercent ?? b.descuento_general_pct ?? 0),
+    items: num(b.items || cart.length),
+    unidades: num(b.unidades || cart.reduce((s,i)=>s+itemQty(i),0)),
+    subtotalLista: num(b.subtotalLista ?? b.subtotal_lista ?? budgetListTotal(cart)),
+    descuentoEspecial: num(b.descuentoEspecial ?? b.descuento_especial_total ?? budgetSpecialDiscountTotal(cart)),
+    subtotal: num(b.subtotal ?? budgetAfterSpecialTotal(cart)),
+    descuentoGeneral: num(b.descuentoGeneral ?? b.descuento_general_total ?? budgetGeneralDiscountTotal(cart, b.modePercent || b.descuento_general_pct || 0)),
+    total: num(b.total ?? budgetFinalTotal(cart, b.modePercent || b.descuento_general_pct || 0)),
+    cart,
+    config: b.config || config,
+    _sync: 'synced',
+    _syncedAt: b.syncedAt || b.created_at || new Date().toISOString(),
+    _source: 'cloud'
+  };
+}
+
+function mergeCloudBudgets(remoteBudgets){
+  const byId = new Map(budgetHistory.map(h => [String(h.id), h]));
+  let added = 0;
+  let updated = 0;
+
+  (remoteBudgets || []).forEach(b => {
+    const entry = mapCloudBudgetToHistoryEntry(b);
+    if(!entry) return;
+
+    const existing = byId.get(String(entry.id));
+    if(existing){
+      Object.assign(existing, {...entry, _sync:'synced'});
+      updated++;
+    }else{
+      budgetHistory.push(entry);
+      byId.set(String(entry.id), entry);
+      added++;
+    }
+  });
+
+  budgetHistory.sort((a,b)=> String(b.timestamp || b.updatedAt || b.fecha || '').localeCompare(String(a.timestamp || a.updatedAt || a.fecha || '')));
+  budgetHistory = budgetHistory.slice(0, 500);
+  save();
+  renderHistory();
+  return {added, updated};
+}
+
+async function syncBudgetsFromCloud(){
+  if(budgetCloudSyncRunning || !PANCKO_API_URL) return;
+  budgetCloudSyncRunning = true;
+  try{
+    const res = await fetch(PANCKO_API_URL + '/budgets', {cache:'no-store'});
+    const data = await res.json().catch(()=>({ok:false,error:'Respuesta no JSON'}));
+    if(!res.ok || !data.ok) throw new Error(data.error || ('HTTP ' + res.status));
+
+    const result = mergeCloudBudgets(data.budgets || []);
+    await syncPendingBudgets();
+
+    if(result.added) showToast(`Presupuestos sincronizados: ${result.added}`);
+  }catch(err){
+    console.warn('syncBudgetsFromCloud:', err);
+    await syncPendingBudgets();
+  }finally{
+    budgetCloudSyncRunning = false;
+  }
+}
+
+
+
 
 function mergeCloudLabRecords(remoteRows){
   const deleted = getDeletedLabIds();
@@ -7335,6 +7423,7 @@ async function autoLoadBundledData(){
 autoLoadBundledData();
 
 syncLabRecordsFromCloud();
+  syncBudgetsFromCloud();
 
 
 document.addEventListener('click', function(e){
