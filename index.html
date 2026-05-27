@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Pancko"/>
   <meta name="theme-color" content="#0a2a5e"/>
-  <title>Pancko Integral v0.10.34</title>
+  <title>Pancko Integral v0.10.35</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -1634,6 +1634,17 @@
       width:100%;
     }
 
+
+    /* Rescates sugeridos en latas en espera v0.10.35 */
+    .pending-rescue-box{margin-top:10px;padding:10px;border:1px solid rgba(125,211,252,.20);border-radius:16px;background:rgba(5,20,45,.20)}
+    .pending-rescue-title{font-weight:900;color:var(--accent);font-size:.88rem;margin-bottom:6px}
+    .pending-rescue-item{padding:8px 0;border-top:1px dashed rgba(255,255,255,.12)}
+    .pending-rescue-item:first-of-type{border-top:0;padding-top:2px}
+    .pending-rescue-name{font-weight:900;color:var(--text);font-size:.88rem}
+    .pending-rescue-meta{font-size:.78rem;color:var(--text-muted);line-height:1.38;margin-top:2px}
+    .pending-rescue-add{font-weight:800;color:var(--accent-2)}
+    .pending-rescue-empty{font-size:.78rem;color:var(--text-muted);line-height:1.35;margin-top:8px}
+
   </style>
 </head>
 <body>
@@ -2174,7 +2185,7 @@
       <div class="divider"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.34</div>
+          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.35</div>
           <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">Lanzamiento: Abril 2026</div>
         </div>
         <div style="font-size:2rem;opacity:.25;">🚀</div>
@@ -6669,6 +6680,163 @@ function markPendingCanUsed(id){
   if(c){ c.status='used'; c.usedAt=new Date().toISOString(); save(); renderPendingCansList(); renderPendingCanAlerts(selectedLabCalc, selectedLabProduct); }
 }
 
+
+function pendingCanProductObject(can){
+  if(!can) return null;
+  if(can.productCode){
+    const byCode = products.find(p => String(p.COD) === String(can.productCode));
+    if(byCode) return byCode;
+  }
+  const name = normKey(can.productName || '');
+  return products.find(p => isTintableProduct(p) && normKey(p.ARTIC) === name) || null;
+}
+
+function pendingCanFactor(can, product){
+  const f = num(can && can.factor);
+  if(f) return f;
+  if(product){
+    const base = normKey(can && can.base);
+    return factorForSpecial(product, base) || num(product.factor_tinto || product.factor_envase_tinto || 0);
+  }
+  return 0;
+}
+
+function formulaLinesForRescueRecipe(rec, factor){
+  return parseTintFormula(rec && rec.formula_1l).map(x => ({
+    colorante: normKey(x.colorante),
+    pulsos: roundPulse(num(x.pulsos1) * factor)
+  })).filter(x => x.colorante && x.pulsos > 0);
+}
+
+function lineMap(lines){
+  const map = {};
+  (lines || []).forEach(x => {
+    const k = normKey(x.colorante);
+    if(k) map[k] = roundPulse((map[k] || 0) + roundPulse(x.pulsos));
+  });
+  return map;
+}
+
+function pendingCanRescueCandidate(can, rec, factor, tolerancePct=0){
+  if(!can || !rec || !factor) return null;
+  if(normKey(can.base) !== normKey(rec.base)) return null;
+
+  const haveMap = lineMap(can.lines || []);
+  const targetLines = formulaLinesForRescueRecipe(rec, factor);
+  const targetMap = lineMap(targetLines);
+  const add = [];
+  const warnings = [];
+
+  for(const k of Object.keys(haveMap)){
+    const have = haveMap[k] || 0;
+    const need = targetMap[k] || 0;
+    if(need <= 0) return null;
+    const over = roundPulse(have - need);
+    if(over > 0){
+      const pct = need ? (over * 100 / need) : 999;
+      if(pct <= tolerancePct){
+        warnings.push(`${k} excede ${fmtPulse(over)} p`);
+      }else{
+        return null;
+      }
+    }
+  }
+
+  Object.keys(targetMap).sort().forEach(k => {
+    const diff = roundPulse((targetMap[k] || 0) - (haveMap[k] || 0));
+    if(diff > 0) add.push({colorante:k, pulsos:diff});
+  });
+
+  const extraPulses = add.reduce((s,x)=>s+roundPulse(x.pulsos),0);
+  const totalPulses = targetLines.reduce((s,x)=>s+roundPulse(x.pulsos),0);
+  const usedPulses = Object.values(haveMap).reduce((s,v)=>s+roundPulse(v),0);
+  const aprovechaPct = totalPulses ? Math.min(100, usedPulses * 100 / totalPulses) : 0;
+
+  return {rec, add, warnings, extraPulses, totalPulses, usedPulses, aprovechaPct, factor};
+}
+
+function pendingCanCompatibleProducts(can){
+  const p = pendingCanProductObject(can);
+  const list = [];
+  if(p) list.push({product:p, type:'exact', label:'Mismo producto'});
+
+  // Regla ya definida: Acrilplast I/E puede rescatarse como Recuplast Interior, no al revés.
+  const canName = normKey(can && can.productName);
+  if(canName.includes('ACRILPLAST') && (canName.includes('IE') || canName.includes('I E') || canName.includes('INTERIOR EXTERIOR'))){
+    products
+      .filter(x => isTintableProduct(x))
+      .filter(x => normKey(x.ARTIC).includes('RECUPLAST') && (normKey(x.ARTIC).includes('INT') || normKey(x.ARTIC).includes('INTERIOR')))
+      .filter(x => compatibleBasesForProduct(x).includes(normKey(can.base)))
+      .forEach(x => {
+        const factor = factorForSpecial(x, normKey(can.base));
+        const canFactor = pendingCanFactor(can, p);
+        if(!canFactor || !factor || Math.abs(factor - canFactor) < 0.001){
+          if(!list.some(y => String(y.product.COD) === String(x.COD))){
+            list.push({product:x, type:'rescue', label:'Acrilplast → Recuplast'});
+          }
+        }
+      });
+  }
+  return list;
+}
+
+function findPendingCanRescueRecipes(can, limit=6){
+  if(!can || !tintRecipes.length) return [];
+  const productList = pendingCanCompatibleProducts(can);
+  const product = productList[0]?.product || pendingCanProductObject(can);
+  const factor = pendingCanFactor(can, product);
+  if(!factor) return [];
+
+  const candidates = [];
+  const seen = new Set();
+
+  tintRecipes.forEach(rec => {
+    if(normKey(rec.base) !== normKey(can.base)) return;
+    const c = pendingCanRescueCandidate(can, rec, factor, 0);
+    if(!c) return;
+    const key = `${normKey(rec.base)}|${normKey(rec.idcolor || rec.codigo_formula)}`;
+    if(seen.has(key)) return;
+    seen.add(key);
+    candidates.push(c);
+  });
+
+  return candidates
+    .sort((a,b) => (a.extraPulses - b.extraPulses) || (b.aprovechaPct - a.aprovechaPct) || String(a.rec.idcolor || '').localeCompare(String(b.rec.idcolor || '')))
+    .slice(0, limit);
+}
+
+function renderPendingCanRescueList(can){
+  const p = pendingCanProductObject(can);
+  const factor = pendingCanFactor(can, p);
+  if(!tintRecipes.length){
+    return '<div class="pending-rescue-empty">Sin recetas importadas para calcular rescates.</div>';
+  }
+  if(!factor){
+    return '<div class="pending-rescue-empty">No pude detectar factor/envase para sugerir rescates.</div>';
+  }
+
+  const matches = findPendingCanRescueRecipes(can, 6);
+  if(!matches.length){
+    return '<div class="pending-rescue-empty">Sin rescates directos detectados para esta base y envase.</div>';
+  }
+
+  return `<div class="pending-rescue-box">
+    <div class="pending-rescue-title">🎯 Recetas posibles para terminar esta lata</div>
+    ${matches.map(m => {
+      const id = m.rec.idcolor || m.rec.codigo_formula || '';
+      const desc = m.rec.descripcion || '';
+      return `<div class="pending-rescue-item">
+        <div class="pending-rescue-name">${esc(id)} · ${esc(desc)}</div>
+        <div class="pending-rescue-meta">
+          Base ${esc(m.rec.base || can.base || '')} · factor ${esc(fmtPulse(m.factor))} · aprovecha ${esc(Math.round(m.aprovechaPct))}%<br>
+          <span class="pending-rescue-add">Agregar: ${m.add.length ? esc(pendingCanLinesText(m.add)) : 'nada'}</span>
+          ${m.warnings.length ? `<br>⚠️ ${esc(m.warnings.join(' · '))}` : ''}
+        </div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
 function renderPendingCansList(){
   const box=document.getElementById('pendingCansList'); if(!box) return;
   const rows=pendingCans.filter(c=>c.status==='available');
@@ -6681,6 +6849,7 @@ function renderPendingCansList(){
         Tiene: ${esc(pendingCanLinesText(c.lines))}<br>
         ${c.note ? `<b>Nota:</b> ${esc(c.note)}<br>` : ''}
       </div>
+      ${renderPendingCanRescueList(c)}
       <div class="lab-record-actions">
         <button class="mini-btn edit" onclick="loadPendingCanIntoForm('${esc(c.id)}')">Editar carga</button>
         <button class="mini-btn delete" onclick="deletePendingCan('${esc(c.id)}')">Borrar</button>
