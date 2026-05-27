@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Pancko"/>
   <meta name="theme-color" content="#0a2a5e"/>
-  <title>Pancko Integral v0.10.32</title>
+  <title>Pancko Integral v0.10.33</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -2174,7 +2174,7 @@
       <div class="divider"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.32</div>
+          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.33</div>
           <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">Lanzamiento: Abril 2026</div>
         </div>
         <div style="font-size:2rem;opacity:.25;">🚀</div>
@@ -4737,7 +4737,7 @@ function renderHistory(){
       <div class="history-actions">
         <div style="min-width:0;flex:1;">
           <div style="font-weight:600;font-size:.95rem;">${h.cliente||'Sin nombre'}</div>
-          <div class="history-meta">${h.fecha} · ${h.modo} · ${h.items} artículos</div>
+          <div class="history-meta">${h.fecha} · ${h.modo} · ${h.items} artículos · ${h._sync === 'synced' ? '☁️ Sheets' : '⏳ local'}</div>
           <div class="history-total">${$m(h.total)}</div>
         </div>
         <button class="history-trash" onclick="event.stopPropagation(); deleteHistoryItem('${h.id}')" aria-label="Eliminar">🗑</button>
@@ -4759,15 +4759,23 @@ function saveToHistory(forceCode=null){
   const entry={
     id,
     fecha: prev?.fecha || (now.toLocaleDateString('es-AR')+' '+now.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'})),
+    timestamp: prev?.timestamp || now.toISOString(),
     updatedAt: now.toISOString(),
     cliente: client,
     clientData,
     modo: mode.label,
     modePercent: mode.percent,
     items: cart.length,
+    unidades: cart.reduce((s,i)=>s+itemQty(i),0),
+    subtotalLista: budgetListTotal(cart),
+    descuentoEspecial: budgetSpecialDiscountTotal(cart),
+    subtotal: budgetAfterSpecialTotal(cart),
+    descuentoGeneral: budgetGeneralDiscountTotal(cart, mode.percent),
     total,
     cart: JSON.parse(JSON.stringify(cart)),
-    config: JSON.parse(JSON.stringify(config))
+    config: JSON.parse(JSON.stringify(config)),
+    _sync: prev?._sync === 'synced' ? 'synced' : 'pending',
+    _syncedAt: prev?._syncedAt || ''
   };
 
   if(existingIndex >= 0){
@@ -4885,11 +4893,12 @@ function closeBudgetOutputMenu(){
   document.getElementById('outputMenuModal').classList.remove('open');
 }
 
-function saveBudgetOnly(){
-  saveToHistory(getCurrentBudgetCode());
+async function saveBudgetOnly(){
+  const entry = saveToHistory(getCurrentBudgetCode());
+  await syncBudgetToCloud(entry);
   markCurrentBudgetFinalized();
   renderCart();
-  showToast('Presupuesto guardado');
+  showToast(entry._sync === 'synced' ? 'Presupuesto guardado en Sheets' : 'Presupuesto guardado local');
 }
 
 async function handleBudgetOutput(type){
@@ -4897,11 +4906,12 @@ async function handleBudgetOutput(type){
   closeBudgetOutputMenu();
 
   if(type === 'save'){
-    saveBudgetOnly();
+    await saveBudgetOnly();
     return;
   }
 
-  saveToHistory(getCurrentBudgetCode());
+  const savedEntry = saveToHistory(getCurrentBudgetCode());
+  syncBudgetToCloud(savedEntry);
   const payload = getCurrentBudgetPayload();
 
   if(type === 'thermal'){
@@ -7039,6 +7049,117 @@ function mapCloudColorToLabRecord(r){
     _sync: 'synced'
   };
 }
+
+
+/* ═══════════════════════════════
+   PRESUPUESTOS → SHEETS
+═══════════════════════════════ */
+function budgetLinePayload(entry, item, index){
+  const modePct = clampPct(entry.modePercent);
+  const qty = itemQty(item);
+  const listUnit = itemListUnit(item);
+  const listTotal = itemListTotal(item);
+  const specialDiscount = itemSpecialDiscountTotal(item);
+  const subtotal = itemAfterSpecialTotal(item);
+  const generalDiscount = subtotal - finalItemTotal(item, modePct);
+  const finalTotal = finalItemTotal(item, modePct);
+  const tint = item.tintData || null;
+
+  return {
+    linea: index + 1,
+    uid: item.uid || '',
+    cod_producto: item.COD || '',
+    producto: item.ARTIC || '',
+    producto_base: item.base_ARTIC || item.ARTIC || '',
+    cantidad: qty,
+    precio_lista_unitario: listUnit,
+    precio_lista_linea: listTotal,
+    descuento_especial_pct: itemExtraPct(item),
+    descuento_especial_importe: specialDiscount,
+    subtotal_linea: subtotal,
+    descuento_general_pct: modePct,
+    descuento_general_importe: generalDiscount,
+    total_linea: finalTotal,
+    tiene_tintometrico: !!tint,
+    color_codigo: tint ? (tint.color || tint.color_original || '') : '',
+    color_descripcion: tint ? (tint.descripcion || '') : '',
+    base_formula: tint ? (tint.base_formula || '') : '',
+    base_fisica: tint ? (tint.base_fisica || '') : '',
+    factor_tinto: tint ? (tint.factor || '') : '',
+    costo_tintas: tint ? num(tint.tintCost) : 0,
+    formula_json: tint ? JSON.stringify(tint.formula || []) : ''
+  };
+}
+
+function buildBudgetCloudPayload(entry){
+  const clientData = entry.clientData || {};
+  const cfg = entry.config || {};
+  return {
+    action: 'save_budget',
+    id_presupuesto: entry.id,
+    fecha: entry.fecha,
+    timestamp: entry.timestamp || entry.updatedAt || new Date().toISOString(),
+    updatedAt: entry.updatedAt || new Date().toISOString(),
+    cliente: entry.cliente || '',
+    cliente_id: clientData.id || clientData.codigo || '',
+    cliente_cuit: clientData.cuit || '',
+    cliente_telefono: clientData.telefono || '',
+    cliente_direccion: clientData.direccion || '',
+    modo: entry.modo || '',
+    descuento_general_pct: clampPct(entry.modePercent),
+    items: entry.items || (entry.cart || []).length,
+    unidades: entry.unidades || (entry.cart || []).reduce((s,i)=>s+itemQty(i),0),
+    subtotal_lista: entry.subtotalLista || budgetListTotal(entry.cart || []),
+    descuento_especial_total: entry.descuentoEspecial || budgetSpecialDiscountTotal(entry.cart || []),
+    subtotal: entry.subtotal || budgetAfterSpecialTotal(entry.cart || []),
+    descuento_general_total: entry.descuentoGeneral || budgetGeneralDiscountTotal(entry.cart || [], entry.modePercent),
+    total: entry.total || budgetFinalTotal(entry.cart || [], entry.modePercent),
+    vendedor: 'mjs',
+    origen: 'pancko-integral',
+    local_nombre: cfg.nombre || '',
+    lineas: (entry.cart || []).map((item, idx)=>budgetLinePayload(entry, item, idx))
+  };
+}
+
+async function syncBudgetToCloud(entry){
+  if(!entry || !PANCKO_API_URL) return false;
+  if(entry._sync === 'synced') return true;
+
+  try{
+    const payload = buildBudgetCloudPayload(entry);
+    const res = await fetch(PANCKO_API_URL + '/budget', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(payload)
+    });
+    const data = await res.json().catch(()=>({ok:false,error:'Respuesta no JSON'}));
+    if(!res.ok || !data.ok) throw new Error(data.error || data.message || ('HTTP ' + res.status));
+
+    const local = budgetHistory.find(h => String(h.id) === String(entry.id));
+    if(local){
+      local._sync = 'synced';
+      local._syncedAt = new Date().toISOString();
+      save();
+      renderHistory();
+    }
+    showToast('Presupuesto sincronizado con Sheets');
+    return true;
+  }catch(err){
+    const local = budgetHistory.find(h => String(h.id) === String(entry.id));
+    if(local){ local._sync = 'pending'; save(); }
+    console.warn('syncBudgetToCloud:', err);
+    showToast('Presupuesto guardado local. Pendiente Sheets.');
+    return false;
+  }
+}
+
+async function syncPendingBudgets(){
+  const pending = budgetHistory.filter(h => h && h._sync !== 'synced');
+  for(const h of pending){
+    await syncBudgetToCloud(h);
+  }
+}
+
 
 function mergeCloudLabRecords(remoteRows){
   const deleted = getDeletedLabIds();
