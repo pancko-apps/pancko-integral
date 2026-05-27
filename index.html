@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Pancko"/>
   <meta name="theme-color" content="#0a2a5e"/>
-  <title>Pancko Integral v0.10.36</title>
+  <title>Pancko Integral v0.10.37</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -2185,7 +2185,7 @@
       <div class="divider"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.36</div>
+          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.37</div>
           <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">Lanzamiento: Abril 2026</div>
         </div>
         <div style="font-size:2rem;opacity:.25;">🚀</div>
@@ -7459,6 +7459,45 @@ function mergeCloudBudgets(remoteBudgets){
   return {added, updated};
 }
 
+
+function reconcileLocalBudgetsWithCloud(remoteBudgets){
+  const cloudIds = new Set((remoteBudgets || [])
+    .map(b => String(b.id || b.id_presupuesto || '').trim())
+    .filter(Boolean));
+
+  const deleted = getDeletedBudgetIds();
+  let changed = false;
+
+  budgetHistory = budgetHistory.filter(h => {
+    const id = String(h.id || '');
+    if(!id) return false;
+
+    // Los eliminados localmente no deben volver a mostrarse.
+    if(deleted.has(id)){
+      changed = true;
+      return false;
+    }
+
+    // Si estaba marcado como sincronizado/cloud pero ya no existe en Sheets,
+    // se elimina del historial local de este navegador.
+    if(h._sync === 'synced' && !cloudIds.has(id)){
+      changed = true;
+      return false;
+    }
+
+    // Los pendientes locales se conservan para reintentar subida.
+    return true;
+  });
+
+  if(changed){
+    save();
+    renderHistory();
+  }
+
+  return changed;
+}
+
+
 async function syncBudgetsFromCloud(){
   if(budgetCloudSyncRunning || !PANCKO_API_URL) return;
   budgetCloudSyncRunning = true;
@@ -7467,7 +7506,9 @@ async function syncBudgetsFromCloud(){
     const data = await res.json().catch(()=>({ok:false,error:'Respuesta no JSON'}));
     if(!res.ok || !data.ok) throw new Error(data.error || ('HTTP ' + res.status));
 
-    const result = mergeCloudBudgets(data.budgets || []);
+    const remoteBudgets = data.budgets || [];
+    reconcileLocalBudgetsWithCloud(remoteBudgets);
+    const result = mergeCloudBudgets(remoteBudgets);
     await syncPendingBudgets();
 
     if(result.added) showToast(`Presupuestos sincronizados: ${result.added}`);
