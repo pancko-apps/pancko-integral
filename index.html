@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Pancko"/>
   <meta name="theme-color" content="#0a2a5e"/>
-  <title>Pancko Integral v0.10.35</title>
+  <title>Pancko Integral v0.10.36</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -2185,7 +2185,7 @@
       <div class="divider"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.35</div>
+          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.36</div>
           <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">Lanzamiento: Abril 2026</div>
         </div>
         <div style="font-size:2rem;opacity:.25;">🚀</div>
@@ -2349,6 +2349,7 @@ let currentClientColorsName = '';
 // Pancko Integral sync cloud v0.10.12
 const PANCKO_API_URL = 'https://pancko-integral-api.tinchosiara.workers.dev';
 const LAB_DELETED_KEY = 'pk_lab_deleted_ids';
+const BUDGET_DELETED_KEY = 'pk_budget_deleted_ids';
 let labCloudSyncRunning = false;
 let budgetCloudSyncRunning = false;
 
@@ -2365,6 +2366,34 @@ function save(){
   localStorage.setItem('pk_tint_recipes', JSON.stringify(tintRecipes));
   localStorage.setItem('pk_tint_prices', JSON.stringify(colorantPrices));
 }
+
+
+function getDeletedBudgetIds(){
+  try{
+    return new Set(JSON.parse(localStorage.getItem(BUDGET_DELETED_KEY) || '[]').map(String));
+  }catch(e){
+    return new Set();
+  }
+}
+
+function saveDeletedBudgetIds(set){
+  localStorage.setItem(BUDGET_DELETED_KEY, JSON.stringify([...set]));
+}
+
+function markBudgetDeleted(id){
+  if(!id) return;
+  const deleted = getDeletedBudgetIds();
+  deleted.add(String(id));
+  saveDeletedBudgetIds(deleted);
+}
+
+function unmarkBudgetDeleted(id){
+  if(!id) return;
+  const deleted = getDeletedBudgetIds();
+  deleted.delete(String(id));
+  saveDeletedBudgetIds(deleted);
+}
+
 
 /* ═══════════════════════════════
    NAVIGATION
@@ -4715,7 +4744,8 @@ function renderHistory(){
   const input = document.getElementById('historySearchInput');
   const q = norm(input ? input.value : '');
 
-  let filtered = [...budgetHistory];
+  const deletedBudgetIds = getDeletedBudgetIds();
+  let filtered = budgetHistory.filter(h => !deletedBudgetIds.has(String(h.id)));
 
   if(q){
     filtered = budgetHistory.filter(h => {
@@ -4765,6 +4795,7 @@ function saveToHistory(forceCode=null){
   const total=cart.reduce((s,i)=>s+finalItemTotal(i,mode.percent),0);
   const now=new Date();
   const id = forceCode || getCurrentBudgetCode();
+  unmarkBudgetDeleted(id);
   const existingIndex = budgetHistory.findIndex(h => String(h.id) === String(id));
   const prev = existingIndex >= 0 ? budgetHistory[existingIndex] : null;
 
@@ -4801,17 +4832,27 @@ function saveToHistory(forceCode=null){
   return entry;
 }
 
-function deleteHistoryItem(id){
-  if(!confirm('¿Eliminar este presupuesto del historial?')) return;
-  budgetHistory = budgetHistory.filter(h => h.id !== id);
+async function deleteHistoryItem(id){
+  if(!confirm('¿Eliminar este presupuesto del historial y de Sheets?')) return;
+  markBudgetDeleted(id);
+  budgetHistory = budgetHistory.filter(h => String(h.id) !== String(id));
   save();
   renderHistory();
+  await deleteBudgetFromCloud(id);
 }
 
-function clearHistory(){
+async function clearHistory(){
   if(!budgetHistory.length) return;
-  if(!confirm('¿Eliminar todo el historial?')) return;
-  budgetHistory=[]; save(); renderHistory();
+  if(!confirm('¿Eliminar todo el historial cargado en este dispositivo y en Sheets?')) return;
+  const ids = [...new Set(budgetHistory.map(h => String(h.id)).filter(Boolean))];
+  ids.forEach(markBudgetDeleted);
+  budgetHistory=[];
+  save();
+  renderHistory();
+  for(const id of ids){
+    await deleteBudgetFromCloud(id);
+  }
+  showToast('Historial eliminado');
 }
 
 function openHistoryDetail(id){
@@ -7293,6 +7334,7 @@ function buildBudgetCloudPayload(entry){
 
 async function syncBudgetToCloud(entry){
   if(!entry || !PANCKO_API_URL) return false;
+  if(getDeletedBudgetIds().has(String(entry.id))) return false;
   if(entry._sync === 'synced') return true;
 
   try{
@@ -7319,6 +7361,26 @@ async function syncBudgetToCloud(entry){
     if(local){ local._sync = 'pending'; save(); }
     console.warn('syncBudgetToCloud:', err);
     showToast('Presupuesto guardado local. Pendiente Sheets.');
+    return false;
+  }
+}
+
+
+async function deleteBudgetFromCloud(id){
+  if(!id || !PANCKO_API_URL) return false;
+  try{
+    const res = await fetch(PANCKO_API_URL + '/budget/delete', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({id_presupuesto:id})
+    });
+    const data = await res.json().catch(()=>({ok:false,error:'Respuesta no JSON'}));
+    if(!res.ok || !data.ok) throw new Error(data.error || data.message || ('HTTP ' + res.status));
+    showToast(`Presupuesto eliminado de Sheets`);
+    return true;
+  }catch(err){
+    console.warn('deleteBudgetFromCloud:', err);
+    showToast('Eliminado local. No se pudo borrar de Sheets todavía.');
     return false;
   }
 }
@@ -7373,9 +7435,11 @@ function mergeCloudBudgets(remoteBudgets){
   let added = 0;
   let updated = 0;
 
+  const deleted = getDeletedBudgetIds();
+
   (remoteBudgets || []).forEach(b => {
     const entry = mapCloudBudgetToHistoryEntry(b);
-    if(!entry) return;
+    if(!entry || deleted.has(String(entry.id))) return;
 
     const existing = byId.get(String(entry.id));
     if(existing){
