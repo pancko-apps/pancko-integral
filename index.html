@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Pancko"/>
   <meta name="theme-color" content="#0a2a5e"/>
-  <title>Pancko Integral v0.10.37</title>
+  <title>Pancko Integral v0.10.38</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -2185,7 +2185,7 @@
       <div class="divider"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.37</div>
+          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.38</div>
           <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">Lanzamiento: Abril 2026</div>
         </div>
         <div style="font-size:2rem;opacity:.25;">🚀</div>
@@ -2283,7 +2283,7 @@
 <!-- MODAL EXPORT -->
 <div class="modal-backdrop" id="exportModal">
   <div class="modal">
-    <div class="modal-title">Vista previa del ticket</div>
+    <div class="modal-title">Vista previa</div>
     <canvas id="thermalCanvas"></canvas>
     <div style="height:14px"></div>
     <div style="display:flex;gap:10px;">
@@ -3238,6 +3238,7 @@ function renderLabFormula(){
       </div>
       <div id="labFormulaTableBox"></div>
       <div id="pendingCanAlertsBox"></div>
+      <button class="btn btn-primary lab-label-btn" style="width:100%;margin:10px 0 12px" onclick="printCurrentLabLabel()">🏷️ Etiqueta para lata</button>
       <div class="lab-manual-box">
         <div style="font-weight:700;margin-bottom:6px;">Editar fórmula usada</div>
         <div class="muted" style="font-size:.78rem;line-height:1.35;margin-bottom:8px;">Ajustá pulsos, agregá una tinta o restaurá la fórmula calculada.</div>
@@ -3514,6 +3515,7 @@ function renderLabSavedRecord(r){
         Registro guardado: ${esc(r.fecha || '')}${r.manualModified ? '<br><b style="color:#ffd477">Fórmula modificada manualmente</b>' : ''}
       </div>
       <div id="labFormulaTableBox"></div>
+      <button class="btn btn-primary lab-label-btn" style="width:100%;margin:10px 0 12px" onclick="printCurrentLabLabel()">🏷️ Etiqueta para lata</button>
       <div class="lab-manual-box">
         <div style="font-weight:700;margin-bottom:6px;">Editar fórmula usada</div>
         <div class="muted" style="font-size:.78rem;line-height:1.35;margin-bottom:8px;">Este registro se visualiza desde lo guardado, aunque no exista como receta exacta en el CSV.</div>
@@ -4880,6 +4882,129 @@ function openHistoryDetail(id){
   document.getElementById('histDetailExportBtn').onclick=()=>drawAndShowTicket(h.cart, h.config, h.cliente, null, h.modo, h.modePercent, h.fecha);
   showScreen('historyDetailScreen');
 }
+
+
+/* ═══════════════════════════════
+   ETIQUETA LATA - MINI TÉRMICA
+═══════════════════════════════ */
+function labLabelPayloadFromCurrent(){
+  const calc = selectedLabCalc;
+  const p = selectedLabProduct;
+  if(!calc || !p){
+    return {ok:false,msg:'Primero elegí producto y color en Laboratorio.'};
+  }
+
+  const client = (document.getElementById('labClientInput')?.value || '').trim() || 'Sin cliente';
+  const now = new Date();
+  const fecha = now.toLocaleDateString('es-AR', {day:'2-digit',month:'2-digit',year:'2-digit'});
+  const colorCode = cleanLabColorCode(calc.rec?.idcolor || extractColorId(document.getElementById('labColorInput')?.value || ''));
+  const desc = calc.rec?.descripcion || '';
+  const base = calc.base_fisica || calc.base_formula || '';
+  const product = p.ARTIC || '';
+  const note = (document.getElementById('labNoteInput')?.value || '').trim();
+
+  return {
+    ok:true,
+    data:{client, fecha, product, base, colorCode, desc, note}
+  };
+}
+
+function drawAndShowLabLabel(data){
+  const canvas = document.getElementById('thermalCanvas');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+
+  const W = 384;
+  const PAD = 18;
+  const H = 285;
+  canvas.width = W;
+  canvas.height = H;
+
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0,0,W,H);
+  ctx.fillStyle = '#111';
+  ctx.textBaseline = 'top';
+
+  const center = (txt, y, font, color='#111') => {
+    ctx.font = font;
+    ctx.textAlign = 'center';
+    ctx.fillStyle = color;
+    ctx.fillText(String(txt||''), W/2, y);
+  };
+  const left = (txt, x, y, font, color='#111') => {
+    ctx.font = font;
+    ctx.textAlign = 'left';
+    ctx.fillStyle = color;
+    ctx.fillText(String(txt||''), x, y);
+  };
+  const line = y => {
+    ctx.strokeStyle = '#111';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(PAD, y);
+    ctx.lineTo(W-PAD, y);
+    ctx.stroke();
+  };
+  const fitText = (txt, maxWidth, font, minPx=11) => {
+    const s = String(txt || '');
+    const m = font.match(/(\d+)px/);
+    let size = m ? Number(m[1]) : 16;
+    let f = font;
+    ctx.font = f;
+    while(ctx.measureText(s).width > maxWidth && size > minPx){
+      size -= 1;
+      f = font.replace(/\d+px/, size + 'px');
+      ctx.font = f;
+    }
+    return f;
+  };
+  const ellipsize = (txt, maxWidth, font) => {
+    let s = String(txt || '');
+    ctx.font = font;
+    if(ctx.measureText(s).width <= maxWidth) return s;
+    while(s.length > 1 && ctx.measureText(s + '…').width > maxWidth) s = s.slice(0,-1);
+    return s + '…';
+  };
+
+  center('ETIQUETA COLOR', 10, 'bold 15px Arial');
+  line(34);
+
+  left('Cliente:', PAD, 46, 'bold 13px Arial');
+  left(ellipsize(data.client, 260, 'bold 15px Arial'), 84, 44, 'bold 15px Arial');
+
+  left('Fecha:', PAD, 71, 'bold 13px Arial');
+  left(data.fecha, 84, 69, 'bold 15px Arial');
+
+  left('Producto:', PAD, 98, 'bold 13px Arial');
+  const prodFont = fitText(data.product, W - PAD*2, 'bold 16px Arial', 11);
+  left(ellipsize(data.product, W - PAD*2, prodFont), PAD, 119, prodFont);
+
+  line(150);
+
+  left('Base:', PAD, 162, 'bold 14px Arial');
+  left(String(data.base || '').toUpperCase(), 70, 160, 'bold 19px Arial');
+
+  // Código grande, bien legible, pero sin exagerar.
+  center('CÓDIGO COLOR', 190, 'bold 13px Arial');
+  const code = String(data.colorCode || '').toUpperCase();
+  const codeFont = fitText(code, W - PAD*2, 'bold 42px Arial', 30);
+  center(code, 209, codeFont);
+
+  if(data.desc){
+    const descFont = fitText(data.desc, W - PAD*2, 'bold 15px Arial', 11);
+    center(ellipsize(data.desc, W - PAD*2, descFont), 256, descFont);
+  }
+
+  ticketImageData = canvas.toDataURL('image/png');
+  document.getElementById('exportModal')?.classList.add('open');
+}
+
+function printCurrentLabLabel(){
+  const payload = labLabelPayloadFromCurrent();
+  if(!payload.ok){ alert(payload.msg); return; }
+  drawAndShowLabLabel(payload.data);
+}
+
 
 /* ═══════════════════════════════
    THERMAL TICKET EXPORT (57mm)
