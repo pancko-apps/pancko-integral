@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Pancko"/>
   <meta name="theme-color" content="#0a2a5e"/>
-  <title>Pancko Integral v0.10.38</title>
+  <title>Pancko Integral v0.10.39</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -2185,7 +2185,7 @@
       <div class="divider"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.38</div>
+          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.39</div>
           <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">Lanzamiento: Abril 2026</div>
         </div>
         <div style="font-size:2rem;opacity:.25;">🚀</div>
@@ -4916,7 +4916,7 @@ function drawAndShowLabLabel(data){
 
   const W = 384;
   const PAD = 18;
-  const H = 285;
+  const H = 300;
   canvas.width = W;
   canvas.height = H;
 
@@ -4966,33 +4966,35 @@ function drawAndShowLabLabel(data){
     return s + '…';
   };
 
-  center('ETIQUETA COLOR', 10, 'bold 15px Arial');
-  line(34);
+  // Encabezado comercial
+  center((config && config.nombre ? config.nombre : 'Colorshop Cañada'), 8, 'bold 17px Arial');
+  center((config && config.telefono ? config.telefono : '422533'), 30, 'bold 14px Arial');
+  center('ETIQUETA COLOR', 54, 'bold 15px Arial');
+  line(79);
 
-  left('Cliente:', PAD, 46, 'bold 13px Arial');
-  left(ellipsize(data.client, 260, 'bold 15px Arial'), 84, 44, 'bold 15px Arial');
+  left('Cliente:', PAD, 91, 'bold 13px Arial');
+  left(ellipsize(data.client, 260, 'bold 15px Arial'), 84, 89, 'bold 15px Arial');
 
-  left('Fecha:', PAD, 71, 'bold 13px Arial');
-  left(data.fecha, 84, 69, 'bold 15px Arial');
+  left('Fecha:', PAD, 116, 'bold 13px Arial');
+  left(data.fecha, 84, 114, 'bold 15px Arial');
 
-  left('Producto:', PAD, 98, 'bold 13px Arial');
-  const prodFont = fitText(data.product, W - PAD*2, 'bold 16px Arial', 11);
-  left(ellipsize(data.product, W - PAD*2, prodFont), PAD, 119, prodFont);
+  const prodFont = fitText(data.product, W - PAD*2, 'bold 17px Arial', 11);
+  center(ellipsize(data.product, W - PAD*2, prodFont), 146, prodFont);
 
-  line(150);
+  line(178);
 
-  left('Base:', PAD, 162, 'bold 14px Arial');
-  left(String(data.base || '').toUpperCase(), 70, 160, 'bold 19px Arial');
+  left('Base:', PAD, 190, 'bold 14px Arial');
+  left(String(data.base || '').toUpperCase(), 70, 188, 'bold 19px Arial');
 
   // Código grande, bien legible, pero sin exagerar.
-  center('CÓDIGO COLOR', 190, 'bold 13px Arial');
+  center('CÓDIGO', 218, 'bold 13px Arial');
   const code = String(data.colorCode || '').toUpperCase();
   const codeFont = fitText(code, W - PAD*2, 'bold 42px Arial', 30);
-  center(code, 209, codeFont);
+  center(code, 236, codeFont);
 
   if(data.desc){
     const descFont = fitText(data.desc, W - PAD*2, 'bold 15px Arial', 11);
-    center(ellipsize(data.desc, W - PAD*2, descFont), 256, descFont);
+    center(ellipsize(data.desc, W - PAD*2, descFont), 278, descFont);
   }
 
   ticketImageData = canvas.toDataURL('image/png');
@@ -5002,6 +5004,20 @@ function drawAndShowLabLabel(data){
 function printCurrentLabLabel(){
   const payload = labLabelPayloadFromCurrent();
   if(!payload.ok){ alert(payload.msg); return; }
+
+  // Generar etiqueta también deja registro de laboratorio/color.
+  const recPayload = getLabRecordPayload();
+  if(recPayload.ok){
+    recPayload.record._sync = 'pending';
+    labRecords.unshift(recPayload.record);
+    labRecords = labRecords.slice(0, 300);
+    save();
+    renderLabRecords();
+    if(document.getElementById('clientColorsScreen')?.classList.contains('active')) renderClientColorRecords();
+    syncLabRecordToCloud(recPayload.record);
+    showToast('Etiqueta generada y registro guardado');
+  }
+
   drawAndShowLabLabel(payload.data);
 }
 
