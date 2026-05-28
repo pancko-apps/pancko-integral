@@ -1624,7 +1624,7 @@ WB1224;MINI TACO - CHICO;8837.8;NO;;;;;;;;;;;;Sin base tintométrica detectada;;
 43502002;MTN VINILO LIQUIDO NEGRO METALICO 400 ML;53571.71;NO;;;;;;;;;;;;Sin base tintométrica detectada;;;
 43501982;MTN VINILO LIQUIDO ROJO 400 ML;75601.57;NO;;;;;;;;;;;;Sin base tintométrica detectada;;;
 81711107;OBRAPLAST LATEX INT/EXT PROF 20 LTS;99611.92;SI;PINTURA;PASTEL;PASTEL;20;0.7;14;20;;L;MANUAL;Obraplast latex profesional int/ext x0.7;Regla manual: Obraplast latex profesional int/ext x0.7, Presentación 20L;;;
-89351017;OBRAPLAST RUSTICO 25 KGS;101569.07;NO;;;;;;;;;;;;Sin base tintométrica detectada;;;
+89351017;OBRAPLAST RUSTICO 25 KGS;101569.07;SI;RUSTICO;PASTEL;BLANCO;2.4;1;2.4;;25;KG;ESPECIAL_VALIDADO;RUSTICO_BLANCO;"Obraplast Rústico 25 kg: fila existente habilitada como tintable; compatible con fórmulas PASTEL/TINT/DEEP, lógica equivalente a Agreste 25 kg.";;;
 650084;PAINT SCENT LLUVIA DE PRIMAVERA;6500;NO;;;;;;;;;;;;Sin base tintométrica detectada;;;
 650086;PAINT SCENT ROPA FRESCA;6500;NO;;;;;;;;;;;;Sin base tintométrica detectada;;;
 650079;PAINT SCENTSATIONS 1 OZ CITRUS;6500;NO;;;;;;;;;;;;Sin base tintométrica detectada;;;
@@ -3555,7 +3555,7 @@ w38484;LLANA FRENTISTA IMPORT 12x25;7013.16;NO;;;;;;;;;;;AGREGADO_DESDE_YOPPEN;P
 803113;COLORANTE INDUSTRIAL AZUL PB 1 LTS;90851.58;NO;;;;;;;;;;;AGREGADO_DESDE_YOPPEN;Producto agregado automáticamente desde lista Yoppen 22-5-26.;;;
 82930194;FIJADOR PARA PIEDRAS 5 LTS;88144.57;NO;;;;;;;;;;;AGREGADO_DESDE_YOPPEN;Producto agregado automáticamente desde lista Yoppen 22-5-26.;;;
 37950602;BASE BICAPA BC XIRALLIC MISCH X60 0,5 L;91828.04;NO;;;;;;;;;;;AGREGADO_DESDE_YOPPEN;Producto agregado automáticamente desde lista Yoppen 22-5-26.;;;
-89350957;OBRAPLAST REVEST RUSTICO ACCENT 25 KGS;84570.12;NO;;;;;;;;;;;AGREGADO_DESDE_YOPPEN;Producto agregado automáticamente desde lista Yoppen 22-5-26.;;;
+89350957;OBRAPLAST REVEST RUSTICO ACCENT 25 KGS;84570.12;SI;RUSTICO;ACCENT;ACCENT;5;1;5;;25;KG;ESPECIAL_VALIDADO;RUSTICO_ACCENT;"Obraplast Rústico Accent 25 kg: fila existente habilitada como tintable; lógica equivalente a Agreste Accent 25 kg.";;;
 89371007;OBRAPLAST TEXTURA FINA BLANCO 25 KGS;84570.12;NO;;;;;;;;;;;AGREGADO_DESDE_YOPPEN;Producto agregado automáticamente desde lista Yoppen 22-5-26.;;;
 89372007;OBRAPLAST TEXTURA MEDIA BLANCO 25 KGS;84570.12;NO;;;;;;;;;;;AGREGADO_DESDE_YOPPEN;Producto agregado automáticamente desde lista Yoppen 22-5-26.;;;
 37950502;BASE BICAPA BC XIRALLIC MISCH X50 0,5 L;93295.31;NO;;;;;;;;;;;AGREGADO_DESDE_YOPPEN;Producto agregado automáticamente desde lista Yoppen 22-5-26.;;;
