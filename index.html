@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Pancko"/>
   <meta name="theme-color" content="#0a2a5e"/>
-  <title>Pancko Integral v0.10.39</title>
+  <title>Pancko Integral v0.10.40</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -2185,7 +2185,7 @@
       <div class="divider"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.39</div>
+          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.40</div>
           <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">Lanzamiento: Abril 2026</div>
         </div>
         <div style="font-size:2rem;opacity:.25;">🚀</div>
@@ -2339,7 +2339,8 @@ let selectedLabColorRecipe = null;
 let editingTintKey = null;
 let editingItemKey = null;
 let editingTintCalc = null;
-let tintRecipes = JSON.parse(localStorage.getItem('pk_tint_recipes') || '[]');
+let tintRecipes = []; // v0.10.40: recetas no se persisten en localStorage, viven en memoria
+localStorage.removeItem('pk_tint_recipes'); // liberar espacio de versiones anteriores
 let colorantPrices = JSON.parse(localStorage.getItem('pk_tint_prices') || '{}');
 let tintRecipeIndex = new Map();
 let currentHistoryEntry = null;
@@ -2363,7 +2364,7 @@ function save(){
   localStorage.setItem('pk_config', JSON.stringify(config));
   localStorage.setItem('pk_lab_records', JSON.stringify(labRecords));
   localStorage.setItem('pk_pending_cans', JSON.stringify(pendingCans));
-  localStorage.setItem('pk_tint_recipes', JSON.stringify(tintRecipes));
+  // pk_tint_recipes: no se persiste (v0.10.40) — se carga desde data/recetas.csv en cada sesión
   localStorage.setItem('pk_tint_prices', JSON.stringify(colorantPrices));
 }
 
@@ -2943,7 +2944,6 @@ function importTintRecipesCSV(){
       if(!valid.length) throw new Error('No se encontraron recetas válidas');
       tintRecipes=valid;
       buildTintIndex();
-      save();
       renderTintStatus();
       alert(`✅ Recetas importadas: ${tintRecipes.length}`);
     }catch(err){
@@ -7787,16 +7787,20 @@ async function autoLoadBundledData(){
       }
     }
 
-    if(version.recetas && version.recetas !== loaded.recetas){
+    // Recetas: siempre cargar si la memoria está vacía (no se persisten en localStorage)
+    // Solo marcar como changed si la versión del CSV realmente cambió
+    if(version.recetas && (tintRecipes.length === 0 || version.recetas !== loaded.recetas)){
       const text = await fetchTextIfOk('data/recetas.csv');
       const rows = parseGenericCSV(text);
       const valid = rows.filter(r => r.base && (r.idcolor || r.codigo_formula) && r.formula_1l);
       if(valid.length){
         tintRecipes = valid;
         buildTintIndex();
-        loaded.recetas = version.recetas;
-        changed = true;
-        messages.push(`Recetas actualizadas: ${tintRecipes.length}`);
+        if(version.recetas !== loaded.recetas){
+          loaded.recetas = version.recetas;
+          changed = true;
+          messages.push(`Recetas actualizadas: ${tintRecipes.length}`);
+        }
       }
     }
 
