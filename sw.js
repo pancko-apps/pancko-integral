@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pancko-integral-v0.10.46';
+const CACHE_NAME = 'pancko-integral-v0.10.47';
 
 const APP_ASSETS = [
   './',
@@ -29,9 +29,18 @@ self.addEventListener('activate', event => {
   );
 });
 
+function isRepoDataFile(url){
+  return url.pathname.endsWith('/data/version.json') ||
+         url.pathname.endsWith('/data/articulos.csv') ||
+         url.pathname.endsWith('/data/clientes.csv') ||
+         url.pathname.endsWith('/data/recetas.csv');
+}
+
 self.addEventListener('fetch', event => {
   const request = event.request;
   if (request.method !== 'GET') return;
+
+  const url = new URL(request.url);
 
   if (request.mode === 'navigate') {
     event.respondWith(
@@ -42,6 +51,23 @@ self.addEventListener('fetch', event => {
           return response;
         })
         .catch(() => caches.match('./index.html').then(cached => cached || caches.match('./')))
+    );
+    return;
+  }
+
+  // Los datos del repo son network-first: si hay conexión, trae lo nuevo.
+  // Si no hay conexión, usa Cache Storage para mantener el offline.
+  if (isRepoDataFile(url)) {
+    event.respondWith(
+      fetch(request, { cache: 'reload' })
+        .then(response => {
+          if (response && response.status === 200) {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
+          }
+          return response;
+        })
+        .catch(() => caches.match(request, { ignoreSearch: true }))
     );
     return;
   }
@@ -64,8 +90,4 @@ self.addEventListener('fetch', event => {
   );
 });
 
-// Pancko cache bump v0.10.46 etiqueta-color
-
-// Pancko cache bump v0.10.46 rustico filas existentes
-
-// Pancko cache bump v0.10.46 rustico-cachefix
+// Pancko cache bump v0.10.47 data-network-first

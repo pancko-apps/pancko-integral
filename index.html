@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Pancko"/>
   <meta name="theme-color" content="#0a2a5e"/>
-  <title>Pancko Integral v0.10.46</title>
+  <title>Pancko Integral v0.10.47</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -1322,7 +1322,7 @@
     }
 
 
-    /* v0.10.46 - descuento de producto en zona fija */
+    /* v0.10.47 - descuento de producto en zona fija */
     .item-extra-zone{
       min-height:24px;
       display:flex;
@@ -1336,7 +1336,7 @@
     }
 
 
-    /* Presupuesto v0.10.46 */
+    /* Presupuesto v0.10.47 */
     .cart-header-row-v106{
       grid-template-columns: 1fr 82px 86px 34px !important;
     }
@@ -1412,7 +1412,7 @@
     }
 
 
-    /* Clientes / colores v0.10.46 */
+    /* Clientes / colores v0.10.47 */
     .client-card-v1011 .history-actions{align-items:stretch}
     .client-main-v1011{
       min-width:0;
@@ -1433,7 +1433,7 @@
     }
 
 
-    /* Buscador por tintas v0.10.46 */
+    /* Buscador por tintas v0.10.47 */
     .tint-comp-card{
       border-color:rgba(122,211,255,.14);
     }
@@ -1442,7 +1442,7 @@
     }
 
 
-    /* Latas en espera v0.10.46 */
+    /* Latas en espera v0.10.47 */
     .pending-can-alert{
       margin-top:12px;
       border:1px solid rgba(255,255,255,.14);
@@ -1456,7 +1456,7 @@
     .pending-can-meta{font-size:.82rem;color:var(--text-muted);line-height:1.42}
 
 
-    /* Home refinado v0.10.46 */
+    /* Home refinado v0.10.47 */
     .tile-cc{
       background:linear-gradient(135deg,#0f7b78,#108a68 58%,#0b694f);
       border-color:rgba(117,255,215,.16);
@@ -1508,7 +1508,7 @@
     }
 
 
-    /* Clientes: accesos rápidos v0.10.46 */
+    /* Clientes: accesos rápidos v0.10.47 */
     .client-quick-actions-v1020{
       display:flex;
       gap:8px;
@@ -1524,7 +1524,7 @@
     }
 
 
-    /* Modal Cta CTE en elaboración v0.10.46 */
+    /* Modal Cta CTE en elaboración v0.10.47 */
     .wip-modal-card{
       text-align:center;
       max-width:360px;
@@ -1556,7 +1556,7 @@
     }
 
 
-    /* Modal Cta CTE live fix v0.10.46 */
+    /* Modal Cta CTE live fix v0.10.47 */
     .wip-backdrop{
       position:fixed;
       inset:0;
@@ -1581,7 +1581,7 @@
     }
 
 
-    /* Presupuesto: fórmula separada del descuento v0.10.46 */
+    /* Presupuesto: fórmula separada del descuento v0.10.47 */
     .item-extra-zone.fixed{
       display:flex;
       gap:8px;
@@ -1598,7 +1598,7 @@
     }
 
 
-    /* Ajustes presupuesto / fórmula v0.10.46 */
+    /* Ajustes presupuesto / fórmula v0.10.47 */
     .tint-edit-modal{
       align-items:flex-start !important;
       justify-content:center !important;
@@ -1614,7 +1614,7 @@
     }
 
 
-    /* Presupuesto ágil v0.10.46 */
+    /* Presupuesto ágil v0.10.47 */
     .cart-client-field-v1027,
     .cart-add-product-field-v1027{
       margin-bottom:10px;
@@ -1629,13 +1629,13 @@
     }
 
 
-    /* Importador precios v0.10.46 */
+    /* Importador precios v0.10.47 */
     #priceUpdateCsvInput{
       width:100%;
     }
 
 
-    /* Rescates sugeridos en latas en espera v0.10.46 */
+    /* Rescates sugeridos en latas en espera v0.10.47 */
     .pending-rescue-box{margin-top:10px;padding:10px;border:1px solid rgba(125,211,252,.20);border-radius:16px;background:rgba(5,20,45,.20)}
     .pending-rescue-title{font-weight:900;color:var(--accent);font-size:.88rem;margin-bottom:6px}
     .pending-rescue-item{padding:8px 0;border-top:1px dashed rgba(255,255,255,.12)}
@@ -2185,7 +2185,7 @@
       <div class="divider"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.46</div>
+          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.47</div>
           <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">Lanzamiento: Abril 2026</div>
         </div>
         <div style="font-size:2rem;opacity:.25;">🚀</div>
@@ -2339,7 +2339,7 @@ let selectedLabColorRecipe = null;
 let editingTintKey = null;
 let editingItemKey = null;
 let editingTintCalc = null;
-let tintRecipes = []; // v0.10.46: recetas no se persisten en localStorage, viven en memoria
+let tintRecipes = []; // v0.10.47: recetas no se persisten en localStorage, viven en memoria
 localStorage.removeItem('pk_tint_recipes'); // liberar espacio de versiones anteriores
 let colorantPrices = JSON.parse(localStorage.getItem('pk_tint_prices') || '{}');
 let tintRecipeIndex = new Map();
@@ -2347,7 +2347,7 @@ let currentHistoryEntry = null;
 let currentClientEditId = null;
 let currentClientColorsName = '';
 
-// Pancko Integral sync cloud v0.10.46
+// Pancko Integral sync cloud v0.10.47
 const PANCKO_API_URL = 'https://pancko-integral-api.tinchosiara.workers.dev';
 const LAB_DELETED_KEY = 'pk_lab_deleted_ids';
 const BUDGET_DELETED_KEY = 'pk_budget_deleted_ids';
@@ -2364,7 +2364,7 @@ function save(){
   localStorage.setItem('pk_config', JSON.stringify(config));
   localStorage.setItem('pk_lab_records', JSON.stringify(labRecords));
   localStorage.setItem('pk_pending_cans', JSON.stringify(pendingCans));
-  // pk_tint_recipes: no se persiste (v0.10.46) — se carga desde data/recetas.csv en cada sesión
+  // pk_tint_recipes: no se persiste (v0.10.47) — se carga desde data/recetas.csv en cada sesión
   localStorage.setItem('pk_tint_prices', JSON.stringify(colorantPrices));
 }
 

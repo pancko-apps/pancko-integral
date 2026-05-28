@@ -1,0 +1,1 @@
+Pancko Integral v0.10.47\n- Service Worker con data/version.json y data/*.csv en modo network-first.\n- Mantiene offline usando Cache Storage cuando no hay conexión.\n- Fuerza recarga real de articulos.csv para tomar Rústico tintable.\n
