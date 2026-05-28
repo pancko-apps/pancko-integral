@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Pancko"/>
   <meta name="theme-color" content="#0a2a5e"/>
-  <title>Pancko Integral v0.10.43</title>
+  <title>Pancko Integral v0.10.45</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -2185,7 +2185,7 @@
       <div class="divider"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.43</div>
+          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.45</div>
           <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">Lanzamiento: Abril 2026</div>
         </div>
         <div style="font-size:2rem;opacity:.25;">🚀</div>
@@ -2764,14 +2764,27 @@ function factorForSpecial(p, base){
     if(kg>0) return factor25*kg/25;
     return factor25;
   }
-  if(tipo==='AGRESTE'){
-    const factor30={PASTEL:3,TINT:4,DEEP:6,ACCENT:6}[b];
-    if(!factor30) return num(p.factor_tinto);
-    if(kg>=29 && kg<=31) return factor30;
-    if(kg>=24 && kg<=26) return factor30*25/30;
-    if(kg>=5.5 && kg<=6.5) return factor30/5;
-    if(kg>0) return factor30*kg/30;
-    return factor30;
+  if(tipo==='AGRESTE' || tipo==='RUSTICO'){
+    // Reglas validadas contra tintométrico oficial para envases 25 kg:
+    // PASTEL/BLANCO usa factor 2.4, TINT/BLANCO usa 3.4,
+    // DEEP y ACCENT mantienen 5.
+    const factor25={PASTEL:2.4,TINT:3.4,DEEP:5,ACCENT:5}[b];
+    if(!factor25) return num(p.factor_tinto);
+    if(kg>=24 && kg<=26) return factor25;
+
+    // Para Agreste 30/6 kg mantenemos la lógica previa hasta validación específica.
+    if(tipo==='AGRESTE'){
+      const factor30={PASTEL:3,TINT:4,DEEP:6,ACCENT:6}[b];
+      if(kg>=29 && kg<=31) return factor30;
+      if(kg>=5.5 && kg<=6.5) return factor30/5;
+      if(kg>0) return factor30*kg/30;
+      return factor30;
+    }
+
+    // Rústico entra validado para 25 kg; si aparecieran otros envases,
+    // escala proporcionalmente desde 25 kg.
+    if(kg>0) return factor25*kg/25;
+    return factor25;
   }
   if(tipo==='BASE_REVESTIMIENTO'){
     const eqLitros=(kg>=4.5 && kg<=6.5) ? 4 : ((kg>=24 && kg<=26) ? 20 : num(p.factor_envase_tinto || p.factor_tinto));
@@ -2786,9 +2799,9 @@ function compatibleBasesForProduct(p){
   const tipo=normKey(p.tipo_tinto);
   const fisica=normKey(p.base_fisica_tinto || p.base_tinto);
   const base=normKey(p.base_tinto);
-  if((tipo==='TEXTURA' || tipo==='AGRESTE') && fisica==='BLANCO') return ['PASTEL','TINT','DEEP'];
+  if((tipo==='TEXTURA' || tipo==='AGRESTE' || tipo==='RUSTICO') && fisica==='BLANCO') return ['PASTEL','TINT','DEEP'];
   if(tipo==='BASE_REVESTIMIENTO') return ['PASTEL','TINT','DEEP','ACCENT'];
-  if((tipo==='TEXTURA' || tipo==='AGRESTE') && (fisica==='ACCENT' || base==='ACCENT')) return ['ACCENT'];
+  if((tipo==='TEXTURA' || tipo==='AGRESTE' || tipo==='RUSTICO') && (fisica==='ACCENT' || base==='ACCENT')) return ['ACCENT'];
   return base && base!=='MULTI' ? [base] : [];
 }
 function findTintRecipe(base, color){
