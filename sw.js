@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pancko-integral-v0.10.47';
+const CACHE_NAME = 'pancko-integral-v0.10.48';
 
 const APP_ASSETS = [
   './',
@@ -90,4 +90,6 @@ self.addEventListener('fetch', event => {
   );
 });
 
-// Pancko cache bump v0.10.47 data-network-first
+// Pancko cache bump v0.10.48 data-network-first
+
+// Pancko cache bump v0.10.48 rustico-local-patch
