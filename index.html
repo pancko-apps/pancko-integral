@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Pancko"/>
   <meta name="theme-color" content="#0a2a5e"/>
-  <title>Pancko Integral v0.10.42</title>
+  <title>Pancko Integral v0.10.43</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -2185,7 +2185,7 @@
       <div class="divider"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.42</div>
+          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.43</div>
           <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">Lanzamiento: Abril 2026</div>
         </div>
         <div style="font-size:2rem;opacity:.25;">🚀</div>
@@ -4915,7 +4915,7 @@ function drawAndShowLabLabel(data){
   const ctx = canvas.getContext('2d');
 
   const W = 384; // 48 mm a 203 dpi aprox.
-  const H = 320; // 40 mm de alto aprox.
+  const H = 352; // ~44 mm de alto aprox. para dar un poco más de aire.
   const PAD = 14;
   const CUT_Y_TOP = 4;
   const CUT_Y_BOTTOM = H - 4;
@@ -4947,7 +4947,7 @@ function drawAndShowLabLabel(data){
   };
   const line = (y, x1=PAD, x2=W-PAD) => {
     ctx.strokeStyle = '#111';
-    ctx.lineWidth = 1;
+    ctx.lineWidth = 1.2;
     ctx.beginPath();
     ctx.moveTo(x1, y);
     ctx.lineTo(x2, y);
@@ -4973,7 +4973,7 @@ function drawAndShowLabLabel(data){
     while(s.length > 1 && ctx.measureText(s + '…').width > maxWidth) s = s.slice(0,-1);
     return s + '…';
   };
-  const drawLabelValue = (label, value, x, y, labelFont='bold 14px Arial', valueFont='bold 16px Arial', gap=4) => {
+  const drawLabelValue = (label, value, x, y, labelFont='900 15px Arial', valueFont='900 18px Arial', gap=4) => {
     ctx.font = labelFont;
     const labelText = String(label || '') + ':';
     left(labelText, x, y, labelFont);
@@ -4981,47 +4981,44 @@ function drawAndShowLabLabel(data){
     left(String(value || ''), valueX, y, valueFont);
   };
 
-  // Líneas de corte para que marque 40 mm de alto.
+  // Líneas de corte.
   line(CUT_Y_TOP, 4, W-4);
   line(CUT_Y_BOTTOM, 4, W-4);
 
-  // Encabezado.
-  center((config && config.nombre ? config.nombre : 'Colorshop Cañada'), 14, 'bold 17px Arial');
-  center((config && config.telefono ? config.telefono : '422533'), 36, 'bold 14px Arial');
-  center('ETIQUETA COLOR', 56, 'bold 15px Arial');
-  line(80);
+  // Encabezado más marcado.
+  center((config && config.nombre ? config.nombre : 'Colorshop Cañada'), 16, '900 18px Arial');
+  center((config && config.telefono ? config.telefono : '422533'), 40, '900 15px Arial');
+  center('ETIQUETA COLOR', 62, '900 16px Arial');
+  line(88);
 
-  // Cliente / fecha con un único pequeño espacio visual después de los dos puntos.
-  const clientFont = fitText(data.client, W - 120, 'bold 16px Arial', 11);
-  drawLabelValue('Cliente', ellipsize(data.client, W - 120, clientFont), PAD, 92, 'bold 14px Arial', clientFont, 4);
-  drawLabelValue('Fecha', data.fecha, PAD, 114, 'bold 14px Arial', 'bold 16px Arial', 4);
+  const clientFont = fitText(data.client, W - 122, '900 18px Arial', 12);
+  drawLabelValue('Cliente', ellipsize(data.client, W - 122, clientFont), PAD, 100, '900 15px Arial', clientFont, 4);
+  drawLabelValue('Fecha', data.fecha, PAD, 124, '900 15px Arial', '900 18px Arial', 4);
 
-  // Producto más cerca de la fecha.
-  const prodFont = fitText(data.product, W - PAD*2, 'bold 18px Arial', 11);
-  center(ellipsize(data.product, W - PAD*2, prodFont), 134, prodFont);
-  line(160);
+  const prodFont = fitText(data.product, W - PAD*2, '900 20px Arial', 12);
+  center(ellipsize(data.product, W - PAD*2, prodFont), 148, prodFont);
+  line(176);
 
-  // Base.
-  drawLabelValue('Base', String(data.base || '').toUpperCase(), PAD, 170, 'bold 14px Arial', 'bold 20px Arial', 4);
-
-  // Cuadro de muestra a la izquierda.
-  const boxX = 50;
-  const boxY = 194;
-  const boxSize = 100;
+  // Zona inferior: muestra grande + código alineado en altura.
+  const boxX = 26;
+  const boxY = 198;
+  const boxSize = 132;
   ctx.strokeStyle = '#111';
-  ctx.lineWidth = 1;
+  ctx.lineWidth = 1.4;
   ctx.strokeRect(boxX, boxY, boxSize, boxSize);
 
-  // Bloque de código a la derecha.
-  const codeCx = 280;
-  centerAt('CÓDIGO', codeCx, 204, 'bold 14px Arial');
+  const boxCenterY = boxY + (boxSize / 2);
+  const codeCx = 284;
+  const codeBlockTop = boxCenterY - 58;
+
+  centerAt('CÓDIGO', codeCx, codeBlockTop, '900 16px Arial');
   const code = String(data.colorCode || '').toUpperCase();
-  const codeFont = fitText(code, 150, 'bold 58px Arial', 34);
-  centerAt(code, codeCx, 222, codeFont);
+  const codeFont = fitText(code, 164, '900 66px Arial', 38);
+  centerAt(code, codeCx, codeBlockTop + 24, codeFont);
 
   if(data.desc){
-    const descFont = fitText(data.desc, 160, 'normal 14px Arial', 10);
-    centerAt(ellipsize(data.desc, 160, descFont), codeCx, 280, descFont);
+    const descFont = fitText(data.desc, 168, '900 16px Arial', 11);
+    centerAt(ellipsize(data.desc, 168, descFont), codeCx, codeBlockTop + 102, descFont);
   }
 
   ticketImageData = canvas.toDataURL('image/png');

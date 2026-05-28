@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pancko-integral-v0.10.42';
+const CACHE_NAME = 'pancko-integral-v0.10.43';
 
 const APP_ASSETS = [
   './',
@@ -64,4 +64,4 @@ self.addEventListener('fetch', event => {
   );
 });
 
-// Pancko cache bump v0.10.42 etiqueta-color
+// Pancko cache bump v0.10.43 etiqueta-color
