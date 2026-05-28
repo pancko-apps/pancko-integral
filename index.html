@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Pancko"/>
   <meta name="theme-color" content="#0a2a5e"/>
-  <title>Pancko Integral v0.10.40</title>
+  <title>Pancko Integral v0.10.41</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -2185,7 +2185,7 @@
       <div class="divider"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.40</div>
+          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.41</div>
           <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">Lanzamiento: Abril 2026</div>
         </div>
         <div style="font-size:2rem;opacity:.25;">🚀</div>
@@ -5845,17 +5845,10 @@ function injectPWA(){
   mlink.rel='manifest'; mlink.href=manifestURL;
   document.head.appendChild(mlink);
 
-  // Service Worker
-  const swCode = `
-    const CACHE='pancko-v1';
-    const FILES=['/'];
-    self.addEventListener('install',e=>{ e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES))); });
-    self.addEventListener('fetch',e=>{ e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request))); });
-  `;
-  const swBlob = new Blob([swCode], {type:'application/javascript'});
-  const swURL = URL.createObjectURL(swBlob);
+  // Service Worker externo: necesario para que la PWA abra realmente offline.
+  // El SW cachea index + datos base desde archivos reales del repo.
   if('serviceWorker' in navigator){
-    navigator.serviceWorker.register(swURL, {scope:'./'}).catch(()=>{});
+    navigator.serviceWorker.register('./sw.js?v=0.10.41', {scope:'./'}).catch(()=>{});
   }
 }
 
