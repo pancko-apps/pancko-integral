@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Pancko"/>
   <meta name="theme-color" content="#0a2a5e"/>
-  <title>Pancko Integral v0.10.48</title>
+  <title>Pancko Integral v0.10.49</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -1322,7 +1322,7 @@
     }
 
 
-    /* v0.10.48 - descuento de producto en zona fija */
+    /* v0.10.49 - descuento de producto en zona fija */
     .item-extra-zone{
       min-height:24px;
       display:flex;
@@ -1336,7 +1336,7 @@
     }
 
 
-    /* Presupuesto v0.10.48 */
+    /* Presupuesto v0.10.49 */
     .cart-header-row-v106{
       grid-template-columns: 1fr 82px 86px 34px !important;
     }
@@ -1412,7 +1412,7 @@
     }
 
 
-    /* Clientes / colores v0.10.48 */
+    /* Clientes / colores v0.10.49 */
     .client-card-v1011 .history-actions{align-items:stretch}
     .client-main-v1011{
       min-width:0;
@@ -1433,7 +1433,7 @@
     }
 
 
-    /* Buscador por tintas v0.10.48 */
+    /* Buscador por tintas v0.10.49 */
     .tint-comp-card{
       border-color:rgba(122,211,255,.14);
     }
@@ -1442,7 +1442,7 @@
     }
 
 
-    /* Latas en espera v0.10.48 */
+    /* Latas en espera v0.10.49 */
     .pending-can-alert{
       margin-top:12px;
       border:1px solid rgba(255,255,255,.14);
@@ -1456,7 +1456,7 @@
     .pending-can-meta{font-size:.82rem;color:var(--text-muted);line-height:1.42}
 
 
-    /* Home refinado v0.10.48 */
+    /* Home refinado v0.10.49 */
     .tile-cc{
       background:linear-gradient(135deg,#0f7b78,#108a68 58%,#0b694f);
       border-color:rgba(117,255,215,.16);
@@ -1508,7 +1508,7 @@
     }
 
 
-    /* Clientes: accesos rápidos v0.10.48 */
+    /* Clientes: accesos rápidos v0.10.49 */
     .client-quick-actions-v1020{
       display:flex;
       gap:8px;
@@ -1524,7 +1524,7 @@
     }
 
 
-    /* Modal Cta CTE en elaboración v0.10.48 */
+    /* Modal Cta CTE en elaboración v0.10.49 */
     .wip-modal-card{
       text-align:center;
       max-width:360px;
@@ -1556,7 +1556,7 @@
     }
 
 
-    /* Modal Cta CTE live fix v0.10.48 */
+    /* Modal Cta CTE live fix v0.10.49 */
     .wip-backdrop{
       position:fixed;
       inset:0;
@@ -1581,7 +1581,7 @@
     }
 
 
-    /* Presupuesto: fórmula separada del descuento v0.10.48 */
+    /* Presupuesto: fórmula separada del descuento v0.10.49 */
     .item-extra-zone.fixed{
       display:flex;
       gap:8px;
@@ -1598,7 +1598,7 @@
     }
 
 
-    /* Ajustes presupuesto / fórmula v0.10.48 */
+    /* Ajustes presupuesto / fórmula v0.10.49 */
     .tint-edit-modal{
       align-items:flex-start !important;
       justify-content:center !important;
@@ -1614,7 +1614,7 @@
     }
 
 
-    /* Presupuesto ágil v0.10.48 */
+    /* Presupuesto ágil v0.10.49 */
     .cart-client-field-v1027,
     .cart-add-product-field-v1027{
       margin-bottom:10px;
@@ -1629,13 +1629,13 @@
     }
 
 
-    /* Importador precios v0.10.48 */
+    /* Importador precios v0.10.49 */
     #priceUpdateCsvInput{
       width:100%;
     }
 
 
-    /* Rescates sugeridos en latas en espera v0.10.48 */
+    /* Rescates sugeridos en latas en espera v0.10.49 */
     .pending-rescue-box{margin-top:10px;padding:10px;border:1px solid rgba(125,211,252,.20);border-radius:16px;background:rgba(5,20,45,.20)}
     .pending-rescue-title{font-weight:900;color:var(--accent);font-size:.88rem;margin-bottom:6px}
     .pending-rescue-item{padding:8px 0;border-top:1px dashed rgba(255,255,255,.12)}
@@ -2185,7 +2185,7 @@
       <div class="divider"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.48</div>
+          <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.04em;">Pancko_Integral_v0.10.49</div>
           <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">Lanzamiento: Abril 2026</div>
         </div>
         <div style="font-size:2rem;opacity:.25;">🚀</div>
@@ -2332,6 +2332,7 @@ let selectedProduct = null;
 let selectedTintCalc = null;
 let selectedLabProduct = null;
 let selectedLabCalc = null;
+let labFactorMode = 'especial';
 let selectedLabManualLines = [];
 let labRecords = JSON.parse(localStorage.getItem('pk_lab_records') || '[]');
 let pendingCans = JSON.parse(localStorage.getItem('pk_pending_cans') || '[]');
@@ -2339,7 +2340,7 @@ let selectedLabColorRecipe = null;
 let editingTintKey = null;
 let editingItemKey = null;
 let editingTintCalc = null;
-let tintRecipes = []; // v0.10.48: recetas no se persisten en localStorage, viven en memoria
+let tintRecipes = []; // v0.10.49: recetas no se persisten en localStorage, viven en memoria
 localStorage.removeItem('pk_tint_recipes'); // liberar espacio de versiones anteriores
 let colorantPrices = JSON.parse(localStorage.getItem('pk_tint_prices') || '{}');
 let tintRecipeIndex = new Map();
@@ -2347,7 +2348,7 @@ let currentHistoryEntry = null;
 let currentClientEditId = null;
 let currentClientColorsName = '';
 
-// Pancko Integral sync cloud v0.10.48
+// Pancko Integral sync cloud v0.10.49
 const PANCKO_API_URL = 'https://pancko-integral-api.tinchosiara.workers.dev';
 const LAB_DELETED_KEY = 'pk_lab_deleted_ids';
 const BUDGET_DELETED_KEY = 'pk_budget_deleted_ids';
@@ -2364,7 +2365,7 @@ function save(){
   localStorage.setItem('pk_config', JSON.stringify(config));
   localStorage.setItem('pk_lab_records', JSON.stringify(labRecords));
   localStorage.setItem('pk_pending_cans', JSON.stringify(pendingCans));
-  // pk_tint_recipes: no se persiste (v0.10.48) — se carga desde data/recetas.csv en cada sesión
+  // pk_tint_recipes: no se persiste (v0.10.49) — se carga desde data/recetas.csv en cada sesión
   localStorage.setItem('pk_tint_prices', JSON.stringify(colorantPrices));
 }
 
@@ -2794,6 +2795,55 @@ function factorForSpecial(p, base){
   }
   return num(p.factor_tinto);
 }
+
+function productAllowsPatternFactor(p){
+  if(!p || !isTintableProduct(p)) return false;
+  const tipo = normKey(p.tipo_tinto);
+  // Estas familias ya tienen lógica validada propia: no se ofrece patrón alternativo.
+  if(['TEXTURA','AGRESTE','RUSTICO','BASE_REVESTIMIENTO'].includes(tipo)) return false;
+
+  const especial = num(p.factor_tinto);
+  const patron = num(p.factor_envase_tinto);
+  return especial > 0 && patron > 0 && Math.abs(especial - patron) > 0.0001;
+}
+
+function effectiveFactorForProduct(p, base, mode='especial'){
+  if(mode === 'patron' && productAllowsPatternFactor(p)){
+    return num(p.factor_envase_tinto);
+  }
+  return factorForSpecial(p, base);
+}
+
+function labFactorModeControl(p){
+  if(!productAllowsPatternFactor(p)) return '';
+  const especial = num(p.factor_tinto);
+  const patron = num(p.factor_envase_tinto);
+  return `
+    <div class="card" style="padding:10px;margin:8px 0 10px;background:rgba(74,179,255,.08);border-color:rgba(74,179,255,.20)">
+      <div style="font-weight:900;margin-bottom:6px;">Modo de factor</div>
+      <select id="labFactorModeSelect" onchange="labFactorMode=this.value;renderLabFormula()" style="margin-bottom:6px;">
+        <option value="especial" ${labFactorMode==='especial'?'selected':''}>Especial asignado (Fx. ${Number(especial.toFixed(6))})</option>
+        <option value="patron" ${labFactorMode==='patron'?'selected':''}>Patrón envase (Fx. ${Number(patron.toFixed(6))})</option>
+      </select>
+      <div class="muted" style="font-size:.78rem;line-height:1.35;">
+        Disponible solo en artículos especiales. No aplica a Textura, Agreste, Rústico ni Base Revestimiento.
+      </div>
+    </div>
+  `;
+}
+
+function currentLabFactorModeForProduct(p){
+  if(!productAllowsPatternFactor(p)) return 'especial';
+  const sel = document.getElementById('labFactorModeSelect');
+  const v = sel ? sel.value : labFactorMode;
+  return v === 'patron' ? 'patron' : 'especial';
+}
+
+function fmtFactorLabel(v){
+  const n = Number(v) || 0;
+  return n.toFixed(6).replace(/0+$/,'').replace(/\.$/,'').replace('.', ',');
+}
+
 function compatibleBasesForProduct(p){
   if(!p || !isTintableProduct(p)) return [];
   const tipo=normKey(p.tipo_tinto);
@@ -2807,7 +2857,7 @@ function compatibleBasesForProduct(p){
 function findTintRecipe(base, color){
   return tintRecipeIndex.get(normKey(base)+'|'+normKey(extractColorId(color)));
 }
-function findTintRecipeForProduct(p, color){
+function findTintRecipeForProduct(p, color, factorMode='especial'){
   const id=extractColorId(color);
   const bases=compatibleBasesForProduct(p);
   for(const base of bases){
@@ -2817,7 +2867,8 @@ function findTintRecipeForProduct(p, color){
         rec,
         base_formula:base,
         base_fisica:normKey(p.base_fisica_tinto || p.base_tinto || base),
-        factor:factorForSpecial(p, base)
+        factor:effectiveFactorForProduct(p, base, factorMode),
+        factor_mode:factorMode
       };
     }
   }
@@ -2829,10 +2880,11 @@ function tintRecipeLabel(r){
   const base=r.base || '';
   return `${id} — ${desc} [${base}]`;
 }
-function calcTintForProduct(p, color){
+function calcTintForProduct(p, color, opts={}){
   if(!isTintableProduct(p)) return {ok:false,msg:'Producto no tintable.'};
   if(!tintRecipes.length) return {ok:false,msg:'Primero importá recetas tintométricas en Parámetros → Importar CSV.'};
-  const found=findTintRecipeForProduct(p,color);
+  const factorMode = opts.factorMode || 'especial';
+  const found=findTintRecipeForProduct(p,color,factorMode);
   const bases=compatibleBasesForProduct(p).join(' / ');
   if(!found) return {ok:false,msg:`El color ${extractColorId(color)||''} no existe para las bases compatibles: ${bases}.`};
   const rec=found.rec;
@@ -2843,7 +2895,7 @@ function calcTintForProduct(p, color){
     return {...x,pulsosRaw,pulsos,precioPulso,subtotal:pulsos*precioPulso};
   });
   const tintCost=lines.reduce((s,x)=>s+x.subtotal,0);
-  return {ok:true,rec,lines,tintCost,factor:found.factor,base_formula:found.base_formula,base_fisica:found.base_fisica};
+  return {ok:true,rec,lines,tintCost,factor:found.factor,factor_mode:found.factor_mode,base_formula:found.base_formula,base_fisica:found.base_fisica};
 }
 function renderTintColorOptions(){
   const input=document.getElementById('detTintColor');
@@ -3103,6 +3155,7 @@ function renderLabProductOptions(forceShow=false){
 function chooseLabProduct(cod){
   const p = products.find(x => String(x.COD) === String(cod));
   selectedLabProduct = p && isTintableProduct(p) ? p : null;
+  labFactorMode = 'especial';
 
   const input = document.getElementById('labProductInput');
   const box = document.getElementById('labProductSuggest');
@@ -3149,7 +3202,8 @@ function renderLabProductInfo(){
     return;
   }
 
-  info.innerHTML = `<b>${esc(p.ARTIC)}</b><br>Código: ${esc(p.COD)} · ${esc(p.tipo_tinto || 'TINTABLE')} · Base ${esc(p.base_tinto || '')} · Física ${esc(p.base_fisica_tinto || p.base_tinto || '')} · Factor ${esc(p.factor_tinto || '')}`;
+  const alt = productAllowsPatternFactor(p) ? ` · Especial/Patrón disponible` : '';
+  info.innerHTML = `<b>${esc(p.ARTIC)}</b><br>Código: ${esc(p.COD)} · ${esc(p.tipo_tinto || 'TINTABLE')} · Base ${esc(p.base_tinto || '')} · Física ${esc(p.base_fisica_tinto || p.base_tinto || '')} · Factor ${esc(p.factor_tinto || '')}${alt}`;
 }
 
 function renderLabColorOptions(forceShow=false){
@@ -3232,7 +3286,7 @@ function renderLabFormula(){
     return;
   }
 
-  const res = calcTintForProduct(p, color);
+  const res = calcTintForProduct(p, color, {factorMode: currentLabFactorModeForProduct(p)});
   if(!res.ok){
     result.innerHTML = `<div class="card"><div class="tinto-bad">${esc(res.msg)}</div></div>`;
     return;
@@ -3246,9 +3300,10 @@ function renderLabFormula(){
       <div class="lab-formula-title">${esc(res.rec.idcolor || extractColorId(color))} · ${esc(res.rec.descripcion || '')}</div>
       <div class="lab-meta">
         Producto: <b>${esc(p.ARTIC)}</b><br>
-        Base fórmula: <b>${esc(res.base_formula)}</b> · Base física: <b>${esc(res.base_fisica)}</b> · Factor: <b>${Number(res.factor.toFixed(6))}</b><br>
+        Base fórmula: <b>${esc(res.base_formula)}</b> · Base física: <b>${esc(res.base_fisica)}</b> · Factor: <b>${Number(res.factor.toFixed(6))}</b>${productAllowsPatternFactor(p) ? ` · Modo: <b>${res.factor_mode==='patron'?'PATRÓN':'ESPECIAL'}</b>` : ''}<br>
         Redondeo: 0.125 pulso
       </div>
+      ${labFactorModeControl(p)}
       <div id="labFormulaTableBox"></div>
       <div id="pendingCanAlertsBox"></div>
       <button class="btn btn-primary lab-label-btn" style="width:100%;margin:10px 0 12px" onclick="printCurrentLabLabel()">🏷️ Etiqueta para lata</button>
@@ -4918,7 +4973,7 @@ function labLabelPayloadFromCurrent(){
 
   return {
     ok:true,
-    data:{client, fecha, product, base, colorCode, desc, note}
+    data:{client, fecha, product, base, colorCode, desc, note, factor: calc.factor, factorMode: calc.factor_mode}
   };
 }
 
@@ -5029,9 +5084,13 @@ function drawAndShowLabLabel(data){
   const codeFont = fitText(code, 164, '900 66px Arial', 38);
   centerAt(code, codeCx, codeBlockTop + 24, codeFont);
 
+  if(data.factor){
+    centerAt(`(Fx. ${fmtFactorLabel(data.factor)})`, codeCx, codeBlockTop + 86, '900 15px Arial');
+  }
+
   if(data.desc){
-    const descFont = fitText(data.desc, 168, '900 16px Arial', 11);
-    centerAt(ellipsize(data.desc, 168, descFont), codeCx, codeBlockTop + 102, descFont);
+    const descFont = fitText(data.desc, 168, '900 15px Arial', 10);
+    centerAt(ellipsize(data.desc, 168, descFont), codeCx, codeBlockTop + 106, descFont);
   }
 
   ticketImageData = canvas.toDataURL('image/png');
@@ -7872,7 +7931,7 @@ async function autoLoadBundledData(){
 }
 
 
-/* v0.10.48 - parche defensivo Rústico tintable en catálogo local viejo */
+/* v0.10.49 - parche defensivo Rústico tintable en catálogo local viejo */
 function applyRusticoTintableLocalPatch(){
   try{
     if(!Array.isArray(products) || !products.length) return false;
@@ -7901,7 +7960,7 @@ function applyRusticoTintableLocalPatch(){
       unidad_detectada:'KG',
       confianza_tinto:'ESPECIAL_VALIDADO',
       regla_tinto:'RUSTICO_BLANCO',
-      observacion_tinto:'Obraplast Rústico 25 kg: parche local v0.10.48; compatible con fórmulas PASTEL/TINT/DEEP.'
+      observacion_tinto:'Obraplast Rústico 25 kg: parche local v0.10.49; compatible con fórmulas PASTEL/TINT/DEEP.'
     });
 
     patchProduct('89350957', {
@@ -7916,7 +7975,7 @@ function applyRusticoTintableLocalPatch(){
       unidad_detectada:'KG',
       confianza_tinto:'ESPECIAL_VALIDADO',
       regla_tinto:'RUSTICO_ACCENT',
-      observacion_tinto:'Obraplast Rústico Accent 25 kg: parche local v0.10.48; compatible con fórmula ACCENT.'
+      observacion_tinto:'Obraplast Rústico Accent 25 kg: parche local v0.10.49; compatible con fórmula ACCENT.'
     });
 
     if(changed){
@@ -7924,7 +7983,7 @@ function applyRusticoTintableLocalPatch(){
       if(typeof renderSearch === 'function') renderSearch();
       if(typeof renderManageList === 'function') renderManageList();
       if(typeof renderTintStatus === 'function') renderTintStatus();
-      console.info('Pancko v0.10.48: Rústico tintable corregido en catálogo local.');
+      console.info('Pancko v0.10.49: Rústico tintable corregido en catálogo local.');
     }
     return changed;
   }catch(err){
