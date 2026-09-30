@@ -1,54 +1,60 @@
 {
-  "checks": 60,
-  "method": "DOM y cascada de reglas estructurales CSS; sin motor de render de navegador",
-  "viewports": [
-    {
-      "width": 360,
-      "mode": "mobile",
-      "max_app_width": 480
-    },
-    {
-      "width": 390,
-      "mode": "mobile",
-      "max_app_width": 480
-    },
-    {
-      "width": 768,
-      "mode": "mobile",
-      "max_app_width": 480
-    },
-    {
-      "width": 1023,
-      "mode": "mobile",
-      "max_app_width": 480
-    },
-    {
-      "width": 1024,
-      "mode": "desktop",
-      "sidebar": 220,
-      "header": 76,
-      "content_width": 754
-    },
-    {
-      "width": 1280,
-      "mode": "desktop",
-      "sidebar": 244,
-      "header": 76,
-      "content_width": 968
-    },
-    {
-      "width": 1440,
-      "mode": "desktop",
-      "sidebar": 244,
-      "header": 76,
-      "content_width": 1128
-    },
-    {
-      "width": 1920,
-      "mode": "desktop",
-      "sidebar": 244,
-      "header": 76,
-      "content_width": 1608
-    }
-  ]
+  "shell": {
+    "checks": 60,
+    "method": "DOM y cascada de reglas estructurales CSS; sin motor de render de navegador",
+    "viewports": [
+      {
+        "width": 360,
+        "mode": "mobile",
+        "max_app_width": 480
+      },
+      {
+        "width": 390,
+        "mode": "mobile",
+        "max_app_width": 480
+      },
+      {
+        "width": 768,
+        "mode": "mobile",
+        "max_app_width": 480
+      },
+      {
+        "width": 1023,
+        "mode": "mobile",
+        "max_app_width": 480
+      },
+      {
+        "width": 1024,
+        "mode": "desktop",
+        "sidebar": 220,
+        "header": 76,
+        "content_width": 754
+      },
+      {
+        "width": 1280,
+        "mode": "desktop",
+        "sidebar": 244,
+        "header": 76,
+        "content_width": 968
+      },
+      {
+        "width": 1440,
+        "mode": "desktop",
+        "sidebar": 244,
+        "header": 76,
+        "content_width": 1128
+      },
+      {
+        "width": 1920,
+        "mode": "desktop",
+        "sidebar": 244,
+        "header": 76,
+        "content_width": 1608
+      }
+    ]
+  },
+  "cash": {
+    "checks": 40,
+    "method": "DOM abierto del código real + análisis de cascada CSS; sin motor de render de Chrome"
+  }
 }

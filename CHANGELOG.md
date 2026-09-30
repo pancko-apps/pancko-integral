@@ -1,34 +1,38 @@
-# CHANGELOG — Pancko Gestión v0.11.3
+# CHANGELOG — Pancko Gestión v0.11.4
 
-Fecha: 30/09/2026. Base real: v0.11.2. App, shell y caché v0.11.3. Apps Script v0.11.2 y Worker v0.11.0 sin cambios.
+Fecha: 30/09/2026. Base real: v0.11.3. App/shell/cache v0.11.4. Apps Script v0.11.2 y Worker v0.11.0 sin cambios.
 
-## Implementado
+## UX de Caja
 
-- Caja diaria independiente de productos, presupuestos y circuitos oficiales. Accesos en sidebar, dashboard y tiles móviles; layout de dos columnas en PC y una en móvil, temas existentes.
-- Una jornada por fecha; apertura desde último cierre anterior con ajuste manual y registro de origen. Saldo teórico visible, ingresos/egresos libres y enteros en centavos.
-- Carga rápida con Enter, edición conservando hora, anulación confirmada y registro de cambios antes/después.
-- Conteo parcial por importes de grupos, comparación de efectivo, retiro y saldo para mañana automático o declarado con advertencia.
-- Cierre confirmado/bloqueado; reapertura confirmada conservando cierre y snapshot anterior. No propaga correcciones retroactivas a cajas ya creadas.
-- Consulta por fecha, listado de jornadas, impresión A4/TXT/copia de caja actual o histórica; JSON de todo el libro y restauración sin reemplazar fechas diferentes.
-- Protección ante datos dañados, falta de espacio, doble clic y revisión distinta en otra pestaña; Web Locks cuando está disponible.
-- Campos de usuario futuros nulos; sin login.
+- Encabezado, fecha/estado/saldo y tarjetas compactos en PC; dos columnas de operación.
+- Resumen inicial/ingresos/egresos/teórico en cuatro bloques bajos.
+- Detalle, importe y botones Ingreso/Egreso en una fila de escritorio; edición/cancelación siguen disponibles.
+- Movimientos con filas bajas, cabecera sticky y scroll interno limitado según altura de ventana. La lista no se recorta ni elimina datos.
+- Conteo por grupos en filas horizontales; contado/teórico y diferencia agrupados, botones guardar/cerrar visibles y compactos.
+- Historial por fecha y respaldo plegados; registro de cambios conserva su sección plegable. Contenido histórico y acciones conservados.
+- Móvil mantiene controles altos y flujo vertical; no se aplica el límite vertical de la tabla de PC. Respeta temas existentes.
 
-## Hallazgo en la orden
+## Entrada de conteo
 
-El ejemplo de grupos 150.000 + 95.500 + 3.800 + 760 suma **250.060**, aunque el texto de la orden indica 249.060. La app suma lo ingresado, no fuerza el número escrito en el ejemplo. Para el caso contado 249.060 / retiro 200.000 se verificó el saldo 49.060 ajustando el segundo grupo a 94.500.
+- Sumas/restas simples en los cinco grupos, con números locales, miles con punto y decimales con coma. Parser seguro sin eval/Function; cálculo por centavos enteros.
+- Resultado visible por grupo; expresión inválida o total negativo no permite guardar/cerrar.
+- Enter valida y normaliza el resultado; avanza por cinco grupos → retiro → saldo para mañana cuando está manualmente habilitado. No envía movimiento ni cierra automáticamente.
+- Se guardan los importes finales, con el mismo esquema/clave anteriores. No cambia el cálculo de saldo, diferencia, retiro o carry.
+
+## Conservación
+
+29 funciones de cálculo, persistencia, cierre/reapertura, historial y exportación/impresión comparadas y exactamente iguales a v0.11.3. No se modifican las cajas existentes al consultar. TXT/HTML de una misma caja conservan el resultado anterior. Lectura de datos nuevos compatible con v0.11.3.
+
+Sin backend nuevo, hojas nuevas, endpoints nuevos, login ni integración económica. CSV, manifest, iconos y backend byte a byte preservados. La lista central instalada no se reemplaza por el CSV del repo.
 
 ## Archivos
 
-Nuevos: assets/caja.js y assets/caja.css; referencia LISTA_PRECIOS_v0.11.2.md.
-Modificados: index.html (pantalla, accesos y código inline), sw.js, data/version.json, README.md, CHANGELOG.md, VALIDACION.md, resúmenes de validación y SHA256SUMS.txt. En assets/gestion.js/css y assets/desktop-shell.js/css sólo se actualizan textos de versión de la app; la instrucción de compatibilidad sigue pidiendo Apps Script v0.11.2.
-Sin cambios de contenido: data/articulos.csv, data/clientes.csv, data/recetas.csv, manifest, iconos, backend completo y BACKEND_v0.11.2.md.
+Modificados: index.html; assets/caja.js/css; sw.js; data/version.json; README.md; CHANGELOG.md; VALIDACION.md; resúmenes de validación y SHA256SUMS.txt. En assets/gestion.js/css y assets/desktop-shell.js/css sólo se actualizan textos de versión 0.11.3 → 0.11.4.
 
-## Backend y pendientes
+Sin cambios: backend/Pancko_AppsScript_v0.11.2.gs; backend/Pancko_Worker_v0.11.0.mjs; BACKEND_v0.11.2.md; LISTA_PRECIOS_v0.11.2.md; tres CSV; manifest e iconos. Código de negocio previo fuera de Caja preservado salvo textos de versión.
 
-**No hay hojas, endpoints ni funciones Apps Script/Worker nuevas. No es necesario actualizar backend.** Las cajas no se sincronizan con Sheet. No se agregan remitos, CC, cheques, cobros oficiales, usuarios/login, productos o estadísticas comerciales.
+## Instalación y límites
 
-Próxima etapa sugerida: validar uso diario en mostrador y salida real de impresión. Después definir respaldo/sincronización y usuarios si se desea, antes de integrar cobros oficiales.
+Subir el contenido del ZIP a raíz del repo sin carpeta envolvente. No actualizar Apps Script ni Worker por esta misión. Abrir con red, cerrar todas las ventanas Pancko y reabrir para activar la nueva PWA; no borrar datos del sitio.
 
-## Pruebas e instalación
-
-Resultados y límites en VALIDACION.md. Instalación: contenido del ZIP en raíz del repo; cerrar todas las ventanas Pancko para activar la PWA nueva y reabrir. No borrar los datos del sitio. No se publica ni se modifica GitHub, Worker, Apps Script o Sheet desde esta entrega.
+Pruebas en VALIDACION.md. La compactación fue verificada mediante DOM y cascada CSS a distintos anchos; no con un motor visual Chrome. No se garantiza cero scroll en pantallas bajas o con zoom alto. No se probó en Android físico, PWA instalada ni impresora real. Las pruebas de teclado/foco usan DOM simulado; no se tocó GitHub ni servicios productivos.

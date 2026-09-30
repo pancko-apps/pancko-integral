@@ -1,7 +1,7 @@
 {
-  "version": "0.11.3",
-  "base": "0.11.2",
-  "total_checks": 302,
+  "version": "0.11.4",
+  "base": "0.11.3",
+  "total_checks": 405,
   "reports": {
     "static": {
       "checks": 30
@@ -86,6 +86,15 @@
       "checks": 82,
       "errors": [],
       "method": "Código real; DOM, localStorage, locks, clipboard y ventanas simulados; red de caja desactivada"
+    },
+    "count-ux": {
+      "checks": 63,
+      "errors": [],
+      "method": "Código real de entrada y UI; DOM/teclado/foco/localStorage simulados; comparación con v0.11.3"
+    },
+    "cash-layout": {
+      "checks": 40,
+      "method": "DOM abierto del código real + análisis de cascada CSS; sin motor de render de Chrome"
     }
   }
 }
