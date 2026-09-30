@@ -1,97 +1,20 @@
-const CACHE_NAME = 'pancko-integral-v0.10.49';
-
-const APP_ASSETS = [
-  './',
-  './index.html',
-  './data/version.json',
-  './data/articulos.csv',
-  './data/clientes.csv',
-  './data/recetas.csv'
-];
-
-self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(APP_ASSETS))
-      .then(() => self.skipWaiting())
-  );
+/* Pancko Gestión v0.11.0 · Shell coherente y API sin caché. */
+const CACHE_NAME='pancko-gestion-v0.11.0';
+const APP_ASSETS=['./','./index.html','./assets/gestion.js','./assets/gestion.css','./manifest.webmanifest','./assets/icon-192.png','./assets/icon-512.png','./data/version.json','./data/articulos.csv','./data/clientes.csv','./data/recetas.csv'];
+self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE_NAME).then(cache=>cache.addAll(APP_ASSETS))); // espera cierre de ventanas: no mezcla una página vieja con código nuevo.
 });
-
-self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys()
-      .then(keys => Promise.all(
-        keys
-          .filter(key => key.startsWith('pancko') && key !== CACHE_NAME)
-          .map(key => caches.delete(key))
-      ))
-      .then(() => self.clients.claim())
-  );
+self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>(k.startsWith('pancko-integral-')||k.startsWith('pancko-gestion-'))&&k!==CACHE_NAME).map(k=>caches.delete(k)))));});
+self.addEventListener('fetch',event=>{
+ const request=event.request,url=new URL(request.url);
+ // Worker/Apps Script nunca se guardan ni se responden desde Cache Storage.
+ if(request.method!=='GET'||url.origin!==self.location.origin)return;
+ const scope=new URL('./',self.location.href).pathname;
+ if(!url.pathname.startsWith(scope))return;
+ if(request.mode==='navigate'){
+  event.respondWith(caches.open(CACHE_NAME).then(async cache=>(await cache.match('./index.html'))||fetch(request)));
+  return;
+ }
+ const asset=APP_ASSETS.find(a=>new URL(a,self.location.href).pathname===url.pathname);
+ if(!asset)return;
+ event.respondWith(caches.open(CACHE_NAME).then(async cache=>(await cache.match(asset))||fetch(request)));
 });
-
-function isRepoDataFile(url){
-  return url.pathname.endsWith('/data/version.json') ||
-         url.pathname.endsWith('/data/articulos.csv') ||
-         url.pathname.endsWith('/data/clientes.csv') ||
-         url.pathname.endsWith('/data/recetas.csv');
-}
-
-self.addEventListener('fetch', event => {
-  const request = event.request;
-  if (request.method !== 'GET') return;
-
-  const url = new URL(request.url);
-
-  if (request.mode === 'navigate') {
-    event.respondWith(
-      fetch(request)
-        .then(response => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put('./index.html', copy));
-          return response;
-        })
-        .catch(() => caches.match('./index.html').then(cached => cached || caches.match('./')))
-    );
-    return;
-  }
-
-  // Los datos del repo son network-first: si hay conexión, trae lo nuevo.
-  // Si no hay conexión, usa Cache Storage para mantener el offline.
-  if (isRepoDataFile(url)) {
-    event.respondWith(
-      fetch(request, { cache: 'reload' })
-        .then(response => {
-          if (response && response.status === 200) {
-            const copy = response.clone();
-            caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
-          }
-          return response;
-        })
-        .catch(() => caches.match(request, { ignoreSearch: true }))
-    );
-    return;
-  }
-
-  event.respondWith(
-    caches.match(request, { ignoreSearch: true })
-      .then(cached => {
-        const networkFetch = fetch(request)
-          .then(response => {
-            if (response && response.status === 200) {
-              const copy = response.clone();
-              caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
-            }
-            return response;
-          })
-          .catch(() => cached);
-
-        return cached || networkFetch;
-      })
-  );
-});
-
-// Pancko cache bump v0.10.49 data-network-first
-
-// Pancko cache bump v0.10.49 rustico-local-patch
-
-// Pancko cache bump v0.10.49 factor-etiqueta-especial-patron

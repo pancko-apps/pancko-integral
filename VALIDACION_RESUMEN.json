@@ -1,0 +1,15 @@
+{
+  "version": "0.11.0",
+  "base": "0.10.49",
+  "checks": 114,
+  "groups": {
+    "static": 22,
+    "frontend": 40,
+    "backend": 19,
+    "worker-sw": 25,
+    "integration": 8
+  },
+  "real_browser_tested": false,
+  "production_services_tested": false,
+  "economic_operations_enabled": false
+}
