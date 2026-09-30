@@ -1,77 +1,64 @@
-# Pancko Gestión v0.11.2 — Gestionar lista de precios
+# Pancko Gestión v0.11.3 — Caja diaria
 
-Entrega completa sobre v0.11.1. Conserva el shell de escritorio y la experiencia móvil. Esta misión reúne la gestión del catálogo, agrega nombres/fechas y una vista legible en Google Sheets. No agrega operaciones económicas.
+Entrega completa construida sobre v0.11.2. Agrega un libro local de efectivo, consultable por fecha. Mantiene el shell de escritorio, los tiles móviles y los flujos anteriores.
 
-## Qué instalar
+## Instalar
 
-1. **Apps Script:** reemplazar el código del proyecto actual por `backend/Pancko_AppsScript_v0.11.2.gs`, completo. Guardar y actualizar la implementación existente a una nueva versión, conservando su URL. Ver `BACKEND_v0.11.2.md`.
-2. **Worker:** no necesita reemplazarse si ya funciona la lista central con v0.11.0. El archivo completo incluido es idéntico al anterior. Que `/ping` del Worker siga mostrando 0.11.0 es correcto.
-3. Descomprimir el ZIP. Subir/reemplazar **su contenido en la raíz del repo**, sin una carpeta envolvente: `index.html`, `sw.js`, `manifest.webmanifest`, `assets/` y `data/`. Conservar otros archivos propios. La carpeta `backend/` es la entrega del código para copiar manualmente en Apps Script/Worker: subirla al repo no actualiza esos servicios.
-4. Abrir Pancko con conexión, dejar descargar la actualización, cerrar todas sus pestañas/ventanas instaladas y volver a abrir. Repetir en PC y celular. Debe verse v0.11.2. No borrar los datos del sitio: contienen información local.
+1. Descomprimir el ZIP y subir **su contenido a la raíz del repositorio**, sin una carpeta envolvente. `index.html`, `sw.js`, `manifest.webmanifest`, `assets/` y `data/` quedan al mismo nivel que en la app existente. Conservar los otros archivos propios del repo.
+2. **No reemplazar Apps Script ni Worker por esta misión.** Los dos archivos completos de `backend/` se conservan byte a byte desde v0.11.2 como referencia: Apps Script v0.11.2 y Worker v0.11.0. Subir esos archivos al repositorio no actualiza los servicios. La Caja no los utiliza.
+3. Abrir Pancko con conexión y dejar completar la actualización. Cerrar todas las pestañas/ventanas instaladas de Pancko y reabrir. Debe verse **v0.11.3**. Repetir en cada equipo. El worker puede seguir mostrando v0.11.0; es correcto.
+4. No borrar datos del sitio ni restablecer el navegador: eso elimina datos locales, incluidas las cajas. Eliminar cachés de PWA y eliminar datos del sitio son acciones distintas. Ante dudas, exportar primero los respaldos.
 
-No se interactuó con GitHub ni se publicó o modificó la Sheet real durante esta misión.
+No se interactuó con GitHub ni se publicó ningún servicio. No se modificó la Sheet real.
 
-## Dónde está cada cosa
+## Usar Caja diaria
 
-**Parámetros / Datos → Gestionar lista de precios** contiene estado, nombre de lista, importación maestro, actualización sólo precios, publicación/recepción central, exportación full, recetas, precios por pulso y registro local de operaciones.
+- Acceso directo en sidebar de PC, tarjeta del dashboard y tile grande en móvil.
+- Al entrar abre la fecha de hoy en horario de Argentina. Si todavía no existe, ofrece crearla con el saldo dejado en el último cierre anterior disponible. Se puede modificar esa sugerencia.
+- Una fecha tiene una sola caja. El selector de fecha y la tabla histórica permiten consultar días anteriores.
+- Carga libre de **detalle + importe**, con hora automática. Positivo suma, negativo resta; “Agregar egreso” fuerza el signo negativo. No se eligen productos, clientes ni comprobantes. Enter también guarda.
+- Acepta `4750`, `4.750`, `154.000`, `-32.000`, `4.750,50`. No usa coma como separador de miles; admite hasta dos decimales. Los cálculos internos usan centavos enteros.
+- Editar conserva la hora original y marca el movimiento. Anular pide confirmación, conserva el movimiento visible y deja de sumarlo. El registro de cambios guarda antes/después.
+- El saldo teórico queda visible en la barra fija: inicial + ingresos − egresos.
+- El conteo se carga como **importe total por grupo**, no cantidad de billetes. “Guardar sin cerrar” conserva el conteo parcial y mantiene abierta la caja.
+- Diferencia = contado − teórico: cero “Caja OK”; positivo “Sobra efectivo”; negativo “Falta efectivo”.
+- Retiro y saldo para mañana: contado − retiro. Se puede declarar otro saldo manualmente, con advertencia visible si no coincide. No se permiten conteos/retiros/saldos iniciales negativos ni retiro superior al contado.
+- Cerrar requiere conteo explícito y confirmación. Una caja vacía puede cerrar ingresando `0` en un grupo. Cerrada bloquea ediciones; reabrir pide confirmación y conserva el cierre anterior con su snapshot.
+- Cambiar una caja anterior no recalcula el saldo inicial de otra fecha ya creada. Al abrir una nueva se sugiere el último cierre anterior disponible; si hay jornadas anteriores abiertas, se avisa.
+- Imprimir caja abre un resumen A4 completo del día seleccionado. Si se bloquea la ventana, descarga un HTML para abrir/imprimir. También permite TXT o copiar el resumen; sin clipboard disponible descarga TXT. Las salidas incluyen movimientos anulados identificados, importes, conteo y cierre guardado. No incluyen conteos que todavía no se guardaron.
 
-Sincronización mantiene estado de red, presupuestos/colores pendientes, reintento y PWA. Sólo tiene un acceso secundario a Gestionar lista de precios; no duplica el formulario central.
+## Guardado y respaldos
 
-## Nombre y fecha de implementación
+**Sólo local/offline**, por navegador y dispositivo. La clave es `pk_cash_daily_v1`; la app guarda un libro JSON con revisión y días. No existe sincronización de cajas con Sheet ni entre PC y celular.
 
-Antes de importar o publicar, ingresar un nombre, por ejemplo **Lista nº 73**. No se exige numeración correlativa: el identificador técnico sigue siendo único aunque se repita el nombre.
+Se guarda automáticamente después de cada acción confirmada: apertura, carga, edición, anulación, cambio de inicial, conteo parcial, cierre y reapertura. Lo escrito sin tocar el botón de guardar aún no es un movimiento registrado.
 
-- Al aplicar un CSV o una recepción de Sheet se registra automáticamente la fecha y hora en ese dispositivo. Ésa es su fecha de implementación local.
-- Al publicar se registra automáticamente la fecha y hora del servidor. El nombre y esa fecha viajan al recibir desde otro dispositivo.
-- Publicación y aplicación pueden ocurrir en fechas distintas. Las pantallas las distinguen; las fechas se guardan como ISO y se muestran con horario de Argentina.
-- El registro local conserva las últimas 100 operaciones y muestra las 10 más recientes. Las publicaciones centrales mantienen su historial en Sheet.
-- No se inventan nombres ni fechas para catálogos anteriores. Aparecen como “Sin nombre registrado” / “Sin registrar” hasta la siguiente operación que los registre.
-- Publicar con otro nombre no renombra retroactivamente la lista aplicada localmente ni cambia su fecha. El estado central muestra el nombre publicado.
+“Respaldo de todas las cajas” descarga el libro JSON. Restaurar valida el archivo y agrega fechas nuevas. Si una fecha ya existe con datos distintos, rechaza toda la importación; no la reemplaza. Fechas idénticas no se duplican. Exportar regularmente permite conservar una copia fuera del navegador.
 
-## Qué hace cada modo
+Se valida el libro antes de escribir. Si está dañado, se bloquea la escritura y se permite descargar el contenido original. Si falta espacio, no se activa el cambio y se conserva la entrada del movimiento. Se comprueba la revisión para detectar cambios de otra pestaña y se usa Web Locks cuando está disponible; en navegadores sin Web Locks, evitar editar la misma caja simultáneamente en varias pestañas.
 
-| Operación | Códigos existentes | Códigos nuevos | Ausentes |
-|---|---|---|---|
-| Importar maestro completo | Combina por COD; reemplaza todos los campos presentes en el CSV, incluyendo tintometría | Incorpora todos los campos | Conserva |
-| Actualizar sólo precios | Actualiza ARTIC y PR_CON_IVA; conserva las demás columnas | Incorpora los datos disponibles | Conserva |
-| Publicar en Sheet | Actualiza ARTIC y PR_CON_IVA del maestro central; conserva su tintometría | Incorpora el artículo completo | Conserva |
-| Recibir desde Sheet | Actualiza ARTIC y PR_CON_IVA locales; conserva la tintometría local | Incorpora el artículo completo | Conserva |
+## Estructura técnica
 
-En maestro completo, un campo presente pero vacío reemplaza el anterior con vacío; un campo omitido no lo borra. La revisión advierte el cambio de configuración y cuenta los productos afectados. No existe reemplazo destructivo del catálogo ni eliminación automática por omisión.
+- Libro: `schema_version: 1`, `revision`, `days`.
+- Día: ID estable `cash_AAAA-MM-DD`, fecha, estado `open/closed`, apertura, fuente de saldo sugerido, movimientos, totales derivados, conteo parcial, cierre activo, cierres anteriores y registro de cambios.
+- Movimiento: UUID, detalle, importe en centavos, creación/edición, marca de editado y anulación. No se elimina físicamente.
+- Cierre: importes de los cinco grupos, conteo explícito, retiro, saldo manual opcional, total contado, diferencia, saldo dejado, fecha/hora y snapshot de movimientos/apertura/totales.
+- `created_by`, `updated_by` y `closed_by` quedan preparados con `null`, sin login.
+- Fechas técnicas ISO; presentación con horario de Argentina. La fecha/hora depende del reloj del equipo.
+- CSS y JS de caja están inline en index.html para viajar con el shell cacheado; `assets/caja.css` y `assets/caja.js` son copias fuente idénticas, no dependencias externas de ejecución.
 
-Se admiten encabezados Pancko y aliases de proveedor como `Artículo`, `Descripción`, `P. C.F.`. La importación de artículos valida códigos repetidos, campos requeridos, precios y estructura del CSV, y admite campos entre comillas, comillas escapadas y saltos de línea. Los campos adicionales se conservan. Las filas totalmente en blanco se ignoran; las filas con delimitadores pero sin datos se rechazan.
+## Lo anterior se conserva
 
-**La sincronización central sigue en modo sólo precios.** No se agregó selector central de maestro completo: actualizar localmente un factor o una base de un código que ya existe en Sheet no propaga ese cambio a otros dispositivos. Esta limitación se muestra en pantalla para mantener el circuito central ya probado.
+No se cambia el cálculo tintométrico ni se recalculan presupuestos en curso/guardados. Lista central, nombres/fechas de lista, importadores, clientes, precios por pulso, etiquetas, A4, ticket e historial siguen con sus reglas anteriores. Remitos, cuenta corriente, cobros, cheques y scanner mantienen su estado previo; usuarios/login quedan pendientes.
 
-## Primera operación con esta versión
+Los tres CSV, manifest, iconos y backend se conservan byte a byte. El CSV de artículos incluido mantiene los 3998 artículos de la base; un equipo que ya recibió 4270 desde Sheet conserva su catálogo local. No se incrementa la versión de los datos CSV para forzar un reemplazo.
 
-Si el catálogo local actual es correcto, se puede publicar directamente, sin reimportar: ingresar nombre y clave → Revisar publicación → Publicar en Sheet. Se publica el catálogo local completo, combinado con el central según las reglas anteriores.
+La Caja diaria no registra productos ni estadísticas comerciales. Sí conserva historial consultable por fecha.
 
-En otro dispositivo: Consultar / Recibir desde Sheet → revisar → Aplicar en este dispositivo. La recepción es manual y no pide clave. El nombre llega desde Sheet. El botón de sincronización de pendientes no descarga el catálogo automáticamente.
+## Límites y validación
 
-Publicar no reemplaza el catálogo local por la combinación central. Si la Sheet conserva códigos que este dispositivo no tiene, recibirla después para incorporarlos. La información central del estado corresponde a la última consulta, no a una vigilancia automática.
+Ver `VALIDACION.md` y `CHANGELOG.md`. Las pruebas ejecutan el código entregado con DOM, almacenamiento, ventanas, clipboard, caché y Sheets simulados; canvas real para las salidas existentes. No se probó en Chrome/Android real, PWA instalada real, impresora física ni servicios desplegados. Esa cobertura pendiente queda declarada; no se presenta la simulación como prueba de producción.
 
-## Hojas
+El historial ocupa almacenamiento del navegador y está sujeto a su cuota. Detalle de movimiento hasta 300 caracteres; respaldo importable hasta 20 MB. Los respaldos no sustituyen una sincronización: esta etapa está pensada para un equipo principal de caja. Los cierres guardados y anulaciones no son controles de usuario: no hay autenticación.
 
-| Hoja | Función |
-|---|---|
-| articulos_versiones | Índice técnico de publicaciones; mismas seis columnas anteriores |
-| articulos_maestro | Base técnica versionada usada por la app; mismas columnas version / COD / articulo_json |
-| articulos_metadatos | Nueva: nombre y fecha de publicación vinculados a version |
-| lista_precios_actual | Nueva: vista humana filtrable de la lista vigente, con columnas normales, nombre y fecha |
-
-Las dos hojas nuevas se crean al publicar. Las lecturas no crean ni reescriben hojas. La vista legible se reemplaza con cada publicación, sin acumular versiones antiguas; el historial sigue en el maestro técnico. Editar manualmente la vista no actualiza la app y esos cambios se reemplazarán al regenerarla.
-
-## Qué se conserva
-
-Presupuestos guardados y en curso, líneas, historial, snapshots, fórmulas, factores guardados, etiquetas, A4, ticket, WhatsApp, clientes, latas en espera y el cálculo tintométrico. Los productos agregados después de aplicar una actualización usan el nuevo catálogo. Los precios por pulso reconocidos en artículos se actualizan al aplicar, como antes, para cálculos posteriores.
-
-El paquete conserva byte a byte los CSV originales de la base v0.11.1: **3998 artículos** y las recetas/clientes existentes. No se descargó una copia de tu Sheet real. Un dispositivo que ya recibió **4270 artículos** los conserva al actualizar la app; uno nuevo puede recibirlos manualmente de Sheet. La versión del CSV del repositorio no se incrementó para evitar reemplazar listas instaladas.
-
-## Validación y límites
-
-Detalle y resultados en `VALIDACION.md`, `VALIDACION_RESUMEN.json` y `CHANGELOG.md`. Se probaron los flujos con el código real de frontend, Worker y Apps Script, usando DOM, red, caché y Sheets simulados; se generaron A4/ticket/etiqueta con canvas real. No se verificó esta entrega en un Chrome/Android real ni contra tu backend desplegado, ni con impresión física o compartir nativo. No se presenta esa simulación como prueba de producción.
-
-La estructura responsive fue revisada a ocho anchos y conserva el umbral de escritorio de 1024 px. El entorno no dispone de un ejecutable Chromium/Chrome para la comprobación visual real. No se probó el ciclo de actualización de una PWA instalada real.
-
-Límites vigentes: 15000 artículos por catálogo; revisión muestra hasta 20 cambios; registro local de 100 operaciones; cuotas/tiempos de Google Apps Script no medidos en producción. Un fallo exclusivo del espejo se avisa y no invalida la publicación técnica. Las fechas de aplicación local dependen del reloj del dispositivo.
+Documentación del catálogo existente en `LISTA_PRECIOS_v0.11.2.md` y del backend en `BACKEND_v0.11.2.md`. Son referencias de la etapa anterior, no instrucciones para reemplazar el backend por esta Caja.

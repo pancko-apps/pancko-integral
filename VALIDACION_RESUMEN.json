@@ -1,15 +1,13 @@
 {
-  "version": "0.11.2",
-  "checks": 211,
-  "environment": "Node/Python; DOM, red, caché y Sheets simulados; canvas real",
-  "real_browser_tested": false,
-  "production_backend_tested": false,
-  "groups": {
+  "version": "0.11.3",
+  "base": "0.11.2",
+  "total_checks": 302,
+  "reports": {
     "static": {
-      "checks": 22
+      "checks": 30
     },
     "frontend": {
-      "checks": 40,
+      "checks": 41,
       "errors": [],
       "warnings": [
         "deleteBudgetFromCloud: Error: Sin conexión de prueba"
@@ -83,6 +81,11 @@
       "checks": 47,
       "method": "DOM/Sheets simulados, código real de frontend + Worker + Apps Script",
       "errors": []
+    },
+    "cash": {
+      "checks": 82,
+      "errors": [],
+      "method": "Código real; DOM, localStorage, locks, clipboard y ventanas simulados; red de caja desactivada"
     }
   }
 }

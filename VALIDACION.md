@@ -1,37 +1,44 @@
-# Validación — v0.11.2
+# Validación — v0.11.3
 
-**211 comprobaciones automatizadas aprobadas.** Se ejecuta el código entregado. Los dobles de DOM, red, caché y Google Sheets no sustituyen una prueba en dispositivos y servicios reales.
+**302 comprobaciones automatizadas aprobadas.** Base v0.11.2, sin sustitución del código previo de negocio. Se ejecuta el código entregado; los dobles de DOM, almacenamiento y servicios no sustituyen una prueba en dispositivos reales.
 
 | Grupo | Comprobaciones |
 |---|---:|
-| static | 22 |
-| frontend | 40 |
+| static | 30 |
+| frontend | 41 |
 | integration | 8 |
 | worker-sw | 23 |
 | shell-layout | 60 |
 | shell-data | 11 |
 | catalog | 47 |
+| cash | 82 |
 
-## Cobertura
+## Caja diaria
 
-- Sintaxis de todos los scripts inline, JS, Worker y GAS; eventos HTML; IDs únicos; rutas/pantallas; manifest/iconos; ausencia de claves de prueba; registro SW con versión coherente.
-- Arranque sin errores en DOM simulado; carga real de CSV de artículos, clientes, recetas y version.json; búsquedas y navegación de los 13 módulos.
-- Presupuesto básico; cantidades/descuento por línea; cliente por CUIT; alta rápida y consumidor final; historial y snapshots; tres opciones de condiciones de pago.
-- Tintométrico desde laboratorio y presupuesto: factor patrón, fórmula original/editada, reapertura y precio guardado; etiqueta; A4 y ticket generados con canvas real.
-- Shell y reglas responsive a 360/390/768/1023/1024/1280/1440/1920 px; catálogo en una o dos columnas según ancho; formulario central único dentro de Gestionar lista. Se analiza la cascada CSS, no hay motor visual Chrome.
-- Importación completa frente a sólo precios; tintometría preservada o actualizada según modo; campos vacíos frente a omitidos; códigos ausentes; nombres requeridos; alias de proveedor; validaciones; CSV exportado/reimportado con saltos de línea y comillas.
-- Flujo frontend → Worker → GAS → segundo dispositivo con revisiones previas; nombre, fecha de publicación/aplicación, cantidades y registro local.
-- Hoja legible con filas/campos/filtro; encabezados técnicos preservados; publicación más corta conserva ausentes; historial técnico conservado; reintento idempotente no revierte el espejo.
-- Clave incorrecta, conflicto de versión, ID reutilizado, fallo de metadatos antes del commit, recuperación de carga huérfana, fallo de espejo y reconstrucción, colisión con hoja ajena, falta de espacio local y rechazo de publicación nombrada ante backend anterior.
-- Cliente v0.11.1 recibe el backend nuevo; publicación antigua sin nombre compatible; versión histórica sin metadatos legible sin inventar nombre; lecturas sin escrituras.
-- Preservación exacta de presupuesto en curso e historial al importar/publicar/recibir; nuevas líneas usan el precio nuevo. Reinicio offline simulado conserva nombre/lista/fechas. Actualización sobre catálogo instalado de 4270 artículos no lo reemplaza por el CSV de 3998.
-- Service worker simulado: instalación de 9 recursos, apertura y datos offline, limpieza sólo de cachés Pancko, exclusión de APIs y POST, espera al cierre de ventanas sin skipWaiting.
-- Dashboard conserva datos y borrador; módulos económicos continúan en preparación.
+- Navegación/accesos, fechas estrictas, hora de Argentina, apertura única, saldo sugerido, cambio manual y campos de usuario nulos.
+- Importes AR con miles/coma/negativos, rechazo de vacío/inválido/exceso de precisión, cálculo exacto en centavos, detalle obligatorio.
+- Ejemplos reales, edición con ID/hora conservados, anulación confirmada/no suma, marcas y auditoría antes/después. No confirma cargas normales.
+- Grupos de billetes como importes, conteo parcial/recarga, faltante/sobrante/caja OK, retiro inválido, cierre cancelado y cierre vacío explícito.
+- Cierre bloquea escritura accidental; reapertura conserva snapshot; carry automático y manual, aviso de inconsistencia y conservación del saldo de cajas posteriores existentes.
+- Histórico por fecha, TXT, JSON, impresión HTML y clipboard con alternativa. Escapado del detalle libre en pantalla e impresión.
+- Restauración completa en otro navegador simulado, no duplicación, rechazo de conflictos/JSON dañado/cierre inconsistente/fechas duplicadas.
+- Almacenamiento lleno no cambia lo guardado y conserva la entrada; cambios de otra pestaña detectados; Web Locks simulado; doble clic y cambio de fecha durante guardado demorado no duplican ni cambian día.
+- Libro dañado no se sobrescribe y permite descargar el original. Caja sin peticiones de red; claves de catálogo/presupuesto/tintométrico y snapshots inalterados por sus acciones.
 
-## No probado en este entorno
+## Regresiones anteriores
 
-No hay ejecutable Chromium/Chrome disponible. No se verificaron render visual ni consola de un navegador real, Android físico, instalación/actualización real de PWA, impresora, diálogo de impresión, WhatsApp/compartir nativo ni las cuotas/latencias de Apps Script productivo. Las pruebas de backend usan Sheets simulados; no se modificaron las hojas reales.
+- Sintaxis de scripts inline/fuentes/Worker/GAS y eventos HTML; IDs/rutas; copias inline idénticas; CSV/manifest/iconos y ambos archivos de backend conservados; version.json y SW coherentes.
+- Carga real de archivos CSV y búsqueda; navegación de 14 módulos; presupuesto, cantidad/descuento, cliente/alta rápida/consumidor final, historial, snapshots y condiciones de impresión.
+- Tintométrico desde laboratorio/presupuesto: factor patrón/original/editado, precio guardado y etiquetas. A4 largo, ticket y etiqueta generados con canvas real.
+- Publicación/recepción central con código real frontend → Worker → GAS y segundo dispositivo, usando Sheets y red simulados. Maestro/sólo precios, columnas tintométricas, nombres/fechas, vista legible, idempotencia, versión/conflictos, errores y compatibilidad.
+- Presupuestos no se recalculan por catálogo; equipos con 4270 artículos conservan lista instalada. Recarga offline conserva datos locales.
+- CSS del shell analizado a 360/390/768/1023/1024/1280/1440/1920 px, preservando sidebar/área amplia en escritorio. Es análisis de cascada; no captura de navegador.
+- SW simulado: instalación de nueve recursos, navegación y CSV offline, APIs/POST fuera de caché, limpieza sólo Pancko y actualización sin skipWaiting. Caja inline incluida dentro del index.html cacheado.
 
-## Verificación del paquete
+## No probado
 
-ZIP con index.html, sw.js, manifest, assets y data directamente en raíz; backend completo y documentación. SHA256SUMS.txt permite verificar los archivos; su propia suma no se incluye. El ensamblado comprueba coincidencia entre código inline y sus copias en assets, CSV/iconos/Worker preservados y ausencia de carpeta envolvente.
+No hay ejecutable Chromium/Chrome disponible en el entorno. No se verificaron render/consola de navegador real, Android físico, instalación o actualización real de PWA, ventanas/clipboard nativos, impresión física, WhatsApp, cuotas de almacenamiento reales ni backend/Sheets desplegados. No se modificaron servicios reales. Las pruebas de caja usan DOM/localStorage/ventanas/locks simulados; los cálculos, validaciones y funciones ejecutadas son los del paquete. Las salidas existentes usan canvas real, sin impresión física.
+
+## Paquete
+
+ZIP sin carpeta envolvente, con index/sw/manifest/assets/data en raíz, documentación y backend completo sin cambios. SHA256SUMS.txt incluye todos los archivos salvo su propia suma. No se incluye un Informe para Cerebrito separado: se entrega como texto al final de la charla.
