@@ -1,44 +1,23 @@
-# Validación — Pancko Gestión v0.11.5
+# Validación — Pancko Gestión v0.11.6
 
-**433 comprobaciones automatizadas aprobadas**, con código real y DOM/almacenamiento/servicios simulados. Base v0.11.4.
+Base v0.11.5. Se probó el código real con DOM, localStorage, confirmaciones y recursos PWA simulados. El cambio funcional está limitado a Caja diaria.
 
-| Grupo | Comprobaciones |
-|---|---:|
-| static | 30 |
-| frontend | 41 |
-| integration | 8 |
-| worker-sw | 23 |
-| shell-layout | 60 |
-| shell-data | 11 |
-| catalog | 47 |
-| cash | 82 |
-| count-ux | 63 |
-| cash-layout | 42 |
-| autosave | 26 |
+## Casos nuevos
 
-## Caso obligatorio de pérdida de conteo
+- Cierre bloqueado contra edición; cancelación de reapertura sin cambios; reapertura confirmada con snapshot previo conservado; segundo cierre independiente.
+- $50.000 inicial + $79.240 de movimiento; conteo $30.000 + $93.500 + $5.300 + $150 + $290; retiro $30.000. Cierre con $99.240 para mañana y desglose $0 + $93.500 + $5.300 + $150 + $290.
+- Al abrir el siguiente día se sugieren $99.240 y los cinco grupos como conteo inicial; retiro nuevo en cero. Tras nueva instancia de app con el mismo libro, se conserva el desglose.
+- Un segundo cierre tras reabrir no modifica la caja posterior ya creada. El primer cierre queda en el historial.
+- Retiro $700 mayor que grupo grande $500: advertencia previa, saldo $400, desglose `null`; siguiente día sin conteo inventado.
+- Saldo declarado manualmente $850 frente a $900 calculados: advertencia, saldo sugerido $850, desglose `null`.
+- Modificar saldo inicial quita la etiqueta de procedencia del desglose sugerido. Cierre histórico sin `remaining_counts` conserva su estructura y sus cálculos; no se rellena retrospectivamente.
 
-1. Caja 30/09/2026 abierta con saldo inicial $50.000 y movimiento positivo $79.240.
-2. Conteo: $30.000, $93.500, $5.300, $150 y $290; retiro $30.000.
-3. Al ingresar cada valor, el borrador JSON de `pk_cash_daily_v1` ya contiene los centavos correspondientes.
-4. Nueva instancia de app con el mismo almacenamiento, **sin pulsar Guardar sin cerrar**: movimiento y cinco grupos restaurados; contado $129.240, teórico $129.240, diferencia $0, retiro $30.000 y saldo para mañana $99.240. La caja sigue abierta.
-5. Se repite tras **Guardar sin cerrar** y otra recarga; se conserva caja abierta y todos los importes.
-6. Cambio de módulo y retorno preservan los importes. Suma `20.000+10.000` queda guardada como $30.000.
-7. Modo manual y saldo $98.000 restaurados; diferencia declarada permanece como advertencia. Una expresión inválida conserva el último valor válido.
-8. Escribir otro conteo sin cerrar actualiza contado y diferencia. Guardado de movimiento demorado y conteo concurrente dejan ambos registros. La falta de espacio preserva el dato anterior y avisa; el reintento recupera el guardado.
+Estos escenarios aprobaron 17 verificaciones dirigidas. También se ejecutaron las pruebas heredadas: Caja (82), guardado automático (26), frontend (41), Worker/SW (23), recursos/sintaxis (30) y entrada del conteo (63). Los controles de regresión incluyen movimientos, importes, cierre/reapertura, suma y Enter, persistencia local, presupuestos y frontend general. El CSS de Caja no cambia su distribución, salvo comentarios de versión; las copias inline coinciden con sus fuentes.
 
-## Regresiones
+## Integridad del paquete
 
-- Sintaxis JS de todo inline, copias fuente, SW, Worker, Apps Script y eventos HTML; pantallas, rutas, manifest/iconos, versión y nueve recursos precacheados.
-- Apertura/cierre/reapertura, cambios de inicial, movimientos, edición/anulación, conteo parcial, sumas seguras y Enter, respaldo/impresión/TXT, protección ante datos dañados/conflictos y funcionamiento offline simulado.
-- Presupuestos, selección de clientes, historial, condiciones de impresión, tintométrico, etiquetas y A4/ticket con canvas real.
-- Catálogo central con importación/publicación/recepción y Google Sheets/Worker simulados. CSV, backend, iconos y manifest comprobados byte a byte frente a v0.11.4; el listado instalado no se reemplaza.
-- Shell y Caja responsive inspeccionados por DOM y reglas CSS a 390, 768, 1023, 1024, 1280, 1440 y 1920 px. Campo de fecha en escritorio con mínimo 170 px; móvil conserva ancho previo. Sin motor visual Chrome.
+Se verificó sintaxis JavaScript del módulo, scripts inline y service worker; referencias relativas de index/manifest/assets/data, CSV, versión y precache. Se comparó backend y CSV con v0.11.5 sin diferencias. El ZIP se ensambla con archivos directamente en raíz, sin carpeta contenedora. `SHA256SUMS.txt` enumera los archivos incluidos.
 
-## No probado aquí
+## Límites
 
-No hay un Chrome/Chromium ejecutable en el entorno. El cierre/reinicio se simula creando otra instancia de la app con el almacenamiento persistido; no se cerró una PWA instalada de Windows real. Tampoco se probaron teclado nativo, impresión física, cotas reales de almacenamiento, zoom/altura visual exacta, Worker/Apps Script/Sheets productivos o activación de SW en una PWA instalada. El alcance de esas pruebas se declara para distinguir la validación técnica de la prueba en mostrador.
-
-## Paquete
-
-El ZIP tiene index.html, sw.js, manifest, assets, data, backend completo sin cambios y documentación directamente en raíz. SHA256SUMS.txt verifica cada archivo salvo sí mismo. El Informe para Cerebrito se entrega en texto en la conversación, sin archivo en el ZIP.
+No se dispone de una PWA instalada en Windows ni de Chrome/impresora físicos en este entorno. La reapertura se simuló con otra instancia sobre el mismo localStorage; no se publicó en GitHub ni se conectaron servicios productivos. El orden real de billetes dentro de cada grupo no se conoce: cuando el retiro supera el grupo grande, se pide ajuste humano sin repartirlo entre los otros grupos. El conteo precargado es una sugerencia inicial; se debe actualizar conforme entra o sale efectivo durante el nuevo día. Las cajas siguen siendo datos locales de cada navegador.

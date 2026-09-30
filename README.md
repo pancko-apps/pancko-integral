@@ -1,15 +1,23 @@
-# Pancko Gestión v0.11.5 — Conteo persistente
+# Pancko Gestión v0.11.6 — Arrastre de billetes en Caja diaria
 
-Entrega completa construida sobre v0.11.4. Corrige la pérdida de conteo parcial al cerrar la PWA, recargar o volver al módulo; conserva la Caja compacta y las sumas con Enter.
+Entrega completa construida sobre v0.11.5. Conserva la Caja compacta y el guardado del conteo parcial; agrega desglose seguro del efectivo que queda para mañana.
 
 ## Instalar
 
 1. Descomprimir el ZIP y subir **su contenido a la raíz del repositorio**, sin una carpeta envolvente. `index.html`, `sw.js`, `manifest.webmanifest`, `assets/` y `data/` quedan al mismo nivel que en la app existente. Conservar los otros archivos propios del repo.
 2. **No reemplazar Apps Script ni Worker por esta misión.** Los dos archivos completos de `backend/` se conservan byte a byte desde v0.11.4 como referencia: Apps Script v0.11.2 y Worker v0.11.0. Subir esos archivos al repositorio no actualiza los servicios. La Caja no los utiliza.
-3. Abrir Pancko con conexión y dejar completar la actualización. Cerrar todas las pestañas/ventanas instaladas de Pancko y reabrir. Debe verse **v0.11.5**. Repetir en cada equipo. El worker puede seguir mostrando v0.11.0; es correcto.
+3. Abrir Pancko con conexión y dejar completar la actualización. Cerrar todas las pestañas/ventanas instaladas de Pancko y reabrir. Debe verse **v0.11.6**. Repetir en cada equipo. El worker puede seguir mostrando v0.11.0; es correcto.
 4. No borrar datos del sitio ni restablecer el navegador: eso elimina datos locales, incluidas las cajas. Eliminar cachés de PWA y eliminar datos del sitio son acciones distintas. Ante dudas, exportar primero los respaldos.
 
 No se interactuó con GitHub ni se publicó ningún servicio. No se modificó la Sheet real.
+
+## Cierre, reapertura y arrastre de billetes
+
+Una caja cerrada queda bloqueada. “Reabrir con confirmación” guarda el cierre anterior en historial y permite volver a editar y cerrar. El saldo inicial sugerido de una caja nueva sigue siendo el “queda para mañana” del último cierre anterior. No se actualizan automáticamente jornadas posteriores que ya se crearon.
+
+En los cierres **nuevos** se guarda `remaining_counts`: el retiro se descuenta del grupo “20.000 y 10.000” cuando ese grupo alcanza. Los demás grupos quedan intactos. Si el retiro supera ese grupo, o si el saldo manual declarado no coincide con contado menos retiro, se guarda `remaining_counts: null`, se muestra advertencia en la vista previa, la confirmación y el cierre, y el siguiente día sólo sugiere el saldo total. No se inventa una distribución.
+
+Al abrir el día siguiente con el saldo sugerido intacto, el desglose guardado se precarga como **conteo inicial sugerido**; el retiro del nuevo día empieza en cero. Revisá y actualizá esos grupos según el efectivo real del día. Si modificás el saldo inicial antes de abrir, no se precarga el desglose. Los cierres previos a v0.11.6 sin desglose siguen iguales y no se recalculan ni se migran; esos días requieren cargar el conteo manualmente. Al editar el saldo inicial de una caja ya abierta, se quita la etiqueta de desglose sugerido si deja de coincidir.
 
 ## Distribución compacta y entrada de conteo
 
