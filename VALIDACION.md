@@ -1,6 +1,6 @@
-# Validación — v0.11.4
+# Validación — Pancko Gestión v0.11.5
 
-**405 comprobaciones automatizadas aprobadas.** Código entregado, con DOM/servicios simulados y canvas real para las salidas anteriores. Base v0.11.3.
+**433 comprobaciones automatizadas aprobadas**, con código real y DOM/almacenamiento/servicios simulados. Base v0.11.4.
 
 | Grupo | Comprobaciones |
 |---|---:|
@@ -13,28 +13,32 @@
 | catalog | 47 |
 | cash | 82 |
 | count-ux | 63 |
-| cash-layout | 40 |
+| cash-layout | 42 |
+| autosave | 26 |
 
-## Nuevos casos
+## Caso obligatorio de pérdida de conteo
 
-- Sumas/restas locales: ejemplos de la orden, espacios alrededor de operadores, coma decimal, centavos exactos, signo inicial y total cero. Importes simples anteriores siguen compatibles, incluido formato con $.
-- Rechazo de expresión incompleta, signos repetidos, total negativo, separadores/decimales inválidos, multiplicación/división/potencias/paréntesis, letras/funciones/código, overflow y longitud excesiva.
-- Vista previa por grupo, marca de error y no escritura por tipeo; guardado parcial/cierre inválidos no modifican datos.
-- Enter recorre cinco grupos y retiro; va al saldo sólo si está manualmente habilitado. Normaliza la suma válida y conserva foco/texto inválidos. No altera Tab ni composición de teclado.
-- Conteos guardados son números del esquema 1, sin expresiones; recarga y lectura también desde v0.11.3. TXT e impresión HTML iguales para el mismo estado. 29 funciones de negocio/guardado/salidas idénticas.
-- DOM de caja abierta generado por el código real, con controles en la fila de carga, listado desplazable accesible y secciones plegables.
-- CSS de Caja revisado a 390/768/1023/1024/1280/1440/1920 px: escritorio con dos columnas/formulario horizontal/lista limitada/botones sticky; móvil con flujo vertical, altura de campo 44 px y tabla sin límite vertical impuesto. Es análisis de reglas, no medición real de píxeles en Chrome.
+1. Caja 30/09/2026 abierta con saldo inicial $50.000 y movimiento positivo $79.240.
+2. Conteo: $30.000, $93.500, $5.300, $150 y $290; retiro $30.000.
+3. Al ingresar cada valor, el borrador JSON de `pk_cash_daily_v1` ya contiene los centavos correspondientes.
+4. Nueva instancia de app con el mismo almacenamiento, **sin pulsar Guardar sin cerrar**: movimiento y cinco grupos restaurados; contado $129.240, teórico $129.240, diferencia $0, retiro $30.000 y saldo para mañana $99.240. La caja sigue abierta.
+5. Se repite tras **Guardar sin cerrar** y otra recarga; se conserva caja abierta y todos los importes.
+6. Cambio de módulo y retorno preservan los importes. Suma `20.000+10.000` queda guardada como $30.000.
+7. Modo manual y saldo $98.000 restaurados; diferencia declarada permanece como advertencia. Una expresión inválida conserva el último valor válido.
+8. Escribir otro conteo sin cerrar actualiza contado y diferencia. Guardado de movimiento demorado y conteo concurrente dejan ambos registros. La falta de espacio preserva el dato anterior y avisa; el reintento recupera el guardado.
 
 ## Regresiones
 
-- Sintaxis inline/fuentes/Worker/GAS, IDs/pantallas/rutas, copias inline, versiones, SW y recursos relativos.
-- Caja: apertura/saldo inicial, ingresos/egresos/negativos, edición/hora/anulación, conteo parcial, diferencias, retiro/carry, cierre/reapertura/snapshots, consulta histórica, TXT/HTML/JSON/copia/restauración, cuotas/datos dañados/conflictos/doble clic y offline simulado. No altera catálogo, presupuesto o tintométrico.
-- Presupuestos, cliente/alta rápida/mostrador, descuentos/cantidades, historial, snapshots y opciones de condiciones de pago. Etiqueta, ticket y A4 largo con canvas real.
-- Tintométrico: factor y fórmula original/editada, precios guardados, producto desde presupuesto. Cálculos comerciales preservados.
-- Lista central: importación completa/sólo precios, columnas tintométricas, nombres/fechas, publicación/recepción, espejo legible, compatibilidad/idempotencia/conflictos y errores con código real frontend/Worker/Apps Script y Sheets simulados. Equipo con 4270 artículos conserva lista instalada.
-- Shell a ocho anchos y navegación de 14 módulos. SW simulado con nueve recursos, offline de index y CSV, limpieza Pancko, exclusión API/POST y espera de activación sin skipWaiting.
-- Paquete: datos y backend preservados; index/sw/manifest/assets/data en raíz, checksums, ZIP íntegro y sin Informe para Cerebrito separado.
+- Sintaxis JS de todo inline, copias fuente, SW, Worker, Apps Script y eventos HTML; pantallas, rutas, manifest/iconos, versión y nueve recursos precacheados.
+- Apertura/cierre/reapertura, cambios de inicial, movimientos, edición/anulación, conteo parcial, sumas seguras y Enter, respaldo/impresión/TXT, protección ante datos dañados/conflictos y funcionamiento offline simulado.
+- Presupuestos, selección de clientes, historial, condiciones de impresión, tintométrico, etiquetas y A4/ticket con canvas real.
+- Catálogo central con importación/publicación/recepción y Google Sheets/Worker simulados. CSV, backend, iconos y manifest comprobados byte a byte frente a v0.11.4; el listado instalado no se reemplaza.
+- Shell y Caja responsive inspeccionados por DOM y reglas CSS a 390, 768, 1023, 1024, 1280, 1440 y 1920 px. Campo de fecha en escritorio con mínimo 170 px; móvil conserva ancho previo. Sin motor visual Chrome.
 
-## No comprobado en servicios/dispositivos reales
+## No probado aquí
 
-No hay Chrome/Chromium ejecutable en el entorno. No se verificó apariencia en navegador real, altura exacta ocupada a cada resolución/zoom, teclado físico o virtual nativo, Android físico, actualización de PWA instalada, impresión física, clipboard/ventanas nativos ni backend desplegado. No se presentan las simulaciones como pruebas de producción. Los límites quedan documentados y la apariencia requiere revisión en el equipo de mostrador.
+No hay un Chrome/Chromium ejecutable en el entorno. El cierre/reinicio se simula creando otra instancia de la app con el almacenamiento persistido; no se cerró una PWA instalada de Windows real. Tampoco se probaron teclado nativo, impresión física, cotas reales de almacenamiento, zoom/altura visual exacta, Worker/Apps Script/Sheets productivos o activación de SW en una PWA instalada. El alcance de esas pruebas se declara para distinguir la validación técnica de la prueba en mostrador.
+
+## Paquete
+
+El ZIP tiene index.html, sw.js, manifest, assets, data, backend completo sin cambios y documentación directamente en raíz. SHA256SUMS.txt verifica cada archivo salvo sí mismo. El Informe para Cerebrito se entrega en texto en la conversación, sin archivo en el ZIP.

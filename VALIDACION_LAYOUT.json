@@ -54,7 +54,7 @@
     ]
   },
   "cash": {
-    "checks": 40,
+    "checks": 42,
     "method": "DOM abierto del código real + análisis de cascada CSS; sin motor de render de Chrome"
   }
 }

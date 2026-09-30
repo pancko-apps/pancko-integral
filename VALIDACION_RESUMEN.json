@@ -1,7 +1,7 @@
 {
-  "version": "0.11.4",
-  "base": "0.11.3",
-  "total_checks": 405,
+  "version": "0.11.5",
+  "base": "0.11.4",
+  "total_checks": 433,
   "reports": {
     "static": {
       "checks": 30
@@ -93,8 +93,12 @@
       "method": "Código real de entrada y UI; DOM/teclado/foco/localStorage simulados; comparación con v0.11.3"
     },
     "cash-layout": {
-      "checks": 40,
+      "checks": 42,
       "method": "DOM abierto del código real + análisis de cascada CSS; sin motor de render de Chrome"
+    },
+    "autosave": {
+      "checks": 26,
+      "method": "Código de la app con DOM y almacenamiento simulados; PWA cerrada/recargada mediante nueva instancia"
     }
   }
 }

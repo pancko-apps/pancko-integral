@@ -1,38 +1,27 @@
-# CHANGELOG — Pancko Gestión v0.11.4
+# CHANGELOG — Pancko Gestión v0.11.5
 
-Fecha: 30/09/2026. Base real: v0.11.3. App/shell/cache v0.11.4. Apps Script v0.11.2 y Worker v0.11.0 sin cambios.
+Fecha: 30/09/2026. Base: v0.11.4. App, shell y caché v0.11.5. Backend sin cambios (Apps Script v0.11.2; Worker v0.11.0).
 
-## UX de Caja
+## Corrección de Caja diaria
 
-- Encabezado, fecha/estado/saldo y tarjetas compactos en PC; dos columnas de operación.
-- Resumen inicial/ingresos/egresos/teórico en cuatro bloques bajos.
-- Detalle, importe y botones Ingreso/Egreso en una fila de escritorio; edición/cancelación siguen disponibles.
-- Movimientos con filas bajas, cabecera sticky y scroll interno limitado según altura de ventana. La lista no se recorta ni elimina datos.
-- Conteo por grupos en filas horizontales; contado/teórico y diferencia agrupados, botones guardar/cerrar visibles y compactos.
-- Historial por fecha y respaldo plegados; registro de cambios conserva su sección plegable. Contenido histórico y acciones conservados.
-- Móvil mantiene controles altos y flujo vertical; no se aplica el límite vertical de la tabla de PC. Respeta temas existentes.
+- Se identificó el bug: el conteo en v0.11.4 sólo se guardaba en memoria al editar; `pk_cash_daily_v1` recibía los valores al pulsar “Guardar sin cerrar” o cerrar la caja. Cerrar la PWA descartaba el conteo no guardado.
+- Ahora cada estado válido de los cinco grupos, retiro y saldo manual se escribe inmediatamente en `pk_cash_daily_v1`. Enter y salida del campo también validan el dato. Se muestra “Conteo guardado en este dispositivo”.
+- El importe de una expresión se convierte a centavos antes de guardar; la expresión en sí no entra al libro. Al recargar se ve el importe final.
+- Una expresión incompleta, un retiro superior al contado o un importe inválido no reemplazan el último borrador válido. Queda visible el error y se bloquea cerrar hasta corregirlo.
+- La escritura evita re-renderizar el formulario durante la edición, de modo que conserva foco, importe visible y posición de tipeo. No escribe otra vez si no hubo cambios. Si hay una operación ya en curso, difiere el borrador y lo guarda al completarse.
+- Un fallo de almacenamiento muestra advertencia y conserva lo escrito; al reintentar correctamente se limpia esa advertencia. Las cajas existentes siguen con el mismo esquema y clave.
+- En PC, la columna de fecha pasó a 250–285 px y el control de fecha tiene un mínimo de 170 px para evitar que se muestre “30/09/20”. La distribución móvil conserva sus tamaños previos.
 
-## Entrada de conteo
+## Compatibilidad y alcance
 
-- Sumas/restas simples en los cinco grupos, con números locales, miles con punto y decimales con coma. Parser seguro sin eval/Function; cálculo por centavos enteros.
-- Resultado visible por grupo; expresión inválida o total negativo no permite guardar/cerrar.
-- Enter valida y normaliza el resultado; avanza por cinco grupos → retiro → saldo para mañana cuando está manualmente habilitado. No envía movimiento ni cierra automáticamente.
-- Se guardan los importes finales, con el mismo esquema/clave anteriores. No cambia el cálculo de saldo, diferencia, retiro o carry.
+Los movimientos, totales, cierre/reapertura, historial, impresión y exportación conservan sus reglas. La diferencia y el “queda para mañana” se recalculan a partir del conteo restaurado y de los movimientos. El botón “Guardar sin cerrar” sigue disponible. No se modifican presupuesto, lista central, clientes ni tintométrico.
 
-## Conservación
+La nueva escritura es local e inmediata; todavía no sincroniza la Caja con Sheet ni entre dispositivos. No hay nuevas hojas ni endpoints. `backend/Pancko_AppsScript_v0.11.2.gs` y `backend/Pancko_Worker_v0.11.0.mjs` están completos e idénticos a v0.11.4; no hay que desplegarlos otra vez.
 
-29 funciones de cálculo, persistencia, cierre/reapertura, historial y exportación/impresión comparadas y exactamente iguales a v0.11.3. No se modifican las cajas existentes al consultar. TXT/HTML de una misma caja conservan el resultado anterior. Lectura de datos nuevos compatible con v0.11.3.
+Archivos modificados: index.html, assets/caja.js, assets/caja.css, sw.js, data/version.json, textos de versión en assets/gestion.js/css y assets/desktop-shell.js/css, README.md, CHANGELOG.md, VALIDACION.md, VALIDACION_RESUMEN.json, VALIDACION_LAYOUT.json y SHA256SUMS.txt. Sin cambios byte a byte: tres CSV, manifest, iconos, backend y documentación de backend/lista.
 
-Sin backend nuevo, hojas nuevas, endpoints nuevos, login ni integración económica. CSV, manifest, iconos y backend byte a byte preservados. La lista central instalada no se reemplaza por el CSV del repo.
+## Subida
 
-## Archivos
+Descomprimir el ZIP y subir su **contenido** directamente a la raíz del repositorio, sin carpeta envolvente. Cerrar todas las ventanas Pancko y reabrir con conexión para activar la versión nueva. No borrar los datos del sitio: contienen las cajas. No se publicó nada desde esta entrega.
 
-Modificados: index.html; assets/caja.js/css; sw.js; data/version.json; README.md; CHANGELOG.md; VALIDACION.md; resúmenes de validación y SHA256SUMS.txt. En assets/gestion.js/css y assets/desktop-shell.js/css sólo se actualizan textos de versión 0.11.3 → 0.11.4.
-
-Sin cambios: backend/Pancko_AppsScript_v0.11.2.gs; backend/Pancko_Worker_v0.11.0.mjs; BACKEND_v0.11.2.md; LISTA_PRECIOS_v0.11.2.md; tres CSV; manifest e iconos. Código de negocio previo fuera de Caja preservado salvo textos de versión.
-
-## Instalación y límites
-
-Subir el contenido del ZIP a raíz del repo sin carpeta envolvente. No actualizar Apps Script ni Worker por esta misión. Abrir con red, cerrar todas las ventanas Pancko y reabrir para activar la nueva PWA; no borrar datos del sitio.
-
-Pruebas en VALIDACION.md. La compactación fue verificada mediante DOM y cascada CSS a distintos anchos; no con un motor visual Chrome. No se garantiza cero scroll en pantallas bajas o con zoom alto. No se probó en Android físico, PWA instalada ni impresora real. Las pruebas de teclado/foco usan DOM simulado; no se tocó GitHub ni servicios productivos.
+Pruebas y límites en VALIDACION.md; no se pudo ensayar la instalación PWA de escritorio ni medir visualmente el calendario en el Chrome real del mostrador.
