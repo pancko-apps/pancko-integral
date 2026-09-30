@@ -1,40 +1,37 @@
-# Validación de Pancko Gestión v0.11.1
+# Validación — v0.11.2
 
-## Alcance y métodos
+**211 comprobaciones automatizadas aprobadas.** Se ejecuta el código entregado. Los dobles de DOM, red, caché y Google Sheets no sustituyen una prueba en dispositivos y servicios reales.
 
-Se ejecutaron 159 comprobaciones. El frontend se prueba con un DOM simulado y canvas real; la estructura responsive se inspecciona con DOM y cascada de CSS; Worker, cache, Apps Script y Sheets usan dobles de prueba. No se dispone de un renderizador de navegador real accesible para el build local.
+| Grupo | Comprobaciones |
+|---|---:|
+| static | 22 |
+| frontend | 40 |
+| integration | 8 |
+| worker-sw | 23 |
+| shell-layout | 60 |
+| shell-data | 11 |
+| catalog | 47 |
 
-| Grupo | Comprobaciones | Método |
-|---|---:|---|
-| Sintaxis, rutas y paquete estático | 22 | Node `--check`, eventos HTML, HTML/manifest y archivos locales |
-| Flujos principales heredados | 40 | DOM simulado, datos CSV completos, canvas real |
-| Worker existente y SW actualizado | 23 | Requests/Responses, fetch/cache simulados |
-| Integración heredada | 8 | Dos dispositivos simulados → Worker → Apps Script → Sheets simulado |
-| Estructura del shell y responsive | 55 | DOM y análisis de cascada de reglas estructurales CSS |
-| Datos/acciones del dashboard | 11 | DOM simulado y almacenamiento local |
-| **Total** | **159** | |
+## Cobertura
 
-## Verificaciones principales
+- Sintaxis de todos los scripts inline, JS, Worker y GAS; eventos HTML; IDs únicos; rutas/pantallas; manifest/iconos; ausencia de claves de prueba; registro SW con versión coherente.
+- Arranque sin errores en DOM simulado; carga real de CSV de artículos, clientes, recetas y version.json; búsquedas y navegación de los 13 módulos.
+- Presupuesto básico; cantidades/descuento por línea; cliente por CUIT; alta rápida y consumidor final; historial y snapshots; tres opciones de condiciones de pago.
+- Tintométrico desde laboratorio y presupuesto: factor patrón, fórmula original/editada, reapertura y precio guardado; etiqueta; A4 y ticket generados con canvas real.
+- Shell y reglas responsive a 360/390/768/1023/1024/1280/1440/1920 px; catálogo en una o dos columnas según ancho; formulario central único dentro de Gestionar lista. Se analiza la cascada CSS, no hay motor visual Chrome.
+- Importación completa frente a sólo precios; tintometría preservada o actualizada según modo; campos vacíos frente a omitidos; códigos ausentes; nombres requeridos; alias de proveedor; validaciones; CSV exportado/reimportado con saltos de línea y comillas.
+- Flujo frontend → Worker → GAS → segundo dispositivo con revisiones previas; nombre, fecha de publicación/aplicación, cantidades y registro local.
+- Hoja legible con filas/campos/filtro; encabezados técnicos preservados; publicación más corta conserva ausentes; historial técnico conservado; reintento idempotente no revierte el espejo.
+- Clave incorrecta, conflicto de versión, ID reutilizado, fallo de metadatos antes del commit, recuperación de carga huérfana, fallo de espejo y reconstrucción, colisión con hoja ajena, falta de espacio local y rechazo de publicación nombrada ante backend anterior.
+- Cliente v0.11.1 recibe el backend nuevo; publicación antigua sin nombre compatible; versión histórica sin metadatos legible sin inventar nombre; lecturas sin escrituras.
+- Preservación exacta de presupuesto en curso e historial al importar/publicar/recibir; nuevas líneas usan el precio nuevo. Reinicio offline simulado conserva nombre/lista/fechas. Actualización sobre catálogo instalado de 4270 artículos no lo reemplaza por el CSV de 3998.
+- Service worker simulado: instalación de 9 recursos, apertura y datos offline, limpieza sólo de cachés Pancko, exclusión de APIs y POST, espera al cierre de ventanas sin skipWaiting.
+- Dashboard conserva datos y borrador; módulos económicos continúan en preparación.
 
-- Sintaxis de todos los scripts inline, eventos HTML, JS de gestión, service worker y backend incluido. CSS con bloques/cadenas cerrados; copias fuente del shell y gestión idénticas a lo integrado en HTML.
-- IDs únicos; todas las rutas de navegación tienen pantalla; las 27 pantallas son hijas del mismo `main`. Trece módulos en la sidebar.
-- `data/version.json` y tres CSV cargan en los flujos simulados: 3.998 artículos, 16.958 recetas y el catálogo de clientes (más clientes locales conservados). CSV byte a byte idénticos a la base.
-- Anchos analizados: 360, 390, 768, 1023, 1024, 1280, 1440 y 1920 px. Debajo de 1024: sidebar/dashboard PC ocultos, ancho móvil original. Desde 1024: sidebar fija, header ancho, área principal descontando sidebar, sin máximo de 480 px, cuatro cards y paneles en columnas.
-- Dashboard con contadores reales, sólo latas disponibles y presupuestos del día, recientes ordenados, exclusión de borrados, máximo de ocho sin descartar históricos, nombres de cliente insertados como texto seguro, indicador sin conexión y borrador conservado.
-- Buscar producto por código; agregar línea sin cambiar de pantalla; cantidad/descuento; seleccionar cliente por CUIT; Consumidor final; alta rápida y cancelación sin perder presupuesto.
-- Producto tintométrico desde presupuesto; factor Patrón/Especial; fórmula original/usada; precios históricos; snapshot; edición; etiqueta con `/MOD`; reimpresión sin duplicar el registro en sesión.
-- A4 HTML, canvas A4 largo (25 líneas), ticket y tres opciones de condiciones de pago conservados. Se renderizaron las salidas canvas reales durante las regresiones, sin impresora física.
-- Importación previa segura y sincronización heredada conservadas. Pruebas integradas de presupuesto/color y lista central con el mismo backend v0.11.0; sin agregar operaciones nuevas.
-- Instalación offline simulada de nueve recursos; navegación/CSV/manifest desde cache; APIs fuera del cache; no `skipWaiting`; limpieza limitada a caches Pancko.
-- Apps Script/Worker, manifest e iconos iguales a los de v0.11.0. Ningún módulo preparado escribe remitos, cuenta corriente, recibos ni cheques.
-- ZIP con raíz correcta, archivos requeridos, integridad y hashes.
+## No probado en este entorno
 
-## Lo que no se pudo probar
+No hay ejecutable Chromium/Chrome disponible. No se verificaron render visual ni consola de un navegador real, Android físico, instalación/actualización real de PWA, impresora, diálogo de impresión, WhatsApp/compartir nativo ni las cuotas/latencias de Apps Script productivo. Las pruebas de backend usan Sheets simulados; no se modificaron las hojas reales.
 
-**No se comprobó el aspecto final en un navegador real.** El navegador de esta ejecución rechazó abrir el archivo local por política de URLs. La terminal tampoco pudo iniciar un servidor HTTP local; descargar Chromium falló por restricciones de red. No se pidieron permisos externos ni se publicó una vista de prueba.
+## Verificación del paquete
 
-El análisis CSS verifica las reglas que definen el layout, no mediciones de píxeles, desbordes por métricas de fuente ni capturas reales. No equivale a probar Chrome, Android, consola de navegador o comportamiento de teclado táctil.
-
-Tampoco se ejecutaron: registro/actualización de SW en una PWA instalada real, arranque offline real del teléfono, impresión física A4/térmica, compartir nativo/WhatsApp, llamadas al Worker/Apps Script/Sheet publicados, ni pruebas de cuotas reales de Google.
-
-La entrega corrige el frontend y conserva las funciones anteriores. Estas limitaciones quedan documentadas para no confundir pruebas simuladas con una verificación de producción.
+ZIP con index.html, sw.js, manifest, assets y data directamente en raíz; backend completo y documentación. SHA256SUMS.txt permite verificar los archivos; su propia suma no se incluye. El ensamblado comprueba coincidencia entre código inline y sus copias en assets, CSV/iconos/Worker preservados y ausencia de carpeta envolvente.

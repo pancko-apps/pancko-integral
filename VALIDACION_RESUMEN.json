@@ -1,8 +1,9 @@
 {
-  "version": "0.11.1",
-  "backend_version": "0.11.0",
-  "backend_unchanged": true,
-  "total_checks": 159,
+  "version": "0.11.2",
+  "checks": 211,
+  "environment": "Node/Python; DOM, red, caché y Sheets simulados; canvas real",
+  "real_browser_tested": false,
+  "production_backend_tested": false,
   "groups": {
     "static": {
       "checks": 22
@@ -14,14 +15,14 @@
         "deleteBudgetFromCloud: Error: Sin conexión de prueba"
       ]
     },
-    "worker_sw": {
-      "checks": 23
-    },
     "integration": {
       "checks": 8
     },
-    "shell_structure": {
-      "checks": 55,
+    "worker-sw": {
+      "checks": 23
+    },
+    "shell-layout": {
+      "checks": 60,
       "method": "DOM y cascada de reglas estructurales CSS; sin motor de render de navegador",
       "viewports": [
         {
@@ -74,16 +75,14 @@
         }
       ]
     },
-    "shell_data": {
+    "shell-data": {
       "checks": 11,
       "errors": []
+    },
+    "catalog": {
+      "checks": 47,
+      "method": "DOM/Sheets simulados, código real de frontend + Worker + Apps Script",
+      "errors": []
     }
-  },
-  "real_browser_tested": false,
-  "production_backend_tested": false,
-  "limitations": [
-    "Sin render visual real de navegador",
-    "DOM/fetch/Sheets/cache simulados",
-    "Sin impresión física, compartir nativo ni PWA instalada real"
-  ]
+  }
 }

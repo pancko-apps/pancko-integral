@@ -1,5 +1,5 @@
 {
-  "checks": 55,
+  "checks": 60,
   "method": "DOM y cascada de reglas estructurales CSS; sin motor de render de navegador",
   "viewports": [
     {
