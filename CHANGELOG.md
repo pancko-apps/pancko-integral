@@ -1,4 +1,12 @@
-# CHANGELOG — Pancko Gestión v0.11.8
+# CHANGELOG — Pancko Gestión v0.12.0
+
+## v0.12.0 — Cuenta corriente manual local
+
+- Nuevo módulo operativo de ficha por cliente: búsqueda, filtros con/sin saldo, resumen general, cargos con referencia Yoppen, pagos por forma, ajustes y anulación conservando historial. Importe directo y detalle libre; productos opcionales pendientes.
+- Alta y edición de clientes con localidad, nota y estado; alerta de similitud y bloqueo de duplicado exacto/documento. Si falta ID histórico, se asigna ID local estable; cliente con movimientos no se elimina desde la interfaz.
+- Persistencia local independiente `pk_cc_manual_v1`, saldo calculado desde movimientos activos en centavos. Exportación/importación JSON con validación y detección de conflictos por ID. No hay sincronización central de CC; Caja sigue compartida sin cambios.
+- Archivos de app cambiados: `index.html`, `sw.js`, `data/version.json`. Documentación actualizada: `README.md`, `CHANGELOG.md`, `VALIDACION.md`, `SHA256SUMS.txt`. CSV, Apps Script y Worker íntegros e idénticos a v0.11.8. No hay hojas, endpoints ni propiedades nuevas.
+- Un pago en CC no escribe en Caja. Presupuestos, lista de precios, tintométrico y facturación no crean CC automáticamente. No se interactuó con servicios productivos ni se publicó.
 
 ## v0.11.8 — Caja diaria, presentación (1 de octubre de 2026)
 

@@ -33,3 +33,11 @@ También se comprobaron clave inválida, lectura que no crea hojas, endpoints nu
 - Prueba simulada de dos dispositivos sobre backend aislado: movimientos distintos combinados sin duplicados; migración de una caja local v0.11.6 conservada en v0.11.8.
 - Archivos backend y CSV comparados byte a byte con el paquete v0.11.7 con URL corregida.
 - Limitación: no se ejecutó prueba visual en navegador real ni se tocó el servicio remoto/Sheet productivo. El DOM y las pruebas de sincronización fueron simulados. Revisar la pantalla en PC y celular luego de subir el paquete.
+
+## v0.12.0 — Validación de cuenta corriente
+
+- Sintaxis de bloques JS, `sw.js`, Worker sin cambios y JSON de versión.
+- DOM simulado con código real: cliente nuevo y edición, cargo con número Yoppen, pago en efectivo, ajuste positivo/negativo, saldo, anulación conservada, filtro por comprobante, controles de importe y duplicado, referencia y nota.
+- Respaldo JSON e importación en otro navegador simulado; detección de ID conflictivo, relectura de almacenamiento y protección ante libro corrupto. Cliente antiguo sin ID recibe uno persistente.
+- No cambian `pk_cash_daily_v1`, las operaciones de sincronización de Caja, los datos CSV ni backend (comparación byte a byte).
+- Limitación: sin prueba visual en navegador real ni acceso a servicios productivos; revisar desktop/móvil tras subir el paquete. CC es local/offline y no se propaga sola entre dispositivos.

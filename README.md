@@ -1,7 +1,26 @@
-# Pancko Gestión v0.11.8 — Caja diaria más clara
+# Pancko Gestión v0.12.0 — Cuenta corriente manual local
 
 Entrega completa basada en v0.11.6. Caja diaria conserva el libro offline `pk_cash_daily_v1` y agrega sincronización con Google Sheets mediante Apps Script y Worker. Presupuesto, artículos, lista de precios, tintométrico y el resto de la app conservan su lógica.
 
+
+## Novedad v0.12.0: ficha manual de cuenta corriente
+
+Cuenta corriente se guarda **sólo en este navegador** bajo `pk_cc_manual_v1`. No se sincroniza entre PC y celular. Caja diaria **sí** conserva su propia sincronización. Elegimos esta primera etapa local para tener cargos, pagos y anulaciones confiables sin introducir conflictos de deuda entre dispositivos ni tocar la Sheet mientras se define un protocolo central. Usar **un equipo principal** para esta ficha; descargar su respaldo JSON con regularidad. Importar el respaldo en otro dispositivo combina movimientos por ID, pero **no habilita sincronización automática** ni resuelve ediciones concurrentes.
+
+Desde Cuenta corriente podés buscar clientes por nombre, teléfono o comprobante; consultar saldos, cargos, pagos, historial y filtro de fechas; cargar cargo con referencia libre a Yoppen, pago con forma y referencia, o ajuste positivo/negativo; y anular sin borrar la auditoría. El saldo en centavos se calcula como cargos + ajustes positivos − pagos − ajustes negativos, omitiendo anulados. El total general por cobrar suma **sólo saldos positivos**; anticipos quedan como saldos a favor en las fichas. Los productos opcionales del cargo quedan pendientes: en esta versión se usa importe directo y detalle libre. No hay efectos sobre stock.
+
+Clientes mantiene `pk_clients` y sus IDs. Al entrar a Cuenta corriente, clientes antiguos sin ID reciben uno local estable; IDs duplicados bloquean escrituras hasta revisar la base. Alta desde Clientes o desde Cuenta corriente incorpora localidad, nota y activo/inactivo. Nombre o documento exacto existente bloquea duplicados; nombres parecidos piden confirmación. No se puede eliminar desde la app un cliente que tenga movimientos, incluso anulados; se puede marcar inactivo. El respaldo de CC incluye movimientos y clientes vinculados o creados localmente; al importar valida IDs y cancela si hay discrepancias, sin borrar registros existentes.
+
+Un cargo es **manual** y puede referir una factura o remito de Yoppen; Pancko no obtiene esos comprobantes. Un presupuesto guardado/impreso no genera deuda. Un pago en efectivo no crea un movimiento de Caja diaria: si corresponde, se registra por separado. Esta ficha no factura, no emite recibos fiscales y no sustituye a Yoppen. El nombre del dispositivo configurado para Caja se usa sólo como trazabilidad, sin login.
+
+### Actualizar desde v0.11.8 ya instalada
+
+1. Antes de actualizar, exportar los respaldos que ya utilizás, especialmente Caja.
+2. Descomprimir el ZIP y subir **su contenido** a la raíz del repositorio GitHub Pages: `index.html`, `sw.js`, `manifest.webmanifest`, `assets/`, `data/` y documentación. Los archivos `backend/` van incluidos completos pero **no hay que reemplazar ni redeplegar Apps Script/Worker** para esta versión.
+3. Cerrar todas las ventanas de la PWA; reabrir con conexión y comprobar `Pancko Gestión v0.12.0`. No borrar almacenamiento del sitio: ahí quedan Caja, clientes y la nueva ficha local.
+4. Crear un cliente o abrir uno existente, anotar un cargo y un pago de prueba, verificar el saldo y descargar un respaldo desde Cuenta corriente. El respaldo de Caja es independiente del respaldo de CC.
+
+Para una instalación desde cero, leer también las instrucciones históricas de Caja compartida que siguen más abajo.
 
 ## Actualizar desde v0.11.7 instalada
 
