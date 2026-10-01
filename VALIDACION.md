@@ -34,6 +34,14 @@ También se comprobaron clave inválida, lectura que no crea hojas, endpoints nu
 - Archivos backend y CSV comparados byte a byte con el paquete v0.11.7 con URL corregida.
 - Limitación: no se ejecutó prueba visual en navegador real ni se tocó el servicio remoto/Sheet productivo. El DOM y las pruebas de sincronización fueron simulados. Revisar la pantalla en PC y celular luego de subir el paquete.
 
+## v0.12.1 — Validación de correcciones UX
+
+- Pruebas con el código real y DOM simulado: cargo, pago y ajuste editados sin cambiar ID; importe modificado con confirmación, edición de anulado bloqueada, saldo recalculado y libro persistido en `pk_cc_manual_v1`.
+- Parser de importes con miles y decimales, vista previa y confirmación adicional desde $1.000.000; duplicados y corrupción de libro siguen protegidos.
+- Ficha TXT, copia y HTML de impresión con fechas, saldos y movimientos; botones y contraste inspeccionados estáticamente. Campos de clave sin `type=password`, con `autocomplete=off` y Mostrar/Ocultar.
+- Regresión de cuenta local, resguardos/importación y guardas anteriores. Comparación byte a byte de CSV, assets y backend contra v0.12.0. Sintaxis de scripts y service worker, manifiesto, rutas y estructura ZIP.
+- **No se pudo comprobar en Chrome real** si desapareció el aviso “Guardar contraseña”, ni la impresión visual real, ni probar en PC y celular físicos. Tampoco se probó contra Google Sheets: esta versión no toca backend ni centraliza CC. Revisar estos puntos luego de subir el paquete.
+
 ## v0.12.0 — Validación de cuenta corriente
 
 - Sintaxis de bloques JS, `sw.js`, Worker sin cambios y JSON de versión.

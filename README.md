@@ -1,4 +1,29 @@
-# Pancko Gestión v0.12.0 — Cuenta corriente manual local
+# Pancko Gestión v0.12.1 — Correcciones de Cuenta corriente
+
+## Actualizar desde v0.12.0
+
+Esta versión mejora la ficha manual de Cuenta corriente y **sigue siendo local** en `pk_cc_manual_v1`. Caja diaria conserva su sincronización central. Antes de reemplazar archivos, descargá un respaldo de Cuenta corriente y otro de Caja desde el equipo principal.
+
+1. Descomprimí el ZIP. Subí **el contenido**, sin una carpeta contenedora adicional, a la raíz del repositorio que sirve GitHub Pages. Reemplazá `index.html`, `sw.js`, `data/version.json`, `assets/` y la documentación; conservá la estructura `data/` y `backend/`.
+2. No borres los datos del sitio ni reinstales la PWA. Cerrá todas sus ventanas, abrila con conexión y comprobá `Pancko Gestión v0.12.1`.
+3. Editá un movimiento de prueba y comprobá el saldo. Exportá una ficha TXT e imprimila. Verificá las claves operativas de Caja y lista central en tu Chrome.
+
+**No se modifica ni se redepliega Apps Script o Worker.** Los archivos completos `backend/` están incluidos como referencia idéntica a v0.12.0. Los tres CSV, Caja, lista central, presupuestos y tintométrico conservan sus datos y lógica.
+
+### Cambios de Cuenta corriente
+
+- Cada movimiento activo ofrece **Editar**. Conserva su ID y fecha de creación; cambia los campos editables del tipo, recalcula el saldo y registra `updated_at`, `updated_by_device`, `edited` e `edit_history`. Cargo y pago conservan su tipo; un ajuste puede pasar de positivo a negativo o viceversa. Un anulado no se edita. Cambiar el importe exige confirmación.
+- El importe admite puntos de miles y coma decimal; una línea debajo muestra “Se cargará: …”. Al salir del campo se normaliza la vista. Importes de $1.000.000 o más, nuevos o corregidos, requieren confirmación adicional. Las validaciones originales continúan vigentes.
+- La ficha ofrece **Imprimir ficha**, **Exportar resumen TXT** y **Copiar resumen**. Incluye contacto, fecha de emisión, saldo actual, cargos, pagos y saldo corrido. Si hay filtros Desde/Hasta, las filas exportadas respetan ese período; los totales superiores muestran **el saldo y acumulados actuales completos del cliente**, no sólo el período. Los movimientos anulados se ven marcados y no suman.
+- El botón **Cta CTE** de Clientes tiene contraste azul/blanco. Las claves operativas de Caja y lista central usan un campo de texto enmascarado visualmente con botón Mostrar/Ocultar, para evitar la detección habitual de campos de contraseña en Chrome. El valor de las claves y el modo de almacenamiento no cambian. Otros navegadores pueden interpretar el enmascaramiento de modo distinto.
+
+### Próxima etapa: CC central v0.12.2
+
+No hay hojas ni endpoints nuevos en v0.12.1. Para compartir saldos entre PC y celular se necesita sincronizar **movimientos y clientes**. Diseño propuesto: hojas `cc_movimientos` (ID, cliente, datos, revisión, estado), `cc_eventos` (operación idempotente y origen) y `cc_clientes_extra` (altas/ediciones identificadas); propiedad separada `PANCKO_CC_TOKEN`; endpoints `/cc/get` y `/cc/apply` en Worker. El servidor debe aplicar bajo bloqueo, guardar `op_id`, comparar la revisión del movimiento en edición/anulación, combinar altas con IDs distintos y devolver conflicto sin pisar cambios concurrentes. La app conservará `pk_cc_manual_v1` y una cola offline; necesitará una migración explícita con respaldo y conciliación de clientes duplicados antes de hacer central la ficha existente. No desplegar hojas ni propiedades de esta propuesta todavía.
+
+**Hasta esa etapa, los saldos de CC en dos dispositivos pueden diferir.** Usá un equipo principal y exportá respaldos de la ficha. Importar JSON en otro equipo no equivale a sincronización automática.
+
+## Historia y funcionamiento anterior
 
 Entrega completa basada en v0.11.6. Caja diaria conserva el libro offline `pk_cash_daily_v1` y agrega sincronización con Google Sheets mediante Apps Script y Worker. Presupuesto, artículos, lista de precios, tintométrico y el resto de la app conservan su lógica.
 

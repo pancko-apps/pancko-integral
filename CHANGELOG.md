@@ -1,4 +1,12 @@
-# CHANGELOG — Pancko Gestión v0.12.0
+# CHANGELOG — Pancko Gestión v0.12.1
+
+## v0.12.1 — Correcciones de Cuenta corriente (1 de octubre de 2026)
+
+- Editar cargo, pago y ajuste activos conservando ID; confirmar importe cambiado y montos altos; registrar edición y recálculo del saldo. Los anulados permanecen bloqueados.
+- Vista previa y normalización del importe en formato argentino. Ficha imprimible, TXT y copia al portapapeles con filtros de fechas visibles y saldo corrido.
+- Mejor contraste del botón Cta CTE en Clientes. Campos operativos enmascarados con Mostrar/Ocultar, sin campos `type=password` en la app.
+- Archivos de app modificados: `index.html`, `sw.js`, `data/version.json`. CSV, recursos `assets/`, manifest, Apps Script y Worker idénticos a v0.12.0. Documentación y checksums renovados. Sin hojas, propiedades ni endpoints nuevos. No se tocó la Caja compartida.
+- CC sigue local/offline en `pk_cc_manual_v1`; v0.12.2 queda especificada como próxima etapa central. No se publicó ni se interactuó con servicios productivos.
 
 ## v0.12.0 — Cuenta corriente manual local
 
