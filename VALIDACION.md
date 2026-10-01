@@ -1,23 +1,20 @@
-# Validación — Pancko Gestión v0.11.6
+# Validación — Pancko Gestión v0.11.7
 
-Base v0.11.5. Se probó el código real con DOM, localStorage, confirmaciones y recursos PWA simulados. El cambio funcional está limitado a Caja diaria.
+Se ejecutó código frontend real, Worker real y Apps Script real sobre DOM, almacenamiento y Sheets simulados. No sustituye una prueba en PC y celular con servicios desplegados.
 
-## Casos nuevos
+| Caso | Resultado simulado |
+|---|---|
+| PC crea caja y movimiento A | Un snapshot central por fecha, movimiento una sola vez. |
+| Celular recibe caja y carga B | PC actualiza y ve A+B. |
+| Carga offline y posterior envío | Local/cola conservados; reconexión sin duplicar. |
+| Anulación y eliminación | Anulada visible sin sumar; eliminada fuera de vista/TXT, evento técnico conservado. |
+| Edición simultánea del mismo movimiento | Conflicto explícito; no sobrescribe la versión central. |
+| Cierre con movimiento nuevo ajeno | Bloquea y exige actualización/revisión. |
+| Cierre correcto y consulta desde segundo equipo | El segundo ve caja cerrada y no puede editar. |
+| Reapertura confirmada | El segundo recibe reapertura y cierre previo conservado. |
+| Caja al día siguiente | Saldo del cierre anterior y desglose si es deducible, también en dispositivo sin caja previa. |
+| Local v0.11.6 | Legible; caja histórica cerrada con movimiento se publica sin alterar su cierre si la fecha aún no existe centralmente. |
 
-- Cierre bloqueado contra edición; cancelación de reapertura sin cambios; reapertura confirmada con snapshot previo conservado; segundo cierre independiente.
-- $50.000 inicial + $79.240 de movimiento; conteo $30.000 + $93.500 + $5.300 + $150 + $290; retiro $30.000. Cierre con $99.240 para mañana y desglose $0 + $93.500 + $5.300 + $150 + $290.
-- Al abrir el siguiente día se sugieren $99.240 y los cinco grupos como conteo inicial; retiro nuevo en cero. Tras nueva instancia de app con el mismo libro, se conserva el desglose.
-- Un segundo cierre tras reabrir no modifica la caja posterior ya creada. El primer cierre queda en el historial.
-- Retiro $700 mayor que grupo grande $500: advertencia previa, saldo $400, desglose `null`; siguiente día sin conteo inventado.
-- Saldo declarado manualmente $850 frente a $900 calculados: advertencia, saldo sugerido $850, desglose `null`.
-- Modificar saldo inicial quita la etiqueta de procedencia del desglose sugerido. Cierre histórico sin `remaining_counts` conserva su estructura y sus cálculos; no se rellena retrospectivamente.
+También se comprobaron clave inválida, lectura que no crea hojas, endpoints nuevos del Worker, sintaxis de backend, service worker, rutas y archivos relativos, CSV intactos y ZIP raíz. La regresión del frontend existente aprobó 41 comprobaciones. La cola usa IDs estables e idempotencia del servidor; el doble envío y el merge de movimientos distintos están cubiertos por el modelo y la simulación.
 
-Estos escenarios aprobaron 17 verificaciones dirigidas. También se ejecutaron las pruebas heredadas: Caja (82), guardado automático (26), frontend (41), Worker/SW (23), recursos/sintaxis (30) y entrada del conteo (63). Los controles de regresión incluyen movimientos, importes, cierre/reapertura, suma y Enter, persistencia local, presupuestos y frontend general. El CSS de Caja no cambia su distribución, salvo comentarios de versión; las copias inline coinciden con sus fuentes.
-
-## Integridad del paquete
-
-Se verificó sintaxis JavaScript del módulo, scripts inline y service worker; referencias relativas de index/manifest/assets/data, CSV, versión y precache. Se comparó backend y CSV con v0.11.5 sin diferencias. El ZIP se ensambla con archivos directamente en raíz, sin carpeta contenedora. `SHA256SUMS.txt` enumera los archivos incluidos.
-
-## Límites
-
-No se dispone de una PWA instalada en Windows ni de Chrome/impresora físicos en este entorno. La reapertura se simuló con otra instancia sobre el mismo localStorage; no se publicó en GitHub ni se conectaron servicios productivos. El orden real de billetes dentro de cada grupo no se conoce: cuando el retiro supera el grupo grande, se pide ajuste humano sin repartirlo entre los otros grupos. El conteo precargado es una sugerencia inicial; se debe actualizar conforme entra o sale efectivo durante el nuevo día. Las cajas siguen siendo datos locales de cada navegador.
+**Pendiente fuera de este entorno:** despliegue manual real de Apps Script/Worker, permisos de la implementación web, latencia/cuotas efectivas de Sheets, caché de la PWA instalada, impresora y prueba física PC/celular. Si el backend antiguo sigue activo, la Caja continúa local y muestra error/pendientes; no se deben interpretar esos pendientes como sincronizados.
