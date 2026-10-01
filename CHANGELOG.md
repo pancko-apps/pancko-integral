@@ -1,4 +1,20 @@
-# CHANGELOG — Pancko Gestión v0.11.7
+# CHANGELOG — Pancko Gestión v0.11.8
+
+## v0.11.8 — Caja diaria, presentación (1 de octubre de 2026)
+
+- En PC, cierre previo de sólo lectura y conteo de hoy editable en dos columnas; en móvil, apilados. La fecha de origen es visible. El cierre ya registrado se muestra dentro del mismo esquema.
+- Movimientos: detalle e importe más legibles, dispositivo debajo, egresos distinguibles, acciones alineadas al extremo derecho. En anchos de escritorio ajustados, las tarjetas se apilan para conservar la lectura de la tabla.
+- Resumen compacto: saldo inicial, ingresos, egresos, saldo teórico, contado y diferencia. Texto menos alarmante cuando la sincronización demora o hay envíos pendientes, con el error concreto conservado.
+- Archivos de la app cambiados: `index.html`, `sw.js`, `data/version.json`; documentación `README.md`, `CHANGELOG.md`, `VALIDACION.md` y checksums. Los CSV, Apps Script y Worker son idénticos a la entrega v0.11.7 corregida. Sin nuevas hojas, propiedades o endpoints. No cambian cálculos, ID, persistencia, cola ni protocolos de sincronización.
+- Instalación existente: subir contenido del ZIP a la raíz del repo; cerrar/reabrir la PWA conectada. Sin redeploy de backend.
+
+## Corrección de enlace Apps Script — 1 de octubre de 2026
+
+- `backend/Pancko_Worker_v0.11.7.mjs`: cambia la URL del Apps Script a la nueva implementación proporcionada por Tincho. El destino fijado en el Worker prevalece ante una eventual variable de entorno `GAS_URL` antigua. Rutas y acciones existentes se conservan.
+- `README.md`, `CHANGELOG.md`, `VALIDACION.md`, `SHA256SUMS.txt`: se actualiza documentación y verificación. El resto de archivos de la app y el Apps Script son idénticos a la entrega v0.11.7 previa. No hay nueva versión de la PWA ni cambios de caché porque el frontend conserva exactamente la misma URL del Worker.
+- Para una instalación existente, desplegar manualmente **sólo el Worker completo** en Cloudflare. Este paquete sigue incluyendo todos los archivos del repositorio para instalación completa. No se ha desplegado en Cloudflare ni publicado en GitHub.
+
+
 
 Base: v0.11.6. Alcance: Caja diaria compartida entre dispositivos; sin cambios funcionales en presupuestos, tintométrico, precios, clientes, remitos, cuenta corriente ni cheques.
 

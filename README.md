@@ -1,12 +1,27 @@
-# Pancko Gestión v0.11.7 — Caja compartida
+# Pancko Gestión v0.11.8 — Caja diaria más clara
 
 Entrega completa basada en v0.11.6. Caja diaria conserva el libro offline `pk_cash_daily_v1` y agrega sincronización con Google Sheets mediante Apps Script y Worker. Presupuesto, artículos, lista de precios, tintométrico y el resto de la app conservan su lógica.
+
+
+## Actualizar desde v0.11.7 instalada
+
+Esta v0.11.8 mejora **sólo la presentación de Caja diaria**. Si la Caja compartida v0.11.7 ya funciona en PC y celular, descomprimí el ZIP y subí **su contenido a la raíz** del repositorio de GitHub Pages. Conservá la estructura `index.html`, `sw.js`, `manifest.webmanifest`, `assets/`, `data/`, `backend/`. No hace falta editar ni desplegar Apps Script o Worker: ambos archivos completos se incluyen **sin cambios** respecto del paquete v0.11.7 con la URL nueva corregida. La app sigue usando el mismo endpoint de Worker y la misma clave de Caja. No borres datos locales ni almacenamiento del sitio. Cerrá todas las ventanas y la PWA, y reabrí conectada para recibir el cache v0.11.8; comprobá que la pantalla muestre esa versión.
+
+Caja muestra el desglose conservado del cierre anterior a la izquierda, sólo como referencia, y el conteo real de hoy editable a la derecha. Si no hay desglose previo, aparecen guiones. Si el último cierre no fue realmente arrastrado al abrir la caja, la interfaz lo aclara para no confundirlo con el conteo de hoy. El resumen de seis cifras usa el conteo actual válido al escribir; los datos guardados siguen en `pk_cash_daily_v1`. En móvil, las dos secciones se apilan. Los botones y la lista de movimientos conservan sus operaciones originales.
+
+## Corrección de URL de Apps Script (1 de octubre de 2026)
+
+El Worker completo de este paquete apunta a:
+
+`https://script.google.com/macros/s/AKfycbwyFVFa54Ruue2-4UoIuvnYzbjyqmyEwiwuozl7Zz01zVD0KJSXMKnHdDtCwrAzg2VT/exec`
+
+Si v0.11.7 ya está instalada, **para esta corrección sólo hace falta reemplazar y desplegar el Worker en Cloudflare**. No es necesario volver a subir la app a GitHub Pages, cambiar `index.html`, `sw.js`, `data/version.json` ni reinstalar la PWA. Tampoco hace falta volver a pegar Apps Script si ese mismo código ya está publicado en la nueva implementación. El ZIP incluye la app y el Apps Script completos por conveniencia para una instalación desde cero. El Worker sigue sirviendo `https://pancko-integral-api.tinchosiara.workers.dev/`; subir su archivo al repositorio por sí solo no lo despliega en Cloudflare. Revisar que la nueva implementación `/exec` conserve acceso, código, hoja y propiedad `PANCKO_CASH_TOKEN`.
 
 ## Orden para activar
 
 1. **Antes de subir la app**, exportar un respaldo JSON de la Caja del equipo principal. Si la PC y el celular ya tienen cajas distintas para una misma fecha, revisar cuál será la principal: la sincronización no mezcla automáticamente dos historias preexistentes de la misma fecha.
 2. En la cuenta del Apps Script actual, reemplazar el proyecto por el archivo **completo** `backend/Pancko_AppsScript_v0.11.7.gs`, conservando el `SHEET_ID` ya incluido. En **Configuración del proyecto → Propiedades del script**, crear `PANCKO_CASH_TOKEN` con una clave compartida de al menos 16 caracteres. No escribirla en el código ni en el repositorio. **Actualizar la implementación** de la aplicación web a una nueva versión; comprobar que sigue usando la URL `/exec` esperada. Acceso desde Worker según la configuración actual del servicio.
-3. Reemplazar el código completo del Worker por `backend/Pancko_Worker_v0.11.7.mjs` en la cuenta Cloudflare actual y desplegarlo. El Worker conserva `GAS_URL` y las rutas anteriores. Si la URL del despliegue Apps Script cambió, actualizar `GAS_URL` del Worker antes de desplegar. Verificar `/ping` (Worker v0.11.7). No hay que cambiar la clave de publicación de precios ni sus propiedades.
+3. Reemplazar el código completo del Worker por `backend/Pancko_Worker_v0.11.7.mjs` en la cuenta Cloudflare actual y desplegarlo. Esta revisión fija `GAS_URL` a la nueva URL de Apps Script indicada abajo y la usa directamente, aun si quedara una variable `GAS_URL` antigua en Cloudflare. Si existe esa variable, actualizarla o quitarla para evitar confusiones futuras. Verificar `/ping` y una consulta real, por ejemplo `/colors` (el ping por sí solo no comprueba acceso a Apps Script). No hay que cambiar la clave de publicación de precios ni sus propiedades.
 4. Descomprimir el ZIP y subir **su contenido** a la raíz del repositorio: `index.html`, `sw.js`, `manifest.webmanifest`, `assets/`, `data/`, `backend/` y documentación. Subir los archivos backend al repo **no** actualiza Apps Script ni Cloudflare: completar pasos 2 y 3 manualmente. Cerrar todas las ventanas de la PWA y reabrir con conexión; debe verse v0.11.7. No borrar los datos del sitio.
 5. En Caja diaria → **Dispositivo y sincronización**, introducir un nombre por dispositivo (por ejemplo “PC Mostrador” o “Tincho celu”) y la **misma clave** del paso 2. Guardar. El nombre es trazabilidad, no login. Repetir en cada dispositivo. La clave se almacena localmente en el navegador; evitar un dispositivo compartido o sin bloqueo físico si eso no es aceptable.
 
