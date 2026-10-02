@@ -1,3 +1,19 @@
+# v0.12.10 — Sugerencias, lote y descuentos claros en Presupuestos
+
+Fecha: 02/10/2026. Base: v0.12.9.
+
+- Sugerencias rápidas al escribir, clic para agregar; Enter mantiene selección exacta/única/múltiple.
+- Selector completo con casillas y botón «Agregar seleccionados», precio snapshot y líneas independientes. Bases TINT/DEEP/ACCENT en lote quedan pendientes para editar desde Fórmula.
+- Importe de cada línea muestra sólo su descuento propio. Resumen: subtotal neto de línea, ahorro informativo, descuento general y total. Las salidas mantienen sus cálculos anteriores.
+- Condición/forma de pago textual y descuento general numérico independiente. Se muestran en A4/imagen y ticket; alternativas de pago configuradas siguen disponibles.
+- Tachito con confirmación restablece borrador, cliente Consumidor final, condición Lista y 0% sin tocar historial.
+- Claves locales nuevas `pk_budget_condition_v1`, `pk_budget_general_pct_v1`; migración inicial de términos v0.12.9. Historial/Sheet mantienen `modo` y `modePercent`.
+- Archivos modificados: `index.html`, `assets/budget-workbench.js`, `assets/budget-workbench.css`, `assets/pwa-update.js`, `sw.js`, `data/version.json`, `README.md`, `CHANGELOG.md`, `VALIDACION.md`, `SHA256SUMS.txt`. Backend y CSV sin cambios.
+- Pruebas: 23 controles de pulido, 26 del presupuesto anterior, 41 generales, Caja, Cuenta Corriente entre dispositivos simulados, PWA/SW, sintaxis, rutas y ZIP; límites en `VALIDACION.md`.
+- **Subir assets completo. Sólo index.html no alcanza.** No requiere actualizar Apps Script ni Worker.
+
+---
+
 # v0.12.9 — Presupuestos como comprobante en carga
 
 Fecha: 02/10/2026. Base: v0.12.8 (se mantiene su corrección de Forzar actualización).

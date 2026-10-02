@@ -1,3 +1,36 @@
+# Pancko Gestión v0.12.10 — Pulido de Presupuestos
+
+**Para subir: reemplazá el contenido completo en la raíz del repositorio, incluida la carpeta `assets/`. No alcanza con subir `index.html`.** El ZIP tiene `index.html`, `sw.js`, `manifest.webmanifest`, `data/`, `assets/` y backend directamente en su raíz, sin carpeta envolvente. No se publicó ni se interactuó con GitHub.
+
+## Qué hace esta versión
+
+- Vuelven las sugerencias mientras se escribe en Presupuestos, hasta ocho coincidencias visibles, con código, descripción y precio. Tocar una agrega ese artículo. Enter prioriza el código exacto, luego la coincidencia única; múltiples abren el selector completo. El botón Buscar artículos sigue abriéndolo. Códigos reales `1700/10`, `1700/15`, `1700/20` y otros de la familia aparecen al escribir `1700/`.
+- El selector incorpora casillas persistentes al filtrar o paginar y «Agregar seleccionados». Cada elegido crea una línea con cantidad 1, descuento propio 0, ID único y snapshot del precio al agregar. Un clic en la descripción todavía agrega un solo artículo. En lote, tintométricos TINT/DEEP/ACCENT quedan «Agregar fórmula · pendiente» y pueden editarse desde Fórmula; no se encadenan modales. La selección individual mantiene el modal automático. PASTEL/BLANCO entra sin fórmula.
+- **Importe** de cada línea ahora representa precio × cantidad menos su propio descuento. El descuento general sólo aparece y se aplica en el resumen. Éste muestra subtotal ya neto de líneas, descuento general y total; el ahorro de líneas se informa aparte sin volver a restarlo. Se conservan las funciones de redondeo ya usadas por las salidas y el historial.
+- La cabecera separa «Condición / forma de pago» (texto editable con sugerencias de condiciones existentes y Transferencia) y «Descuento general» (porcentaje tipeable entre 0 y 100, hasta dos decimales). Cambiar uno no impide editar el otro. La condición y porcentaje elegidos aparecen en las salidas A4, A4 como imagen y ticket, incluido el PNG usado al compartir. Las alternativas de pago configuradas y los tres modos de impresión se conservan.
+- El tachito pide confirmar y limpia **el borrador completo**: artículos, referencia, estado de edición, cliente y búsqueda, términos/porcentaje, opción de impresión, selector de productos y fórmula temporal. Deja «CONSUMIDOR FINAL», condición «Lista» y 0%. No borra entradas de historial.
+- Al actualizar desde v0.12.9, si el nuevo borrador aún no tiene términos propios, se toma la condición y porcentaje que el dispositivo tenía seleccionados. «Usar como nuevo presupuesto» restaura condición y porcentaje del presupuesto guardado sin modificar su historial.
+
+## Archivos y datos
+
+Frontend actualizado: `index.html`, `assets/budget-workbench.js`, `assets/budget-workbench.css`, `assets/pwa-update.js`, `sw.js`, `data/version.json`, `README.md`, `CHANGELOG.md`, `VALIDACION.md` y `SHA256SUMS.txt`. `sw.js` precarga CSS/JS y CSV con caché `pancko-gestion-v0.12.10`.
+
+Backend Apps Script v0.12.6 y Worker v0.12.2 se incluyen completos **sin cambios**. No hay despliegue de backend, endpoint, token, hoja ni migración de Sheet nueva. No cambian CSV, Caja, Cuenta Corriente ni recetas.
+
+En almacenamiento del dispositivo se añaden `pk_budget_condition_v1` y `pk_budget_general_pct_v1`. Las entradas históricas y el envío existente conservan los campos `modo` y `modePercent`; no se alteran presupuestos anteriores. Si volvés a abrir un código de v0.12.9, esos códigos antiguos no conocen los nuevos campos: usá el ZIP completo v0.12.10 en todos los archivos publicados.
+
+## Instalación y verificación
+
+1. Descomprimí y subí **todo el contenido** a la raíz del repositorio, manteniendo `assets/` y `data/` completos. Los dos archivos `assets/budget-workbench.js` y `.css` son indispensables.
+2. Después de que GitHub Pages entregue los archivos, con conexión usá «Forzar actualización» en Sincronización. Si indica cerrar todas las ventanas, cerralas y reabrí Pancko hasta que marque v0.12.10. No borres los datos del sitio.
+3. En PC probá `1700/`: tocar una sugerencia; después abrir el selector y marcar tres pinceles. Probá un descuento de línea y otro general, limpiá el borrador y confirmá que quedó Consumidor final. En móvil revisá el mismo flujo.
+
+Las pruebas automatizadas y límites precisos figuran en `VALIDACION.md`. En este entorno no hubo navegador real para revisión visual ni se accedió a la Sheet productiva. Los controles de salidas e integración se ejecutaron con canvas y servicios simulados.
+
+---
+
+## Historial de versiones anteriores
+
 # Pancko Gestión v0.12.9 — Presupuestos de mostrador
 
 ## ARCHIVOS NUEVOS OBLIGATORIOS
