@@ -1,4 +1,16 @@
-# Pancko Gestión v0.12.6 — Imputaciones de pagos y actualización de PWA
+# Pancko Gestión v0.12.7 — Búsqueda en movimientos de Caja diaria
+
+## Actualizar desde v0.12.6
+
+Descomprimí el ZIP y subí **su contenido** a la raíz del repositorio, incluyendo `index.html`, `sw.js`, `data/` y `assets/`. Cerrá y reabrí la PWA con conexión para recibir el cache v0.12.7; no borres datos del sitio. En **Caja diaria → Historial por fecha**, escribí en «Buscar en movimientos de caja». La búsqueda muestra resultados mientras escribís y recorre todas las fechas presentes en `pk_cash_daily_v1` de ese dispositivo: detalle, fecha, hora, importe, nombre de dispositivo y estado anulado. Incluye anotaciones de $0 y tolera diferencias de mayúsculas y tildes. Tocá un resultado para abrir esa jornada.
+
+Si ese dispositivo aún no recibió una fecha desde central, usá «Actualizar desde central» en Caja antes de buscarla. No se agregó una búsqueda remota de toda la Sheet. Los movimientos eliminados definitivamente no aparecen: sólo queda su evento técnico de auditoría. El buscador es de lectura; no modifica cajas ni movimientos.
+
+**Backend sin cambios:** se incluye Apps Script completo v0.12.6 con la corrección de la respuesta `/exec` a `0.12.6`, y el Worker v0.12.2. Si ya desplegaste ese Apps Script corregido, no hace falta volver a desplegarlo por v0.12.7. Si `/exec` todavía informa `0.12.4`, seguí las instrucciones de corrección debajo y publicá una nueva versión de la implementación web existente. No cambian hojas, tokens, sincronización ni lógica económica.
+
+## Corrección del Apps Script: versión informada por `/exec`
+
+El Apps Script completo incluido aquí corrige `doGet`: la respuesta de `/exec` y `/exec?action=ping` informa `version: "0.12.6"`. En el paquete anterior el comentario era v0.12.6, pero esta respuesta conservaba por error `"0.12.4"`. Reemplazar el código completo del Apps Script por `backend/Pancko_AppsScript_v0.12.6.gs`, guardar y actualizar la **implementación web existente** a una versión nueva. El URL `/exec` se conserva si se edita la implementación existente. La sola edición del código no actualiza `/exec` hasta publicar esa nueva versión. No hay cambios en el Worker, las hojas, los tokens ni la lógica de Cuenta corriente. Si la app frontend v0.12.6 ya está subida, no hace falta volver a subirla por esta corrección.
 
 ## Instalación desde v0.12.5
 

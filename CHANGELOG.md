@@ -1,4 +1,10 @@
-# CHANGELOG — Pancko Gestión v0.12.6
+# CHANGELOG — Pancko Gestión v0.12.7
+
+## v0.12.7 — Búsqueda local de movimientos de Caja (2 de octubre de 2026)
+
+- Campo de búsqueda en «Historial por fecha»: recorre todas las cajas y movimientos disponibles localmente, incluidos importes cero y anulados. Busca detalle, fecha/hora, importe, dispositivo y estado; compara sin distinguir tildes o mayúsculas. Resultado con fecha, hora, detalle, importe, dispositivo y marca de anulación; al abrirlo muestra la jornada.
+- Sólo consulta `pk_cash_daily_v1`; las jornadas centrales ya recibidas forman parte del libro local. No busca fechas que aún no llegaron al dispositivo. Los movimientos eliminados definitivamente no se muestran.
+- Modificados `index.html`, `assets/caja.js` (copia de referencia), `assets/caja.css` (copia de estilos), `sw.js`, `data/version.json`, documentación y comprobación de archivos. Apps Script v0.12.6 corregido, Worker, CSV y demás módulos sin cambios frente al ZIP v0.12.6 corregido. No hay que redeplegar backend por esta mejora.
 
 ## v0.12.6 — Pagos imputados y recarga PWA (2 de octubre de 2026)
 
@@ -91,3 +97,7 @@ Archivos del frontend modificados: `index.html`, `assets/caja.js`, `assets/caja.
 Seguir **en orden** las instrucciones de `README.md`: respaldar Caja; reemplazar/desplegar Apps Script, configurar su propiedad secreta, reemplazar/desplegar Worker y después subir el contenido completo del ZIP a la raíz del repo. Cerrar/reabrir la PWA con conexión y configurar nombre/clave en cada equipo. No borrar datos del sitio. No se interactuó con GitHub, Cloudflare ni Google Sheets productivos en esta entrega.
 
 Pruebas, límites y contrato en `VALIDACION.md` y `README.md`. El Informe para Cerebrito se entrega en el texto final, fuera del ZIP.
+## Corrección de Apps Script v0.12.6 — 2 de octubre de 2026
+
+- La ruta GET `/exec` (`ping` por defecto) ahora informa la versión real `0.12.6` mediante `VERSION`; el literal `0.12.4` había quedado en `doGet`.
+- Sin cambios de backend funcional, Worker, hojas, datos ni frontend. Requiere guardar el Apps Script completo y crear una nueva versión de la implementación web existente para que cambie la respuesta pública.

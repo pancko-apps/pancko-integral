@@ -1,3 +1,9 @@
+## v0.12.7 — Buscador de Caja diaria
+
+- DOM simulado con libro real `pk_cash_daily_v1`: encuentra ingreso, egreso, dos anotaciones de importe 0, detalle parcial con y sin tilde, fecha, importe, operador/dispositivo y movimiento anulado.
+- Abrir un resultado selecciona y muestra su fecha; filtro queda escrito. Libro almacenado idéntico antes y después de buscar/abrir. Una nueva jornada recibida en el libro local aparece tras recarga.
+- Sintaxis de bloques JavaScript, rutas, versión/cache, archivos del ZIP y CSS de ancho móvil comprobados. No se hizo prueba visual en Chrome/Android físicos ni consulta a Sheet productiva. Verificar el aspecto en PC y celular tras subir los archivos; si faltan fechas remotas, actualizar Caja desde central.
+
 # Validación — Pancko Gestión v0.11.7
 
 Se ejecutó código frontend real, Worker real y Apps Script real sobre DOM, almacenamiento y Sheets simulados. No sustituye una prueba en PC y celular con servicios desplegados.
@@ -88,3 +94,7 @@ También se comprobaron clave inválida, lectura que no crea hojas, endpoints nu
 - DOM simulado: selección de cargos, importe sugerido, distribución por fecha, saldo general e individual, historial; regresiones CC y unión de clientes v0.12.4, productos v0.12.5 y 41 flujos generales.
 - Cache Storage y service worker simulados: instalación con peticiones frescas, consulta `version.json` con parámetro fresco, versión diferente, limpieza selectiva, desregistro y navegación; claves locales de Caja, CC, precios y catálogo intactas. Offline no inicia limpieza.
 - Sintaxis JS/Apps Script/Worker, referencias, cache, CSV, ZIP y rutas verificadas. No se ejecutó contra Sheet/Worker productivos ni se comprobó visualmente en PWA real PC/celular. Un worker viejo puede responder una primera consulta con su version.json anterior; la recarga limpia obtiene index por red.
+## Corrección de la versión de `/exec` — 2 de octubre de 2026
+
+- Sintaxis del Apps Script y respuestas aisladas de `doGet()` sin parámetros y `doGet({parameter:{action:'ping'}}`: ambas informan `version: "0.12.6"`.
+- No se ejecutó contra el Apps Script publicado; verificar luego de actualizar la implementación web existente.

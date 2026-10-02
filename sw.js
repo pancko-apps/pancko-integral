@@ -1,5 +1,5 @@
-/* Pancko Gestión v0.12.6 · Shell coherente y API sin caché. */
-const CACHE_NAME='pancko-gestion-v0.12.6';
+/* Pancko Gestión v0.12.7 · Shell coherente y API sin caché. */
+const CACHE_NAME='pancko-gestion-v0.12.7';
 const APP_ASSETS=['./','./index.html','./manifest.webmanifest','./assets/icon-192.png','./assets/icon-512.png','./assets/cc-product-detail.js','./assets/cc-payment-applications.js','./assets/pwa-update.js','./data/version.json','./data/articulos.csv','./data/clientes.csv','./data/recetas.csv'];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE_NAME).then(cache=>cache.addAll(APP_ASSETS.map(path=>new Request(path,{cache:'reload'}))))); // espera cierre de ventanas: no mezcla una página vieja con código nuevo.
 });
