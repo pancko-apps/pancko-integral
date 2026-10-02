@@ -1,7 +1,7 @@
-/* Pancko Gestión v0.12.5 · Shell coherente y API sin caché. */
-const CACHE_NAME='pancko-gestion-v0.12.5';
-const APP_ASSETS=['./','./index.html','./manifest.webmanifest','./assets/icon-192.png','./assets/icon-512.png','./assets/cc-product-detail.js','./data/version.json','./data/articulos.csv','./data/clientes.csv','./data/recetas.csv'];
-self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE_NAME).then(cache=>cache.addAll(APP_ASSETS))); // espera cierre de ventanas: no mezcla una página vieja con código nuevo.
+/* Pancko Gestión v0.12.6 · Shell coherente y API sin caché. */
+const CACHE_NAME='pancko-gestion-v0.12.6';
+const APP_ASSETS=['./','./index.html','./manifest.webmanifest','./assets/icon-192.png','./assets/icon-512.png','./assets/cc-product-detail.js','./assets/cc-payment-applications.js','./assets/pwa-update.js','./data/version.json','./data/articulos.csv','./data/clientes.csv','./data/recetas.csv'];
+self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE_NAME).then(cache=>cache.addAll(APP_ASSETS.map(path=>new Request(path,{cache:'reload'}))))); // espera cierre de ventanas: no mezcla una página vieja con código nuevo.
 });
 self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>(k.startsWith('pancko-integral-')||k.startsWith('pancko-gestion-'))&&k!==CACHE_NAME).map(k=>caches.delete(k)))));});
 self.addEventListener('fetch',event=>{
@@ -14,6 +14,7 @@ self.addEventListener('fetch',event=>{
   event.respondWith(caches.open(CACHE_NAME).then(async cache=>(await cache.match('./index.html'))||fetch(request)));
   return;
  }
+ if(url.searchParams.has('pk_fresh')){event.respondWith(fetch(request,{cache:'no-store'}));return;}
  const asset=APP_ASSETS.find(a=>new URL(a,self.location.href).pathname===url.pathname);
  if(!asset)return;
  event.respondWith(caches.open(CACHE_NAME).then(async cache=>(await cache.match(asset))||fetch(request)));

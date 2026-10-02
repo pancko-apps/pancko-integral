@@ -1,4 +1,11 @@
-# CHANGELOG — Pancko Gestión v0.12.5
+# CHANGELOG — Pancko Gestión v0.12.6
+
+## v0.12.6 — Pagos imputados y recarga PWA (2 de octubre de 2026)
+
+- Aplicaciones opcionales en pagos manuales; sugerencia por cargos seleccionados, parcial y reparto cronológico, saldo individual calculado desde pagos activos, estado y detalle en ficha. Pago general conserva su flujo.
+- Apps Script completo v0.12.6 valida capacidad bajo bloqueo para evitar doble imputación entre dispositivos y conserva idempotencia/revisiones. Se reutilizan hojas, columnas, rutas y `PANCKO_CC_TOKEN`; Worker idéntico al v0.12.2 vigente.
+- Estado de versión instalada/publicada, búsqueda y recarga limpia desde Sincronización. Servicio offline v0.12.6 deja pasar consultas de versión frescas. Se borran caches de app, no almacenamiento local.
+- Modificados: `index.html`, `sw.js`, `data/version.json`, `assets/cc-payment-applications.js`, `assets/pwa-update.js`, Apps Script v0.12.6 y documentación. CSV y demás recursos sin cambios. No se publicó ni se desplegó.
 
 ## v0.12.5 — Detalle opcional de productos en cargos (2 de octubre de 2026)
 

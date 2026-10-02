@@ -80,3 +80,11 @@ También se comprobaron clave inválida, lectura que no crea hojas, endpoints nu
 - DOM y dos dispositivos simulados con Apps Script v0.12.4 y Sheet aislada: cargo sin productos, dos artículos con PR_CON_IVA, suma y aviso de diferencia, precio manual obligatorio, modo sin precio, edición con snapshot histórico, transmisión al segundo dispositivo, alta offline pendiente y recepción al reconectar, anulación, reintento sin duplicados y edición de cargo antiguo.
 - Regresión de unión/separación de identidades v0.12.4, sincronización PC/celular, cliente, pago, edición/anulación y conflicto de revisión. Regresión de 41 flujos de presupuesto, búsqueda, CSV, tintométrico, A4/ticket y navegación. Sintaxis de JS y verificación de archivos, rutas, versión/cache y ZIP.
 - No se probaron el servidor, la Sheet ni dispositivos de producción; tampoco vista/impresión en un navegador real. En esta instalación verificar recepción del detalle en celular y pantalla móvil. La ficha impresa puede ocupar más de una hoja cuando tiene muchos artículos.
+
+
+## v0.12.6 — Pagos imputados y PWA
+
+- Apps Script sobre Sheet y Lock simulados: pago aplicado parcial/total, reintento idempotente, edición y anulación revierten efectos, dos dispositivos compiten por un mismo pendiente y el segundo conserva conflicto sin doble imputación.
+- DOM simulado: selección de cargos, importe sugerido, distribución por fecha, saldo general e individual, historial; regresiones CC y unión de clientes v0.12.4, productos v0.12.5 y 41 flujos generales.
+- Cache Storage y service worker simulados: instalación con peticiones frescas, consulta `version.json` con parámetro fresco, versión diferente, limpieza selectiva, desregistro y navegación; claves locales de Caja, CC, precios y catálogo intactas. Offline no inicia limpieza.
+- Sintaxis JS/Apps Script/Worker, referencias, cache, CSV, ZIP y rutas verificadas. No se ejecutó contra Sheet/Worker productivos ni se comprobó visualmente en PWA real PC/celular. Un worker viejo puede responder una primera consulta con su version.json anterior; la recarga limpia obtiene index por red.

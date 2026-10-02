@@ -1,4 +1,18 @@
-# Pancko Gestión v0.12.5 — Productos opcionales en cargos de CC
+# Pancko Gestión v0.12.6 — Imputaciones de pagos y actualización de PWA
+
+## Instalación desde v0.12.5
+
+1. Descargar respaldo JSON de CC en cada dispositivo con movimientos locales pendientes. En la cuenta de Apps Script, reemplazar el código **completo** por `backend/Pancko_AppsScript_v0.12.6.gs` y actualizar la implementación web existente a una nueva versión, conservando el URL `/exec`, el `SHEET_ID` y `PANCKO_CC_TOKEN`. Mantener las otras propiedades. **Hacer este paso antes de cargar pagos imputados.**
+2. **Worker idéntico** al archivo `backend/Pancko_Worker_v0.12.2.mjs` de la versión anterior. No necesita despliegue; sigue pasando `/cc/get` y `/cc/apply` a la URL vigente del mismo Apps Script.
+3. Descomprimir y subir el contenido del ZIP directamente a la raíz del repo: `index.html`, `sw.js`, `assets/`, `data/`, `backend/` y documentación. Cerrar y reabrir la PWA con conexión en PC/celular; verificar v0.12.6 sin borrar datos del sitio.
+
+El backend usa las hojas actuales `cc_clientes_extra`, `cc_movimientos` y `cc_eventos` sin columnas ni hojas nuevas. No necesita token nuevo. `cc_movimientos.snapshot_json` guarda `applications` sólo en pagos con imputación. Cada aplicación conserva `charge_id`, `client_id`, `amount_cents`, `before_cents` y `after_cents`. El estado pendiente/parcial/pagado del cargo se calcula desde los pagos activos. Los pagos generales no cambian ningún cargo individual; sí reducen el saldo global. Un excedente de un pago imputado queda general sin aplicar. El servidor, bajo ScriptLock, comprueba que el cargo pertenezca al mismo cliente, esté activo y tenga saldo suficiente; un intento simultáneo rechazado conserva la cola local y pide actualizar/revisar. Editar o anular un pago modifica su efecto dinámicamente. Un cargo con aplicaciones no puede anularse ni reducirse por debajo de lo ya aplicado.
+
+En «Registrar pago», marcar uno o varios cargos pendientes. El importe sugerido suma sus pendientes; se puede cambiar para pago parcial. En varios cargos se aplica por fecha y luego por ID. La ficha muestra el estado de cada cargo y las aplicaciones de cada pago. Sin selección, «Registrar pago» conserva el flujo general anterior. Los cargos con productos de v0.12.5 mantienen su snapshot y funcionamiento. Esta imputación es manual: no crea Caja, recibo, remito ni integración con Yoppen.
+
+En **Sincronización → Estado de la app**, «Buscar actualización» consulta `data/version.json` con `pk_fresh` y sin caché HTTP; el service worker v0.12.6 deja pasar esa consulta a red y precarga sus archivos nuevos saltando la caché HTTP. «Forzar actualización ahora» comprueba conexión y confirmación, intenta actualizar el service worker, elimina sólo caches `pancko-gestion-*`/`pancko-integral-*` de archivos Pancko, desregistra el worker de este alcance y recarga con parámetro nuevo. No usa `localStorage.clear`, IndexedDB ni «borrar datos del sitio». Después de publicar v0.12.6, un worker antiguo que aún controla una ventana puede responder la primera consulta con su version.json cacheado; la recarga forzada igualmente limpia ese cache y trae el index de red. Si no hay red, conserva los datos y no ejecuta la limpieza.
+
+## Historia: v0.12.5 — Productos opcionales en cargos de CC
 
 ## Actualizar desde v0.12.4
 
