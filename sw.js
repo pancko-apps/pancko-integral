@@ -1,6 +1,6 @@
-/* Pancko Gestión v0.12.8 · Recarga de navegación con cache busting; datos locales intactos. */
-const CACHE_NAME='pancko-gestion-v0.12.8';
-const APP_ASSETS=['./','./index.html','./manifest.webmanifest','./assets/icon-192.png','./assets/icon-512.png','./assets/cc-product-detail.js','./assets/cc-payment-applications.js','./assets/pwa-update.js','./data/version.json','./data/articulos.csv','./data/clientes.csv','./data/recetas.csv'];
+/* Pancko Gestión v0.12.9 · Recarga de navegación con cache busting; datos locales intactos. */
+const CACHE_NAME='pancko-gestion-v0.12.9';
+const APP_ASSETS=['./','./index.html','./manifest.webmanifest','./assets/icon-192.png','./assets/icon-512.png','./assets/cc-product-detail.js','./assets/cc-payment-applications.js','./assets/pwa-update.js','./assets/budget-workbench.js','./assets/budget-workbench.css','./data/version.json','./data/articulos.csv','./data/clientes.csv','./data/recetas.csv'];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE_NAME).then(cache=>cache.addAll(APP_ASSETS.map(path=>new Request(path,{cache:'reload'}))))); // espera cierre de ventanas: no mezcla una página vieja con código nuevo.
 });
 self.addEventListener('message',event=>{if(event.data?.type==='PANCKO_SKIP_WAITING')self.skipWaiting();});

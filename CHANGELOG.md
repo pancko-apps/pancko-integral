@@ -1,3 +1,23 @@
+# v0.12.9 — Presupuestos como comprobante en carga
+
+Fecha: 02/10/2026. Base: v0.12.8 (se mantiene su corrección de Forzar actualización).
+
+- Cabecera de cliente/condición, grilla de ocho columnas, totales y acciones integradas al shell Pancko; adaptación móvil.
+- Enter por código/texto; selector de coincidencias con filtros según datos disponibles.
+- Modal automático sólo para TINT/DEEP/ACCENT o base desconocida. PASTEL/BLANCO permite agregar fórmula desde su columna.
+- Validación de fórmula/base/factor; snapshot de precio base, ficha del producto y fórmulas por línea. El mismo código puede tener líneas con precios distintos.
+- Se corrigió en el editor de Presupuestos la consulta de precio base vivo y la relectura de receta para el mismo color: se usan los valores históricos guardados. El laboratorio conserva sus cálculos.
+- Se evita borrar el color existente al dar foco al campo de edición.
+- Copia de presupuesto histórico como nuevo, con confirmación de reemplazo del borrador y sin editar la entrada original.
+- Nuevos: `assets/budget-workbench.js`, `assets/budget-workbench.css`.
+- Modificados: `index.html`, `assets/pwa-update.js` (versión), `sw.js` (versión/precache), `data/version.json`, `README.md`, `CHANGELOG.md`, `VALIDACION.md`, `SHA256SUMS.txt`.
+- Backend, hojas, endpoints, tokens y CSV sin cambios. No requiere migración ni redeploy.
+- Pruebas aprobadas: 26 específicas + 41 generales y suites de CC, Caja y PWA. Sintaxis/rutas/ZIP comprobados. Ver `VALIDACION.md`.
+- Limitación: navegador y servicios simulados; no se ejecutó revisión visual real PC/móvil, impresión física, compartir nativo ni conexión a producción.
+- **Subir assets completos: no alcanza index.html.**
+
+---
+
 # CHANGELOG — Pancko Gestión v0.12.8
 
 ## v0.12.8 — Recarga de la PWA (2 de octubre de 2026)

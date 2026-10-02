@@ -1,3 +1,55 @@
+# Pancko Gestión v0.12.9 — Presupuestos de mostrador
+
+## ARCHIVOS NUEVOS OBLIGATORIOS
+
+**Subir el contenido completo del ZIP, incluida la carpeta `assets/`. NO alcanza con reemplazar `index.html`.**
+
+Nuevos: `assets/budget-workbench.js` y `assets/budget-workbench.css`.
+También cambian `index.html`, `sw.js`, `assets/pwa-update.js` y `data/version.json`.
+El ZIP tiene `index.html` directamente en su raíz: no crear una carpeta adicional dentro del repositorio.
+
+## Qué cambia
+
+- Cabecera compacta: Presupuesto fijo, referencia existente, fecha, cliente, Mostrador/Consumidor final, alta rápida y condición/descuento general.
+- Grilla: Código, Descripción, Fórmula, Cantidad, Precio, % Dto., Imp. Dto., Importe. Cantidad y descuento se editan en línea. En móvil se presentan como tarjetas.
+- Precio muestra el unitario de lista guardado, incluyendo tintas cuando corresponda. Imp. Dto. muestra sólo el descuento propio de la línea. Importe muestra el total de esa línea después de ambos descuentos y usa la función de cálculo existente. Los importes finales suman el total del presupuesto.
+- Enter agrega un código exacto o una coincidencia única de palabras. Varias coincidencias abren un selector; ninguna muestra un aviso. El selector busca en datos locales, muestra 80 resultados inicialmente y permite ver más.
+- Marca/fabricante, línea y presentación se filtran si hay columnas con esos datos. Cuando faltan, el filtro indica «Sin dato en este catálogo»; no se inventan metadatos.
+- PASTEL/BLANCO carga sin interrupción. TINT/DEEP/ACCENT abre fórmula. Se usan primero `usa_tinto`, `base_fisica_tinto` y `base_tinto`; la descripción sólo sirve como respaldo cuando no hay base registrada. Una base desconocida abre el modal para revisión.
+- La columna Fórmula abre el modal existente: color, ajuste de tintas, restaurar fórmula y guardar. Una fórmula modificada se marca «mod.». Se validan base compatible y factor positivo; una base explícita de la opción seleccionada se respeta. Una selección cambiada sin previsualizar exige revisar antes de guardar.
+- Las líneas nuevas conservan artículo/base/precio en un snapshot. Dos cargas del mismo código permanecen separadas: una lista nueva no cambia el precio de la línea anterior.
+- Editar la misma fórmula conserva factor y precios por pulso del snapshot. Restaurar toma la fórmula original guardada en la línea. No se escribe en recetas maestras.
+- En el detalle del historial, «Usar como nuevo presupuesto» copia las líneas, sus fórmulas, los precios y el porcentaje general a un nuevo borrador. Pide confirmar si reemplaza otro borrador. El presupuesto histórico conserva su ID y contenido.
+
+## Datos y backend
+
+No hay cambios en Apps Script ni Worker. Se incluyen completos los archivos existentes: Apps Script v0.12.6 corregido y Worker v0.12.2. **No reemplazar ni redeplegar backend por esta actualización.** No cambian URL, hojas, endpoints ni tokens.
+
+Se conserva `pk_cart`, el historial y el envío del snapshot existente. Se añaden campos opcionales por línea: `product_snapshot`, `base_price_snapshot`, `added_at`; en ediciones de fórmula también `tintData.created_at` y `updated_at`. Continúan `formula_original`, `formula`, factor/modo, bases, pulsos, precios y costo. Los presupuestos anteriores se leen sin migración de hojas ni conversión masiva. Al cargar borradores antiguos, sólo se completan IDs de línea faltantes o repetidos para que su edición sea inequívoca.
+
+CSV de artículos/clientes/recetas y backend son idénticos a v0.12.8. Caja, Cuenta Corriente y maestro de precios conservan código y datos. El laboratorio sólo añade el snapshot del producto al transferir una línea al presupuesto; sus cálculos no cambian.
+
+## Instalación
+
+1. Descomprimir y subir **todo el contenido** a la misma raíz del repositorio, conservando `data/`, `assets/` y el resto de carpetas. Incluir ambos archivos nuevos y todos los assets existentes.
+2. Esperar que GitHub Pages publique esos archivos. No se publicó nada desde este trabajo.
+3. Con conexión, abrir Pancko y usar Sincronización → Forzar actualización. Debe informar v0.12.9. Si indica cerrar ventanas, cerrar todas las ventanas de Pancko y reabrir.
+4. No borrar datos del sitio ni `localStorage`. Se conserva el flujo de actualización v0.12.8 y se cambia el caché a `pancko-gestion-v0.12.9`, con los nuevos JS/CSS incluidos para uso offline.
+
+## Verificación y límites
+
+Se aprobaron 26 controles específicos de Presupuestos, 41 controles generales de frontend y pruebas de CC PC/celular, Caja y PWA con navegador/servicios simulados. Se generaron salidas de ticket, A4 y etiqueta con canvas real. Ver `VALIDACION.md` para alcance preciso.
+
+**No se pudo ejecutar un navegador real en este entorno:** falta revisión visual en PC/celular, PWA instalada, impresión física/PDF desde el diálogo del navegador y compartir nativo de WhatsApp. El paquete no fue probado contra la Sheet de producción; las operaciones centrales se simularon. No se debe presentar esa simulación como prueba en los dispositivos de la pinturería.
+
+En un presupuesto antiguo sin snapshot completo de producto, se consulta su ficha actual para editar una nueva fórmula, manteniendo el precio guardado. Si ya no existe el producto, sólo se permite ajustar su fórmula histórica cuando contiene los datos necesarios; otros colores quedan bloqueados para revisión. Si faltan fórmula/factor históricos, no se inventan. Consultar, imprimir o copiar los datos guardados sigue disponible.
+
+La referencia visible es el ID que ya usaba Pancko, no numeración fiscal ni un nuevo correlativo. No se agregaron remitos ni efectos económicos. No hay deuda automática por presupuesto.
+
+---
+
+# Documentación histórica (versiones anteriores)
+
 # Pancko Gestión v0.12.8 — Recarga inmediata y aviso de actualización
 
 ## Actualizar desde v0.12.7
