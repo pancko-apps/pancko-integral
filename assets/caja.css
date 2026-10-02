@@ -114,3 +114,19 @@
 #cashScreen input[type=password]{width:100%;min-height:40px;padding:8px 10px;border:1px solid var(--border);border-radius:9px;background:var(--bg2);color:var(--text)}
 #cashScreen .cash-row-actions{flex-wrap:wrap}
 @media(min-width:1024px){#cashScreen>.cash-sync-settings{grid-column:1/-1;grid-row:7}#cashScreen .workspace-toolbar .top-bar{flex-wrap:wrap}#cashScreen .cash-local-badge{display:block;margin-top:5px;white-space:normal}}
+
+/* Historial: consulta de lectura del libro disponible en este dispositivo. */
+#cashScreen .cash-history-search{margin:14px 0;padding:12px;border:1px solid var(--border);border-radius:10px;background:var(--bg2)}
+#cashScreen .cash-history-search>label{display:block;font-weight:700;margin-bottom:7px}
+#cashScreen .cash-history-search input[type=search]{width:100%;min-height:42px;padding:9px 11px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font:inherit}
+#cashScreen .cash-search-count{margin:8px 0;font-size:.82rem;color:var(--text-muted)}
+#cashScreen .cash-search-list{max-height:340px;overflow:auto;overscroll-behavior:contain;border:1px solid var(--border);border-radius:9px}
+#cashScreen .cash-search-result{display:grid;grid-template-columns:145px minmax(0,1fr) 110px;gap:3px 12px;align-items:center;width:100%;padding:10px 12px;border:0;border-bottom:1px solid var(--border);background:var(--bg2);color:var(--text);font:inherit;text-align:left;cursor:pointer}
+#cashScreen .cash-search-result:last-child{border-bottom:0}
+#cashScreen .cash-search-result:hover,#cashScreen .cash-search-result:focus-visible{background:var(--bg);outline-color:var(--accent)}
+#cashScreen .cash-search-result strong{overflow-wrap:anywhere}
+#cashScreen .cash-search-result small{grid-column:2/4;color:var(--text-muted)}
+#cashScreen .cash-search-date{font-size:.83rem;white-space:nowrap}
+#cashScreen .cash-search-amount{text-align:right;font-weight:750;white-space:nowrap}
+#cashWorkspace{scroll-margin-top:120px}
+@media(max-width:650px){#cashScreen .cash-search-result{grid-template-columns:minmax(0,1fr) auto;gap:4px 9px}#cashScreen .cash-search-date{grid-column:1/-1}#cashScreen .cash-search-result small{grid-column:1/-1}}

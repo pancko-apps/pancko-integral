@@ -1,4 +1,4 @@
-/* Pancko Gestión v0.11.7 — Libro local de efectivo y cola de sincronización. */
+/* Pancko Gestión v0.12.7 — Libro local de efectivo y cola de sincronización. */
 'use strict';
 const CASH_KEY='pk_cash_daily_v1';
 const CASH_GROUPS=[['large','20.000 y 10.000 juntos'],['medium','2.000, 1.000 y 500 juntos'],['small','200 y 100 juntos'],['change','50 y 10 juntos'],['coins','Otros / monedas']];
@@ -225,7 +225,7 @@ function renderCashModule(preserveInput=true){
   const oldOpening=preserveInput&&cashRenderedDate===cashSelectedDate?document.getElementById('cashOpeningInput')?.value:null;cashRenderedDate=cashSelectedDate;
   document.getElementById('cashDate').value=cashSelectedDate;renderCashNotice();
   const workspace=document.getElementById('cashWorkspace'),bar=document.getElementById('cashBalanceBar');
-  if(cashStorageError){bar.innerHTML='<strong>Libro no disponible</strong>';workspace.innerHTML='<div class="card"><p>Los datos no se sobrescribirán. Descargá el respaldo de los datos almacenados para revisarlos.</p><button class="btn btn-back" onclick="cashExportBackup()">Descargar datos almacenados</button></div>';document.getElementById('cashHistory').innerHTML='';return;}
+  if(cashStorageError){bar.innerHTML='<strong>Libro no disponible</strong>';workspace.innerHTML='<div class="card"><p>Los datos no se sobrescribirán. Descargá el respaldo de los datos almacenados para revisarlos.</p><button class="btn btn-back" onclick="cashExportBackup()">Descargar datos almacenados</button></div>';document.getElementById('cashHistory').innerHTML='';document.getElementById('cashSearchResults').textContent='No se puede buscar: revisá el libro local.';return;}
   const d=cashDay(),previous=cashPreviousClose(cashSelectedDate);
   if(!d){bar.innerHTML='<div><small>'+cashDateLabel(cashSelectedDate)+'</small><strong>Sin abrir</strong></div>';workspace.innerHTML=`<div class="card"><h2>Abrir caja del ${cashDateLabel(cashSelectedDate)}</h2><p class="gestion-help">${previous?'Saldo sugerido desde el cierre del '+cashDateLabel(previous.date)+'. Podés modificarlo.':'No hay un cierre anterior. Ingresá el efectivo inicial.'}</p>${previous?.closing.remaining_counts?`<p class="gestion-help">Desglose sugerido: ${CASH_GROUPS.map(([id,label])=>esc(label)+': '+cashMoney(previous.closing.remaining_counts[id])).join(' · ')}. Se cargará si conservás el saldo sugerido.</p>`:previous?`<p class="cash-warning">${esc(previous.closing.remaining_counts_warning||'El cierre anterior no tiene un desglose guardado. Cargá el conteo de hoy manualmente.')}</p>`:''}<div class="field"><label for="cashOpeningInput">Saldo inicial</label><input id="cashOpeningInput" type="text" inputmode="decimal" value="${cashInputMoney(previous?.closing.remaining_cents||0)}"></div><button class="btn btn-primary" onclick="cashCreateDay()">Abrir caja</button>${cashBook.days.some(x=>x.date<cashSelectedDate&&x.state==='open')?'<p class="cash-warning">Hay jornadas anteriores abiertas. El saldo sugerido usa el último cierre anterior disponible.</p>':''}</div>`;
   }else{
@@ -241,7 +241,27 @@ function renderCashModule(preserveInput=true){
   if(oldInput&&document.getElementById('cashDetail')){document.getElementById('cashDetail').value=oldInput.detail;document.getElementById('cashAmount').value=oldInput.amount;}
   if(oldOpening!==null&&oldOpening!==undefined&&document.getElementById('cashOpeningInput'))document.getElementById('cashOpeningInput').value=oldOpening;
   const days=[...cashBook.days].sort((a,b)=>b.date.localeCompare(a.date));document.getElementById('cashHistory').innerHTML=days.length?`<div class="gestion-table-wrap"><table class="gestion-table"><thead><tr><th>Fecha</th><th>Estado</th><th>Inicial</th><th>Ingresos</th><th>Egresos</th><th>Contado</th><th>Diferencia</th><th>Ver</th></tr></thead><tbody>${days.map(day=>{const t=cashTotals(day);return `<tr><td>${cashDateLabel(day.date)}</td><td>${day.state==='open'?'Abierta':'Cerrada'}</td><td>${cashMoney(day.opening_cents)}</td><td>${cashMoney(t.income_cents)}</td><td>${cashMoney(t.expenses_cents)}</td><td>${day.closing?cashMoney(day.closing.total_counted_cents):'—'}</td><td>${day.closing?cashMoney(day.closing.difference_cents):'—'}</td><td><button class="btn btn-back" data-date="${day.date}" onclick="cashSelectDate(this.dataset.date)">Abrir</button></td></tr>`;}).join('')}</tbody></table></div>`:'<p class="gestion-help">Las cajas guardadas van a aparecer acá.</p>';
+  cashRenderSearchResults();
 }
+function cashSearchNormalize(value){return String(value??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('es-AR');}
+function cashSearchMatches(query){
+  const terms=cashSearchNormalize(query).trim().split(/\s+/).filter(Boolean);
+  if(!terms.length||cashStorageError)return [];
+  const found=[];
+  for(const day of cashBook.days){for(const movement of day.movements){
+    const searchable=cashSearchNormalize([day.date,cashDateLabel(day.date),cashStamp(movement.created_at),movement.detail,cashInputMoney(movement.amount_cents),cashMoney(movement.amount_cents),movement.amount_cents/100,movement.created_by||'',movement.updated_by||'',movement.voided_at?'anulado':'activo',day.state==='closed'?'cerrada':'abierta'].join(' '));
+    if(terms.every(term=>searchable.includes(term)))found.push({day,movement});
+  }}
+  return found.sort((a,b)=>b.day.date.localeCompare(a.day.date)||b.movement.created_at.localeCompare(a.movement.created_at));
+}
+function cashRenderSearchResults(){
+  const input=document.getElementById('cashSearchInput'),box=document.getElementById('cashSearchResults');if(!input||!box)return;
+  const query=input.value.trim();if(!query){box.innerHTML='';return;}
+  if(cashStorageError){box.textContent='No se puede buscar: revisá el libro local.';return;}
+  const matches=cashSearchMatches(query);
+  box.innerHTML=`<p class="cash-search-count">${matches.length?matches.length+' movimiento'+(matches.length===1?'':'s')+' encontrado'+(matches.length===1?'':'s'):'No hay movimientos que coincidan.'}</p>${matches.length?`<div class="cash-search-list">${matches.map(({day,movement})=>`<button type="button" class="cash-search-result" data-date="${day.date}" onclick="cashOpenSearchResult(this.dataset.date)"><span class="cash-search-date">${cashDateLabel(day.date)} · ${cashStamp(movement.created_at,true)}</span><strong>${esc(movement.detail)}</strong><span class="cash-search-amount">${cashMoney(movement.amount_cents)}</span><small>${esc(movement.created_by||'Sin dispositivo')}${movement.voided_at?' · Anulado':''}</small></button>`).join('')}</div>`:''}`;
+}
+function cashOpenSearchResult(date){cashSelectDate(date);if(cashSelectedDate===date)document.getElementById('cashWorkspace')?.scrollIntoView?.({behavior:'smooth',block:'start'});}
 function cashSelectDate(date){if(cashSaving){cashMessage='Esperá a que termine el guardado.';renderCashNotice();return;}if(!cashValidDate(date)){cashMessage='Fecha inválida.';renderCashNotice();return;}cashSelectedDate=date;cashEditingId=null;cashMessage='';cashLoad();renderCashModule(false);}
 function cashGoToday(){cashSelectDate(cashToday());}
 function renderCashHome(){
