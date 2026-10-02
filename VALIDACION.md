@@ -1,3 +1,9 @@
+## v0.12.8 — Recarga de la PWA
+
+- Navegador/worker simulados: eliminación de caches de Pancko antes de `update`, conservación de cache ajeno, `skipWaiting`, `clients.claim`, navegación con parámetros `pk_refresh` y `pk_fresh`, y respuesta de red `no-store` para esa navegación.
+- Sin worker en espera: desregistro y navegación de red; sin conexión: no se borran archivos. La comprobación después de navegar muestra éxito si carga la versión publicada y el mensaje de cerrar y reabrir si permanece una anterior. Claves y libros locales permanecen idénticos.
+- Sintaxis de JavaScript, Apps Script y Worker, versión/cache, rutas relativas y contenido del ZIP verificados. No se pudo ejecutar en Chrome/Firefox/Android físicos ni contra GitHub Pages publicado; Tincho debe verificar el comportamiento real una vez subido.
+
 ## v0.12.7 — Buscador de Caja diaria
 
 - DOM simulado con libro real `pk_cash_daily_v1`: encuentra ingreso, egreso, dos anotaciones de importe 0, detalle parcial con y sin tilde, fecha, importe, operador/dispositivo y movimiento anulado.

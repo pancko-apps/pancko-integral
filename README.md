@@ -1,4 +1,14 @@
-# Pancko Gestión v0.12.7 — Búsqueda en movimientos de Caja diaria
+# Pancko Gestión v0.12.8 — Recarga inmediata y aviso de actualización
+
+## Actualizar desde v0.12.7
+
+Subí **el contenido** de este ZIP a la raíz del repositorio (`index.html`, `sw.js`, `assets/`, `data/` y documentación). Luego cargá v0.12.8 en PC y celular. **El botón de la versión anterior no puede cambiar retroactivamente**: en el primer salto desde v0.12.7 quizá debas cerrar todas las ventanas de Pancko y reabrir la PWA, o usar Ctrl+F5 en PC. A partir de v0.12.8, «Forzar actualización ahora» usa el flujo corregido.
+
+El botón consulta `data/version.json` desde red, elimina sólo caches de archivos con prefijo `pancko-gestion-`/`pancko-integral-`, pide actualizar el service worker, intenta activar el worker en espera mediante `skipWaiting` y `clients.claim`, y navega con `pk_refresh`/`pk_fresh`. El service worker nuevo responde esa navegación desde red sin consultar su `index.html` cacheado. Se muestra un aviso visible durante el proceso; tras recargar, si la versión esperada aún no está cargada, indica «Actualización preparada. Cerrá todas las ventanas de Pancko y volvé a abrir». Si se carga, confirma la versión actualizada. No se borran `localStorage`, IndexedDB ni datos del sitio. Si no aparece un worker nuevo, se desregistra el actual para volver a instalarlo al cargar la página.
+
+**Backend sin cambios:** Apps Script v0.12.6 corregido y Worker v0.12.2 siguen completos dentro del ZIP; no hace falta redeplegarlos. CSV, cálculos y sincronización de Caja/CC y el buscador v0.12.7 permanecen intactos. La verificación del flujo se hizo con workers y navegador simulados; probar el comportamiento de la PWA instalada después de subir los archivos.
+
+## Historia: v0.12.7 — Búsqueda en movimientos de Caja diaria
 
 ## Actualizar desde v0.12.6
 

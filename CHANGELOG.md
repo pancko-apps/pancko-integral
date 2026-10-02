@@ -1,4 +1,10 @@
-# CHANGELOG — Pancko Gestión v0.12.7
+# CHANGELOG — Pancko Gestión v0.12.8
+
+## v0.12.8 — Recarga de la PWA (2 de octubre de 2026)
+
+- Corrección del botón: limpieza de caches antes de pedir actualización, activación explícita del worker en espera y navegación con URL nueva. El worker v0.12.8 trae `index.html` desde red cuando llega `pk_refresh` y reclama la ventana al activarse.
+- Aviso global de resultado y comprobación tras navegar: versión actualizada o instrucción de cerrar todas las ventanas y reabrir. Se corrigió el indicador del archivo `pwa-update.js`, que en v0.12.7 seguía mostrando «Instalada: 0.12.6».
+- Modificados `index.html`, `assets/pwa-update.js`, `sw.js`, `data/version.json`, README, CHANGELOG, VALIDACION y comprobación de archivos. Caja, Cuenta Corriente, CSV, Apps Script v0.12.6 y Worker v0.12.2 sin cambios de código respecto del ZIP v0.12.7. No se publicó ni se desplegó.
 
 ## v0.12.7 — Búsqueda local de movimientos de Caja (2 de octubre de 2026)
 

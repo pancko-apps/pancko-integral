@@ -1,9 +1,10 @@
-/* Pancko Gestión v0.12.7 · Shell coherente y API sin caché. */
-const CACHE_NAME='pancko-gestion-v0.12.7';
+/* Pancko Gestión v0.12.8 · Recarga de navegación con cache busting; datos locales intactos. */
+const CACHE_NAME='pancko-gestion-v0.12.8';
 const APP_ASSETS=['./','./index.html','./manifest.webmanifest','./assets/icon-192.png','./assets/icon-512.png','./assets/cc-product-detail.js','./assets/cc-payment-applications.js','./assets/pwa-update.js','./data/version.json','./data/articulos.csv','./data/clientes.csv','./data/recetas.csv'];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE_NAME).then(cache=>cache.addAll(APP_ASSETS.map(path=>new Request(path,{cache:'reload'}))))); // espera cierre de ventanas: no mezcla una página vieja con código nuevo.
 });
-self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>(k.startsWith('pancko-integral-')||k.startsWith('pancko-gestion-'))&&k!==CACHE_NAME).map(k=>caches.delete(k)))));});
+self.addEventListener('message',event=>{if(event.data?.type==='PANCKO_SKIP_WAITING')self.skipWaiting();});
+self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>(k.startsWith('pancko-integral-')||k.startsWith('pancko-gestion-'))&&k!==CACHE_NAME).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});
 self.addEventListener('fetch',event=>{
  const request=event.request,url=new URL(request.url);
  // Worker/Apps Script nunca se guardan ni se responden desde Cache Storage.
@@ -11,6 +12,7 @@ self.addEventListener('fetch',event=>{
  const scope=new URL('./',self.location.href).pathname;
  if(!url.pathname.startsWith(scope))return;
  if(request.mode==='navigate'){
+  if(url.searchParams.has('pk_refresh')){event.respondWith(fetch(request,{cache:'no-store'}));return;}
   event.respondWith(caches.open(CACHE_NAME).then(async cache=>(await cache.match('./index.html'))||fetch(request)));
   return;
  }
