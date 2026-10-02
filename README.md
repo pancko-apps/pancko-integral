@@ -1,4 +1,16 @@
-# Pancko Gestión v0.12.4 — Resolución manual de identidad
+# Pancko Gestión v0.12.5 — Productos opcionales en cargos de CC
+
+## Actualizar desde v0.12.4
+
+Descomprimir y subir **el contenido** del ZIP a la raíz de GitHub Pages (`index.html`, `sw.js`, `assets/`, `data/`, `backend/` y documentación). Reemplazar el archivo nuevo `assets/cc-product-detail.js` junto al index. Cerrar las ventanas de la PWA en PC y celular, reabrir con conexión y comprobar v0.12.5. **Conservar el almacenamiento del sitio** (`pk_cc_manual_v1`) y la clave de CC local. El service worker precarga el archivo nuevo para uso offline posterior.
+
+**Backend:** Apps Script completo v0.12.4 y Worker completo v0.12.2 van en el ZIP exactamente como en la versión ya instalada. No hay que actualizar ni redeplegar Apps Script/Worker, no hay nuevas hojas/columnas/endpoints/propiedades/tokens. Se sigue usando `POST /cc/apply` y `/cc/get` con `PANCKO_CC_TOKEN`. Verificar que el backend v0.12.4 ya esté desplegado antes de usar CC (lo confirmó Tincho en su instalación).
+
+En «Nuevo cargo», abrir «Detalle de productos (opcional)», buscar por código o descripción, agregar líneas y elegir un modo para todo el cargo: precio actual local (snapshot), precio manual o sin precio. El total calculado se sugiere como importe y se puede modificar; si difiere aparece aviso. **Sólo el importe final guardado afecta el saldo.** Sin productos, el cargo mantiene la carga manual anterior. La ficha incluye «Ver productos» y el TXT/copiar/imprimir muestran líneas debajo del movimiento. Al editar conserva precios y descripciones históricos aunque cambie el catálogo; si se decide cambiar de modo a precio actual, consulta el catálogo local vigente para ese cambio explícito.
+
+Los datos nuevos se guardan en `product_detail` dentro del movimiento de `pk_cc_manual_v1` y viajan en `snapshot_json` de la fila existente de `cc_movimientos`. Se admite hasta 12 líneas, cantidad decimal de hasta tres posiciones y subtotales redondeados a centavos por línea. La búsqueda lee el catálogo local, no altera su precio. No crea stock, remito, presupuesto, Caja ni integración Yoppen. Respaldos JSON anteriores siguen importándose. Conservar respaldos de CC antes de reemplazar la app.
+
+## Historia: v0.12.4 — Resolución manual de identidad
 
 
 

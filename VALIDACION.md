@@ -73,3 +73,10 @@ También se comprobaron clave inválida, lectura que no crea hojas, endpoints nu
 - Mantener separados con nombre distinguible y mismo documento: ambas fichas se sincronizan y conservan movimientos. Unión cuando ambas fichas ya tenían filas centrales, reintento del evento y edición posterior del movimiento de la ficha anterior.
 - Regresión de sincronización/polling de v0.12.3, validación de sintaxis/rutas/cache y paquete completo. CSV, assets y Worker comparados contra la base.
 - No se modificó ni probó la Sheet productiva. Sin prueba visual en los dispositivos reales. Requiere actualizar la implementación Apps Script antes del primer uso de la unión; probar primero con fichas de prueba y conservar los respaldos descargados.
+
+
+## v0.12.5 — Detalle de productos en cargos
+
+- DOM y dos dispositivos simulados con Apps Script v0.12.4 y Sheet aislada: cargo sin productos, dos artículos con PR_CON_IVA, suma y aviso de diferencia, precio manual obligatorio, modo sin precio, edición con snapshot histórico, transmisión al segundo dispositivo, alta offline pendiente y recepción al reconectar, anulación, reintento sin duplicados y edición de cargo antiguo.
+- Regresión de unión/separación de identidades v0.12.4, sincronización PC/celular, cliente, pago, edición/anulación y conflicto de revisión. Regresión de 41 flujos de presupuesto, búsqueda, CSV, tintométrico, A4/ticket y navegación. Sintaxis de JS y verificación de archivos, rutas, versión/cache y ZIP.
+- No se probaron el servidor, la Sheet ni dispositivos de producción; tampoco vista/impresión en un navegador real. En esta instalación verificar recepción del detalle en celular y pantalla móvil. La ficha impresa puede ocupar más de una hoja cuando tiene muchos artículos.

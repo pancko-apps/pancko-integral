@@ -1,4 +1,10 @@
-# CHANGELOG — Pancko Gestión v0.12.4
+# CHANGELOG — Pancko Gestión v0.12.5
+
+## v0.12.5 — Detalle opcional de productos en cargos (2 de octubre de 2026)
+
+- Sección plegada en Nuevo cargo: búsqueda desde artículos locales, cantidad, quitar línea y modos precio actual, manual o sin precio. Guarda código, descripción, cantidad, origen y snapshot de precio; sugiere importe sin imponerlo y advierte diferencias.
+- El detalle viaja dentro del movimiento de CC, aparece en ficha y salidas TXT/copiar/imprimir, y se puede corregir al editar sin perder ID/revisión. Cargos anteriores y cargos sin productos conservan su formato y saldo.
+- `index.html`, `assets/cc-product-detail.js`, `sw.js`, `data/version.json`, README/CHANGELOG/VALIDACION y SHA256SUMS modificados. CSV, demás assets, Apps Script, Worker, hojas, endpoints y tokens idénticos a v0.12.4. Sin despliegue de backend.
 
 ## v0.12.4 — Conflictos de identidad (2 de octubre de 2026)
 
