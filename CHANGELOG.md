@@ -1,4 +1,11 @@
-# CHANGELOG — Pancko Gestión v0.12.3
+# CHANGELOG — Pancko Gestión v0.12.4
+
+## v0.12.4 — Conflictos de identidad (2 de octubre de 2026)
+
+- Comparación local/central por cliente, contacto, ID, cantidad de movimientos y saldo. Acciones explícitas: unir con ID central, separar con nombre distinguible o revisar después.
+- Unión registrada en snapshot de cliente destino y evento client_merge. Operación idempotente; referencia central del ID anterior, sin borrar filas. Reasignación local de movimientos/cola conservando sus IDs. Respaldo previo y auditoría de operaciones de cliente retiradas.
+- Conflictos de identidad ya no bloquean la recepción del libro ni la sincronización de clientes ajenos. Pendientes ligados a la pareja esperan decisión.
+- Apps Script completo v0.12.4 obligatorio; Worker v0.12.2 idéntico, sin redeploy. Hojas y encabezados existentes compatibles; sin propiedades nuevas. Modificados index.html, sw.js, data/version.json, Apps Script, documentación y SHA256SUMS. CSV/assets y otros módulos preservados.
 
 ## v0.12.3 — UX y recepción automática de CC (1 de octubre de 2026)
 

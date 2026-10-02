@@ -65,3 +65,11 @@ También se comprobaron clave inválida, lectura que no crea hojas, endpoints nu
 - Polling de 60 segundos ejecutado con reloj controlado, filtros Desde/Hasta preservados; formulario abierto conserva importe sin reemplazo por respuesta automática. Al salir del módulo se detiene el temporizador. Panel inferior plegado y badge superior comprobados en DOM.
 - Backend y CSV comparados byte a byte contra v0.12.2; sintaxis, rutas relativas, versión/cache y ZIP completo verificados.
 - No se probó esta versión contra servicios productivos ni visualmente en PC/celular físicos. La sincronización v0.12.2 sí fue confirmada por Tincho; tras subir v0.12.3, comprobar recepción automática con la app visible durante un minuto. El navegador puede demorar timers si la pestaña está oculta; al volver visible se consulta nuevamente.
+
+
+## v0.12.4 — Identidad manual
+
+- Dos dispositivos y Sheet simulada: central A con cargo + local B homónimo con otro cargo; detección, revisar después, unión explícita, saldo combinado, IDs/op_id de movimiento conservados, evento de unión, reintento sin duplicados y recepción por otro dispositivo.
+- Mantener separados con nombre distinguible y mismo documento: ambas fichas se sincronizan y conservan movimientos. Unión cuando ambas fichas ya tenían filas centrales, reintento del evento y edición posterior del movimiento de la ficha anterior.
+- Regresión de sincronización/polling de v0.12.3, validación de sintaxis/rutas/cache y paquete completo. CSV, assets y Worker comparados contra la base.
+- No se modificó ni probó la Sheet productiva. Sin prueba visual en los dispositivos reales. Requiere actualizar la implementación Apps Script antes del primer uso de la unión; probar primero con fichas de prueba y conservar los respaldos descargados.

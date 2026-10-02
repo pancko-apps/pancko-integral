@@ -1,5 +1,26 @@
-# Pancko Gestión v0.12.3 — Cuenta corriente: recepción automática
+# Pancko Gestión v0.12.4 — Resolución manual de identidad
 
+
+
+## Actualizar desde v0.12.3
+
+1. Descargar respaldo JSON de CC en cada dispositivo con movimientos. La herramienta de unión guarda además una copia local antes de proceder.
+2. Reemplazar el Apps Script completo por `backend/Pancko_AppsScript_v0.12.4.gs`. Mantener el mismo `SHEET_ID` y las propiedades actuales, especialmente `PANCKO_CC_TOKEN`. Actualizar la implementación web existente a una nueva versión **conservando su URL /exec**. No crear otra implementación si no es necesario.
+3. **Worker sin cambios**: se incluye `backend/Pancko_Worker_v0.12.2.mjs` idéntico al vigente; no hay que redeplegarlo. La acción nueva `client_merge` viaja por `/cc/apply`, que ya existe. Si accidentalmente cambia la URL de Apps Script, sí habrá que corregir `GAS_URL` en Worker.
+4. Subir el contenido completo del ZIP a la raíz del repo. Actualizar PC y celular antes de usar la unión. Cerrar todas las ventanas de Pancko en cada dispositivo y reabrir con conexión; comprobar v0.12.4. No borrar datos del sitio.
+5. En el equipo con la ficha local anterior, pulsar Actualizar desde central. Abrir «Conflictos de clientes». Comparar ID, contacto, movimientos y saldo de ambos lados y elegir la acción.
+
+### Acciones de identidad
+
+- **Unir fichas usando ID central:** pide confirmación, guarda una copia de CC en `pk_cc_before_identity_merge_v1` y ofrece descarga JSON. Registra la unión en central; después reasigna los movimientos locales y sus operaciones pendientes al ID definitivo. IDs de movimientos y de sus operaciones se conservan. Las operaciones de alta de la ficha anterior se retiran de la cola y sus IDs quedan en la auditoría local. Se suben los pendientes y se recalcula la ficha combinada. No elimina movimientos ni reemplaza datos de contacto centrales con la ficha local.
+- **Mantener separados:** solicita un nombre distinguible para la ficha local, conserva sus movimientos y registra una excepción explícita para esa pareja de IDs, incluso si comparten documento. Otra computadora recibe las fichas separadas. No unifica deudas.
+- **Revisar después:** deja la pareja pendiente. La sincronización omite los cambios ligados al cliente en conflicto y permite enviar los de otros clientes. La herramienta permanece disponible.
+
+Las decisiones centrales de unión viajan a otros dispositivos: si uno todavía tiene el ID anterior, la app reasigna esa ficha local a la decisión ya confirmada. En Sheet se conservan las filas originales como historial; la referencia de unión vive en el snapshot de la ficha destino. Las lecturas/API exponen el ID definitivo sin duplicar filas de movimientos. No se agregan hojas ni columnas; `cc_eventos` registra `client_merge` y el snapshot destino guarda origen, destino, fecha, dispositivo y op_id. Ver `BACKEND_CC_v0.12.4.md`.
+
+Si la red corta durante la unión, no volver a crear movimientos: actualizar o repetir la unión recupera la decisión con el mismo ID de operación. Una discrepancia del mismo ID de movimiento sigue siendo un conflicto de edición: la unión de clientes no lo sobrescribe.
+
+## Historia: instalación y funcionamiento anteriores
 
 ## Actualizar desde v0.12.2 ya funcionando
 
