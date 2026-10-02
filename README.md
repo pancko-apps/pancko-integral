@@ -1,4 +1,15 @@
-# Pancko Gestión v0.12.2 — Cuenta corriente central
+# Pancko Gestión v0.12.3 — Cuenta corriente: recepción automática
+
+
+## Actualizar desde v0.12.2 ya funcionando
+
+Subir el contenido del ZIP a la raíz del repositorio, cerrar todas las ventanas de la PWA y reabrir con red para recibir v0.12.3. No borrar datos del sitio. **No reemplazar ni redeplegar Apps Script o Worker**: los archivos completos v0.12.2 se incluyen sin cambios. Las hojas, endpoints y token de CC continúan iguales.
+
+Cuenta corriente consulta central al entrar, al cambiar de cliente (con una pausa mínima de 5 segundos entre consultas rápidas), al volver a una ventana visible y cada **60 segundos** mientras el módulo está abierto. Se pausa sin red, sin clave, con conflicto conocido o mientras hay un formulario de movimiento abierto. Si un formulario se abre durante la consulta, la respuesta automática no lo reemplaza; el siguiente ciclo vuelve a consultar. Los filtros Desde/Hasta se conservan al recibir. Los botones manuales y el envío de pendientes al guardar/volver la red siguen disponibles.
+
+Arriba queda un estado compacto. El panel «Dispositivo, clave y sincronización», con última recepción, clave, error completo y resolución de conflictos, queda plegado debajo de las fichas y cerca del respaldo. Las consultas automáticas no borran pendientes ni resuelven conflictos por su cuenta. La hora del estado indica la última consulta completada, no garantiza que otro dispositivo no haya cambiado datos después.
+
+Las instrucciones siguientes son para instalar el backend central desde versiones anteriores.
 
 ## Despliegue desde v0.12.1, en orden
 

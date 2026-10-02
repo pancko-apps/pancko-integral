@@ -1,4 +1,11 @@
-# CHANGELOG — Pancko Gestión v0.12.2
+# CHANGELOG — Pancko Gestión v0.12.3
+
+## v0.12.3 — UX y recepción automática de CC (1 de octubre de 2026)
+
+- Consulta automática al entrar/elegir cliente, al recuperar visibilidad y cada 60 segundos dentro del módulo. Sin consultas superpuestas; pausa ante formulario abierto, conflicto, falta de clave/red o módulo oculto.
+- Estado compacto superior y panel de configuración/sincronización plegable bajo las fichas. Los errores automáticos completos quedan en el panel inferior.
+- Se conservan filtros de fechas al recibir central, pendientes locales, IDs, cálculos y botones manuales. Backend, hojas, propiedades, CSV, assets y módulos restantes sin cambios respecto de v0.12.2.
+- Modificados: index.html, sw.js, data/version.json, README, CHANGELOG, VALIDACION y SHA256SUMS. No se publicó ni desplegó.
 
 ## v0.12.2 — Cuenta corriente central (1 de octubre de 2026)
 

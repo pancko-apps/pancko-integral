@@ -57,3 +57,11 @@ También se comprobaron clave inválida, lectura que no crea hojas, endpoints nu
 - Respaldo JSON e importación en otro navegador simulado; detección de ID conflictivo, relectura de almacenamiento y protección ante libro corrupto. Cliente antiguo sin ID recibe uno persistente.
 - No cambian `pk_cash_daily_v1`, las operaciones de sincronización de Caja, los datos CSV ni backend (comparación byte a byte).
 - Limitación: sin prueba visual en navegador real ni acceso a servicios productivos; revisar desktop/móvil tras subir el paquete. CC es local/offline y no se propaga sola entre dispositivos.
+
+
+## v0.12.3 — Recepción automática y UX
+
+- Dos dispositivos simulados con backend real ejecutado sobre Sheet simulada: cargo/pago recibidos automáticamente al entrar, edición/anulación, migración e idempotencia de v0.12.2 preservadas.
+- Polling de 60 segundos ejecutado con reloj controlado, filtros Desde/Hasta preservados; formulario abierto conserva importe sin reemplazo por respuesta automática. Al salir del módulo se detiene el temporizador. Panel inferior plegado y badge superior comprobados en DOM.
+- Backend y CSV comparados byte a byte contra v0.12.2; sintaxis, rutas relativas, versión/cache y ZIP completo verificados.
+- No se probó esta versión contra servicios productivos ni visualmente en PC/celular físicos. La sincronización v0.12.2 sí fue confirmada por Tincho; tras subir v0.12.3, comprobar recepción automática con la app visible durante un minuto. El navegador puede demorar timers si la pestaña está oculta; al volver visible se consulta nuevamente.
