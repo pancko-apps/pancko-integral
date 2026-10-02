@@ -1,4 +1,28 @@
-# Pancko Gestión v0.12.1 — Correcciones de Cuenta corriente
+# Pancko Gestión v0.12.2 — Cuenta corriente central
+
+## Despliegue desde v0.12.1, en orden
+
+1. **Antes de actualizar**, descargar respaldos JSON de Cuenta corriente en cada equipo que tenga movimientos propios. Respaldar también Caja. Si dos equipos ya tienen deudas para el mismo cliente con IDs distintos, conservar ambos respaldos y revisar antes de unir fichas.
+2. En la cuenta del Apps Script que ya usa Pancko, reemplazar el código completo por `backend/Pancko_AppsScript_v0.12.2.gs`. Mantener el `SHEET_ID` existente. En Propiedades del script configurar `PANCKO_CC_TOKEN` con una clave propia de CC de **al menos 16 caracteres**; no publicarla en el repositorio. Conservar `PANCKO_CASH_TOKEN` y la clave de artículos sin cambios. Crear una **nueva versión de la implementación web** existente y comprobar su URL `/exec`.
+3. En Cloudflare, reemplazar y desplegar el Worker completo `backend/Pancko_Worker_v0.12.2.mjs`. Conserva la URL de Apps Script `AKfycbwyFVFa54Ruue2-4UoIuvnYzbjyqmyEwiwuozl7Zz01zVD0KJSXMKnHdDtCwrAzg2VT/exec`; si la implementación cambió de URL, actualizarla en el Worker **antes** de desplegar. Verificar `/ping` (versión 0.12.2) y una operación real de CC. Subir el archivo Worker al repo por sí solo no lo despliega.
+4. Descomprimir el ZIP y subir **su contenido directamente a la raíz del repositorio**: `index.html`, `sw.js`, `manifest.webmanifest`, `assets/`, `data/`, `backend/` y documentación. Subir los archivos backend al repo no actualiza los servicios; completar los pasos anteriores por separado. Cerrar todas las ventanas de Pancko/PWA y reabrir con conexión; debe verse v0.12.2. **No borrar datos del sitio**: contienen `pk_cc_manual_v1`.
+5. En Cuenta corriente, abrir «Dispositivo y clave de CC», escribir la **misma clave** en PC y celular, guardarla y pulsar **Sincronizar CC**. El nombre del dispositivo se toma de la configuración de Caja; si no está configurado figura «Sin identificar». La clave de CC queda sólo en el almacenamiento de cada dispositivo.
+
+La primera sincronización **sube los movimientos locales anteriores con sus IDs**, junto con sus clientes, y luego recibe las fichas centrales. Descargá un respaldo antes de esta primera subida. «Actualizar desde central» trae datos sin descartar operaciones pendientes; «Sincronizar CC» intenta enviar pendientes y luego trae lo central. Las cargas offline permanecen en `pk_cc_manual_v1` hasta que la red y el backend respondan. El estado muestra pendientes, conflicto y última sincronización. Un conflicto nunca sobrescribe la versión local automáticamente. Para conflictos del **mismo ID** se ofrece respaldar y usar explícitamente la versión central de ese registro; para clientes con distinto ID y nombre coincidente se requiere revisar los respaldos antes de conciliar.
+
+### Prueba guiada PC y celular
+
+1. En PC crear un cliente de prueba y un cargo manual pequeño; pulsar **Sincronizar CC** y comprobar «sincronizada».
+2. En celular configurar la clave de CC y pulsar **Actualizar desde central**. Verificar cliente, cargo y saldo. Agregar pago y sincronizar.
+3. En PC pulsar **Actualizar desde central**; comprobar el pago y el mismo saldo. Repetir Sincronizar CC: no debe crear otro cargo.
+4. En celular sin red cargar otro cargo; comprobar «pendiente de enviar». Reconectar y sincronizar; actualizar la PC.
+5. Editar y anular sólo movimientos de prueba desde equipos distintos. Si los dos editan el mismo sin actualizar, el segundo recibe conflicto. Exportar respaldos al terminar.
+
+**Cuenta corriente sigue siendo manual**: no recibe deudas de presupuesto/remito/Yoppen ni crea movimientos de Caja al registrar un pago. No hay login: cualquiera con la clave compartida y acceso a la app puede operar la ficha. No se probaron estos pasos en los servicios productivos desde esta entrega; ver `VALIDACION.md`.
+
+Detalles de hojas, operaciones y límites en `BACKEND_CC_v0.12.2.md`. Las instrucciones históricas siguientes corresponden a versiones anteriores y no sustituyen este orden de despliegue.
+
+## Historia de versiones anteriores
 
 ## Actualizar desde v0.12.0
 

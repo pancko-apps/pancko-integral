@@ -34,6 +34,14 @@ También se comprobaron clave inválida, lectura que no crea hojas, endpoints nu
 - Archivos backend y CSV comparados byte a byte con el paquete v0.11.7 con URL corregida.
 - Limitación: no se ejecutó prueba visual en navegador real ni se tocó el servicio remoto/Sheet productivo. El DOM y las pruebas de sincronización fueron simulados. Revisar la pantalla en PC y celular luego de subir el paquete.
 
+## v0.12.2 — Validación central de CC
+
+- Backend Apps Script y Worker: sintaxis, rutas y protocolo comprobados con Sheet y Lock simulados. Sin cambios en las funciones existentes de Caja/precios/presupuestos.
+- Dos navegadores simulados contra el mismo backend: cliente creado en PC recibido en celular; cargo de PC, pago de celular y saldos iguales; cliente creado en celular recibido en PC. Edición, anulación, reintentos sin duplicar, alta offline pendiente, conflicto edit/edit sin sobrescritura y resolución explícita después de respaldo.
+- Migración de un libro `pk_cc_manual_v1` anterior sin campos de sincronización: sube el movimiento una vez con su ID. Cliente de CSV con ID diferente se remapea al central si su ficha local no tiene movimientos.
+- Regresión de navegación, CSV, presupuesto, A4/ticket, tintométrico, Caja compartida, sintaxis JS, SW y ZIP completo. Ver resultados de pruebas debajo.
+- **Sin prueba sobre la Sheet, el Apps Script y el Worker productivos ni prueba visual en PC/celular reales.** El acceso de la nueva implementación `/exec`, el token, la PWA instalada y la impresión se deben comprobar tras el despliegue siguiendo README. Conflictos de clientes de distinto ID con movimientos locales requieren conciliación manual; nunca se mezclan automáticamente.
+
 ## v0.12.1 — Validación de correcciones UX
 
 - Pruebas con el código real y DOM simulado: cargo, pago y ajuste editados sin cambiar ID; importe modificado con confirmación, edición de anulado bloqueada, saldo recalculado y libro persistido en `pk_cc_manual_v1`.

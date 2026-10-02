@@ -1,4 +1,12 @@
-# CHANGELOG — Pancko Gestión v0.12.1
+# CHANGELOG — Pancko Gestión v0.12.2
+
+## v0.12.2 — Cuenta corriente central (1 de octubre de 2026)
+
+- `pk_cc_manual_v1` sigue siendo el libro local y ahora incluye `sync_pending` con operaciones estables. Los movimientos nuevos, editados o anulados se guardan primero localmente; al volver la red se envían a Sheet y se reciben cambios hechos en otros dispositivos. Se conserva el ID de los movimientos v0.12.0/v0.12.1.
+- Se sincronizan clientes vinculados y clientes nuevos mediante `cc_clientes_extra`; la recepción reconcilia un cliente importado con ID diferente sólo si esa ficha local no tiene movimientos. Una coincidencia ambigua se bloquea y pide revisión.
+- Nuevas rutas Worker POST `/cc/get` y `/cc/apply`, acciones Apps Script `cc_get` y `cc_apply`. Token separado `PANCKO_CC_TOKEN`. Nuevas hojas automáticas al primer guardado: `cc_clientes_extra`, `cc_movimientos`, `cc_eventos`. Las dos primeras guardan filas legibles más un snapshot JSON por entidad; eventos son auditoría auxiliar. Sin cambios en hojas existentes.
+- Con bloqueo de Script, revisión por entidad y `op_id` guardado en la fila, los reintentos no duplican operaciones. Creaciones de distinto ID se combinan. Editar/anular un movimiento cambiado en otro dispositivo devuelve conflicto. Respaldo y resolución explícita para mismo ID.
+- Archivos modificados: `index.html`, `sw.js`, `data/version.json`, `backend/Pancko_AppsScript_v0.12.2.gs`, `backend/Pancko_Worker_v0.12.2.mjs`, documentación y checksums. CSV, assets, manifest e íconos idénticos a v0.12.1. No se cambió Caja, presupuestos, precios ni tintométrico. No se desplegó ni publicó desde esta entrega.
 
 ## v0.12.1 — Correcciones de Cuenta corriente (1 de octubre de 2026)
 
