@@ -1,4 +1,4 @@
-/* Pancko Gestión v0.11.1 · Presentación de datos locales, sin operaciones económicas. */
+/* Pancko Gestión v0.11.7 · Presentación de datos locales, sin operaciones económicas. */
 'use strict';
 
 function shellBudgetDate(entry){
