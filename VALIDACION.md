@@ -1,13 +1,14 @@
-# Validación v0.12.14
+# Validación — Pancko Gestión v0.12.15
 
-## Comprobaciones ejecutadas
+## Resultado
 
-- Sintaxis JS/Apps Script: 11 archivos externos/backend, 9 scripts inline y 208 handlers. Rutas relativas, manifest, version.json y precache presentes. CSS sin delimitadores desbalanceados.
-- Comprobación de estructura: grilla conserva nueve columnas en el mismo orden; el tachito tiene nombre/tooltip y la prueba elimina una única línea, conservando los IDs de las demás.
-- Regresión de Presupuestos: fórmula rápida, sugerencias de fórmulas compatibles, bases PASTEL/BLANCO/TINT/DEEP/ACCENT, Enter por Fórmula/Cantidad/% Dto., select-all, productos, selector múltiple, descuentos, limpieza del borrador, historial y reapertura offline.
-- Salidas A4/ticket/canvas y compartir simulado, laboratorio tintométrico, Caja local y Cuenta Corriente PC/celular con backend simulado. PWA/service worker comprueban actualización y conservación del almacenamiento local.
-- CSV de artículos/clientes/recetas y backend comparados byte a byte con v0.12.13. ZIP con raíz correcta, 32 archivos, hashes SHA256 y CRC validados.
+- `node --check`: JavaScript embebido en `index.html`, `assets/budget-workbench.js`, `assets/pwa-update.js` y `sw.js`, sin error.
+- Revisión estructural del HTML: Cliente, autocompletar y Condición existen una sola vez y están dentro del bloque inferior izquierdo; las referencias locales del HTML existen.
+- Prueba de render de fórmula: «Ice Age» se mantiene en snapshot y tooltip; no aparece la línea visual `budget-formula-note`; botón avanzado y estado `mod.` siguen disponibles.
+- Pruebas de regresión automatizadas sobre v0.12.15: 21 entradas rápidas, 26 presupuestos, 26 casos de pulido, 19 fórmulas rápidas, 41 controles de frontend, búsqueda de Caja, integración Cuenta Corriente PC/celular, PWA y service worker. Todas pasaron.
+- Se comprobó que los CSV de artículos (3998 filas), clientes (1625) y recetas (16958), backend Apps Script, Worker, Caja y sincronización de Caja son byte por byte iguales a v0.12.14. `sw.js` precarga los CSV y el CSS/JS de Presupuestos; versión de caché y registro coinciden.
+- Se verificó que el ZIP contiene `index.html`, `sw.js`, `data/`, `assets/` y backend en la raíz correcta, sin carpeta contenedora.
 
-## Lo que no se pudo comprobar físicamente
+## Límite de prueba
 
-No hay binarios de Chromium, Firefox ni WebKit instalados en esta ejecución. El aspecto real a zoom 100% y 110%, el desplazamiento horizontal según monitor, y la presentación en móvil quedan para revisión en navegador. Tampoco se realizó impresión física, envío real de WhatsApp, ni conexión a la Sheet productiva. Las pruebas de DOM/canvas son simulaciones y no sustituyen esa revisión visual.
+No se pudo abrir esta versión en un navegador gráfico del entorno para comparar a ojo zoom de PC 100% y 110% ni hacer una prueba táctil real de celular. La distribución de columnas y reglas responsive se revisaron en código y con la captura facilitada; Tincho puede comprobar la impresión visual final tras subir el paquete. Tampoco se ejecutó una sincronización contra Sheet de producción ni una impresión física, porque esta entrega no cambia esos flujos ni el backend.
