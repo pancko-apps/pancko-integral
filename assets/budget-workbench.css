@@ -214,3 +214,26 @@
  #cartScreen .budget-grid td:nth-child(4) input,
  #cartScreen .budget-grid td:nth-child(6) input{width:min(58px,100%);margin-left:auto;margin-right:0}
 }
+
+/* v0.12.17: columnas agrupadas a la derecha, siguiendo los huecos señalados en la captura. */
+@media(min-width:1024px){
+ #cartScreen .budget-grid{min-width:1200px}
+ #cartScreen .budget-grid th:nth-child(1){width:8%}
+ #cartScreen .budget-grid th:nth-child(2){width:48%}
+ #cartScreen .budget-grid th:nth-child(3){width:8%;text-align:right}
+ #cartScreen .budget-grid th:nth-child(4){width:5%}
+ #cartScreen .budget-grid th:nth-child(5){width:7%}
+ #cartScreen .budget-grid th:nth-child(6){width:5%}
+ #cartScreen .budget-grid th:nth-child(7){width:7%}
+ #cartScreen .budget-grid th:nth-child(8){width:8%}
+ #cartScreen .budget-grid th:nth-child(9){width:4%}
+ #cartScreen .budget-grid td:nth-child(3){text-align:right}
+ #cartScreen .budget-formula-controls{justify-content:flex-end;position:relative}
+ #cartScreen .budget-formula-controls input{width:72px;flex:0 1 72px}
+ #cartScreen .budget-formula-mod{position:absolute;right:0;top:-7px;z-index:1;background:var(--bg2);border-radius:3px;padding:0 2px}
+ #cartScreen .budget-grid td:nth-child(4) input,
+ #cartScreen .budget-grid td:nth-child(6) input{width:min(54px,100%)}
+ #cartScreen .budget-grid td:nth-child(5),
+ #cartScreen .budget-grid td:nth-child(7),
+ #cartScreen .budget-grid td:nth-child(8){font-size:.83rem}
+}

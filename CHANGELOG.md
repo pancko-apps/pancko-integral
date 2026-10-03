@@ -1,9 +1,10 @@
-# v0.12.16 — compactación horizontal de la grilla de Presupuestos
+# v0.12.17 — huecos de la grilla corregidos según captura
 
-- Cantidad y Precio más próximos por menor ancho de Cantidad, input alineado hacia Precio y menor padding horizontal.
-- % Dto. e Imp. Dto. más próximos con el mismo criterio.
-- Bloque Cantidad → Acción reducido del 46% al 44% del ancho de la grilla; sigue a la derecha, con títulos alineados y orden intacto.
-- Anchos de Precio, Imp. Dto. e Importe conservados para precios grandes. Regla limitada a escritorio (1024 px o más); sin cambios de flujo, lógica, móvil, CSV, backend o estructura de datos.
-- Versión visible, service worker/caché y `data/version.json` actualizados a v0.12.16.
+- Se hizo un ajuste horizontal real: el bloque Cantidad→Acción se mueve a la derecha (inicio 56% → 64%) y pasa de 44% a 36% del ancho.
+- Fórmula pasa de 12% a 8%; input corto de 72 px y botón agrupados al extremo derecho. La marca `mod.` no ensancha el control.
+- Cantidad y Precio, % Dto. e Imp. Dto., e Imp. Dto. e Importe quedan visualmente más próximos; títulos conservan sus columnas.
+- Descripción usa el ancho liberado. La tabla de escritorio tiene mínimo 1200 px y scroll horizontal propio cuando no entra; móvil mantiene sus tarjetas.
+- Sin cambios de lógica, Caja, Cuenta Corriente, tintométrico, salidas, CSV o backend.
+- Versión de interfaz, service worker/caché y `data/version.json` actualizados a v0.12.17.
 
-Para instalación, pruebas y límites, ver `README.md` y `VALIDACION.md`.
+Ver `README.md` y `VALIDACION.md`.
