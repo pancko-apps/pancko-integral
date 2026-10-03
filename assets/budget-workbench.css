@@ -1,4 +1,4 @@
-/* v0.12.14 · Presupuesto de mostrador, integrado al shell Pancko. */
+/* v0.12.15 · Presupuesto de mostrador, integrado al shell Pancko. */
 #cartScreen .budget-document{background:var(--bg2);border:1px solid var(--border);border-radius:13px;margin-bottom:14px;overflow:visible}
 #cartScreen .budget-document-meta{display:grid;grid-template-columns:minmax(130px,.7fr) minmax(150px,1fr) minmax(110px,.6fr);gap:14px;padding:14px 16px;border-bottom:1px solid var(--border);align-items:start}
 #cartScreen .budget-document-meta>div{min-width:0}#cartScreen .budget-document-meta span:not(.budget-proposal-tag){display:block;color:var(--text-muted);font-size:.68rem;text-transform:uppercase;letter-spacing:.055em;margin-bottom:4px}
@@ -52,7 +52,7 @@
  .budget-picker{padding:10px}.budget-picker-card{padding:14px;max-height:94dvh}.budget-picker-filters{grid-template-columns:1fr;gap:0}.budget-picker-results{max-height:42dvh}.budget-picker-table{min-width:520px}
 }
 
-/* v0.12.14: descuento independiente, sugerencias y selección de lote. */
+/* v0.12.15: descuento independiente, sugerencias y selección de lote. */
 #cartScreen .budget-terms{grid-column:2;grid-row:1/3;display:grid;grid-template-columns:minmax(130px,1fr) minmax(90px,110px);gap:7px 10px;align-self:start}
 #cartScreen .budget-terms .field{min-width:0;margin:0}#cartScreen .budget-rate-control{display:flex;align-items:center;gap:5px}#cartScreen .budget-rate-control input{min-width:0;width:100%;text-align:right;font-variant-numeric:tabular-nums}
 #cartScreen .budget-terms-hint{grid-column:1/-1;color:var(--text-muted);font-size:.7rem;line-height:1.3}#cartScreen .budget-terms-hint.invalid{color:#c53d48;font-weight:700}
@@ -66,7 +66,7 @@
 .budget-picker-table td:nth-child(3){white-space:normal}.budget-picker-table td:nth-child(4){white-space:nowrap}
 @media(max-width:760px){#cartScreen .budget-terms{grid-column:1;grid-row:auto}#cartQuickProductSuggest .budget-suggestion{grid-template-columns:76px minmax(0,1fr)}#cartQuickProductSuggest .budget-suggestion small{grid-column:2}.budget-picker-table{min-width:560px}}
 
-/* v0.12.14: entrada protagonista, condición comercial y resumen editable estable. */
+/* v0.12.15: entrada protagonista, condición comercial y resumen editable estable. */
 #cartScreen .budget-terms{grid-template-columns:minmax(0,1fr)}
 #cartScreen .budget-entry{background:var(--surface2);border:1px solid var(--border);border-left:4px solid var(--accent);border-radius:10px;padding:12px;gap:8px}
 #cartScreen .budget-entry label{font-weight:800;color:var(--accent);letter-spacing:.035em}
@@ -79,7 +79,7 @@
 @media(min-width:1024px){#cartScreen .budget-entry{padding:14px 16px}#cartScreen .budget-entry label{font-size:.84rem}#cartScreen .budget-entry input,#cartScreen .budget-entry>.btn{min-height:46px}#cartScreen .budget-entry input{border-color:var(--accent);font-size:.94rem}}
 @media(max-width:760px){#cartScreen .budget-entry{padding:9px}#cartScreen .budget-general-row{grid-template-columns:auto 70px minmax(0,1fr)}}
 
-/* v0.12.14: código rápido de fórmula con acceso al editor completo. */
+/* v0.12.15: código rápido de fórmula con acceso al editor completo. */
 #cartScreen .budget-formula{min-width:158px;max-width:215px}
 #cartScreen .budget-formula-controls{display:flex;align-items:center;gap:5px}
 #cartScreen .budget-formula-controls input{width:106px;min-width:0;min-height:36px;text-align:left;font-variant-numeric:tabular-nums}
@@ -90,7 +90,7 @@
 #cartScreen .budget-formula input[aria-invalid="true"]{border-color:#d44450}
 @media(max-width:760px){#cartScreen .budget-formula-controls{width:100%;max-width:225px}#cartScreen .budget-formula-controls input{width:100%;flex:1}#cartScreen .budget-formula .budget-formula-note,#cartScreen .budget-formula .budget-formula-error{width:100%}}
 
-/* v0.12.14: sugerencias de fórmulas compatibles, flotantes fuera del scroll de la grilla. */
+/* v0.12.15: sugerencias de fórmulas compatibles, flotantes fuera del scroll de la grilla. */
 #budgetFormulaSuggest[hidden]{display:none!important}
 #budgetFormulaSuggest{position:fixed;z-index:900;max-height:225px;overflow:auto;background:var(--bg2);border:1px solid var(--accent);border-radius:9px;box-shadow:0 14px 28px rgba(0,0,0,.25);color:var(--text)}
 #budgetFormulaSuggest .budget-formula-suggestion{display:grid;grid-template-columns:minmax(48px,70px) minmax(0,1fr) auto;align-items:center;gap:8px;width:100%;min-height:36px;padding:7px 9px;background:transparent;border:0;border-bottom:1px solid var(--border);color:var(--text);font:inherit;font-size:.74rem;text-align:left;cursor:pointer}
@@ -99,7 +99,7 @@
 #budgetFormulaSuggest .budget-formula-suggestion span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #budgetFormulaSuggest .budget-formula-suggestion small{color:var(--text-muted);font-size:.67rem}
 
-/* v0.12.14: densidad y alineación del comprobante únicamente en escritorio. */
+/* v0.12.15: densidad y alineación del comprobante únicamente en escritorio. */
 @media(min-width:1024px){
  #cartScreen .budget-document{margin-bottom:9px}
  #cartScreen .budget-document-meta{grid-template-columns:150px minmax(155px,1fr) 130px;gap:10px;padding:7px 12px;align-items:center}
@@ -153,3 +153,53 @@
 }
 #cartScreen .budget-line-delete{font-size:.95rem;line-height:1;min-width:34px;min-height:34px;text-align:center}
 #cartScreen .budget-line-delete:hover,#cartScreen .budget-line-delete:focus-visible{background:rgba(190,49,63,.13);color:#d84d5a;border-color:rgba(190,49,63,.42)}
+
+/* v0.12.15: metadata breve, datos comerciales debajo de la grilla y fórmula de una línea. */
+#cartScreen .budget-document-meta{border-bottom:0;grid-template-columns:minmax(0,1fr) auto;align-items:center}
+#cartScreen .budget-document-meta .budget-proposal-tag{grid-column:1/-1;max-width:none}
+#cartScreen .budget-bottom-info{min-width:0}
+#cartScreen .budget-bottom-info .budget-client-head{border:1px solid var(--border);border-radius:10px;background:var(--bg2)}
+#cartScreen .budget-bottom-info .autocomplete-wrap{position:relative}
+#cartScreen .budget-formula-mod{font-size:.62rem;font-weight:700;color:var(--accent);white-space:nowrap}
+#cartScreen .budget-formula .budget-formula-error:not([hidden]){display:block}
+@media(min-width:1024px){
+ #cartScreen .budget-document{margin-bottom:6px}
+ #cartScreen .budget-document-meta{grid-template-columns:minmax(175px,1fr) 155px auto;gap:15px;padding:6px 12px}
+ #cartScreen .budget-document-meta .budget-proposal-tag{grid-column:auto;white-space:nowrap;font-size:.68rem}
+ #cartScreen .budget-entry{margin-top:6px}
+ #cartScreen .budget-bottom-info .budget-client-head{grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:3px 10px;padding:7px 9px;align-items:start}
+ #cartScreen .budget-bottom-info .budget-client-head>.autocomplete-wrap{grid-column:1;grid-row:1}
+ #cartScreen .budget-bottom-info .budget-client-actions{grid-column:1;grid-row:2;flex-wrap:wrap}
+ #cartScreen .budget-bottom-info .budget-terms{grid-column:2;grid-row:1/3;align-self:start}
+ #cartScreen .budget-bottom-info .budget-client-head input{min-height:34px;padding:5px 8px;font-size:.82rem}
+ #cartScreen .budget-bottom-info .budget-client-actions .btn{min-height:28px;font-size:.66rem;padding:3px 6px}
+ #cartScreen .budget-bottom-info .budget-client-head label{font-size:.67rem}
+ #cartScreen .budget-bottom-info .budget-terms-hint{font-size:.62rem}
+ #cartScreen .budget-grid th:nth-child(1){width:8%}
+ #cartScreen .budget-grid th:nth-child(2){width:34%}
+ #cartScreen .budget-grid th:nth-child(3){width:12%}
+ #cartScreen .budget-grid th:nth-child(4){width:7%}
+ #cartScreen .budget-grid th:nth-child(5){width:9%}
+ #cartScreen .budget-grid th:nth-child(6){width:7%}
+ #cartScreen .budget-grid th:nth-child(7){width:9%}
+ #cartScreen .budget-grid th:nth-child(8){width:10%}
+ #cartScreen .budget-grid th:nth-child(9){width:4%}
+ #cartScreen .budget-grid th{padding:7px 6px}
+ #cartScreen .budget-grid td{padding:4px 6px;line-height:1.2}
+ #cartScreen .budget-formula-controls{gap:4px}
+ #cartScreen .budget-formula-controls input{width:calc(100% - 34px);flex:1 1 auto;min-width:0;min-height:30px;padding:4px 5px;font-size:.81rem}
+ #cartScreen .budget-formula-controls .budget-formula-advanced{width:30px;min-width:30px;flex:0 0 30px;height:30px;min-height:30px;padding:2px}
+ #cartScreen .budget-grid td:nth-child(4) input,#cartScreen .budget-grid td:nth-child(6) input{min-height:30px;padding:4px 5px}
+ #cartScreen .budget-line-delete{min-height:30px;min-width:30px;padding:3px}
+ #cartScreen .budget-bottom{margin:7px 0}
+ #cartScreen .budget-output-settings{padding:4px 2px}
+}
+@media(max-width:1023px){
+ #cartScreen .budget-document-meta{grid-template-columns:minmax(0,1fr) auto;gap:5px 12px}
+ #cartScreen .budget-document-meta>div:nth-child(2){grid-row:auto;grid-column:auto}
+ #cartScreen .budget-bottom-info .budget-client-head{padding:10px}
+}
+@media(max-width:760px){
+ #cartScreen .budget-bottom-info{grid-row:1}
+ #cartScreen #cartTotals{grid-row:2}
+}
