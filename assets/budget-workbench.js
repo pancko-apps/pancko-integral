@@ -1,4 +1,4 @@
-/* Pancko Gestión v0.12.10 · Comprobante de presupuesto. No cambia reglas del laboratorio. */
+/* Pancko Gestión v0.12.11 · Comprobante de presupuesto. No cambia reglas del laboratorio. */
 'use strict';
 function budgetClone(value){return JSON.parse(JSON.stringify(value));}
 function budgetBasePrice(item){return Number.isFinite(item.base_price_snapshot)?item.base_price_snapshot:num(item.PR_CON_IVA)-num(item.tintData?.tintCost);}
@@ -93,24 +93,36 @@ function budgetRenderPicker(more=false){
  document.getElementById('budgetPickerCount').textContent=matches.length+' coincidencias'+(matches.length>budgetPickerLimit?' · mostrando '+budgetPickerLimit:'')+' · '+budgetPickerSelected.size+' seleccionados';budgetUpdateSelectionCount();
  document.getElementById('budgetPickerResults').innerHTML=matches.length?`<table class="budget-picker-table"><thead><tr><th>Elegir</th><th>Código</th><th>Descripción</th><th>Precio lista</th><th>Base / tinto</th></tr></thead><tbody>${matches.slice(0,budgetPickerLimit).map(p=>`<tr><td><input type="checkbox" aria-label="Seleccionar ${esc(p.COD)}" data-code="${esc(p.COD)}" onchange="budgetToggleSelection(this.dataset.code,this.checked)" ${budgetPickerSelected.has(String(p.COD))?'checked':''}></td><td>${esc(p.COD)}</td><td><button type="button" data-code="${esc(p.COD)}" onclick="selectCartQuickProduct(this.dataset.code)">${esc(p.ARTIC)}</button></td><td>${$m(num(p.PR_CON_IVA))}</td><td>${esc(isTintableProduct(p)?(p.base_fisica_tinto||p.base_tinto||'Revisar base'):'—')}</td></tr>`).join('')}</tbody></table>${matches.length>budgetPickerLimit?'<button class="btn btn-back" onclick="budgetPickerLimit+=80;budgetRenderPicker(true)">Ver más resultados</button>':''}`:'<p>No hay artículos para estos filtros.</p>';
 }
+let budgetCommittedCondition='';
 const BUDGET_CONDITION_KEY='pk_budget_condition_v1',BUDGET_GENERAL_KEY='pk_budget_general_pct_v1';
 function budgetDraftPct(){const v=Number(localStorage.getItem(BUDGET_GENERAL_KEY));return Number.isFinite(v)?clampPct(v):0;}
 function budgetSetDraftTerms(condition,pct){
  const name=String(condition||'Lista').trim().slice(0,80)||'Lista',value=clampPct(pct);
- localStorage.setItem(BUDGET_CONDITION_KEY,name);localStorage.setItem(BUDGET_GENERAL_KEY,String(value));
+ budgetCommittedCondition=name;localStorage.setItem(BUDGET_CONDITION_KEY,name);localStorage.setItem(BUDGET_GENERAL_KEY,String(value));
  document.getElementById('budgetConditionInput').value=name;
  document.getElementById('budgetGeneralDiscount').value=String(value).replace('.',',');
- document.getElementById('budgetGeneralHelp').textContent='La condición se imprime; este porcentaje define el total.';
+ document.getElementById('budgetGeneralHelp').textContent='Descuento sobre el subtotal; editable independientemente de la condición.';
 }
 function budgetInitTerms(){
  if(localStorage.getItem(BUDGET_CONDITION_KEY)===null||localStorage.getItem(BUDGET_GENERAL_KEY)===null){
   const key=localStorage.getItem('pk_price_mode')||discounts[0].key,match=discounts.find(d=>d.key===key);
   budgetSetDraftTerms(match?.label||(key==='manual'?'Manual':'Lista'),key==='manual'?getCustomDiscount():(match?.percent||0));
  }else budgetSetDraftTerms(localStorage.getItem(BUDGET_CONDITION_KEY),budgetDraftPct());
- document.getElementById('budgetConditionOptions').innerHTML=[...new Set([...discounts.map(d=>d.label),'Transferencia'])].map(label=>`<option value="${esc(label)}"></option>`).join('');
+ renderModeOptions();
 }
 getMode=function(){return {key:'manual',label:localStorage.getItem(BUDGET_CONDITION_KEY)||'Lista',percent:budgetDraftPct()};};
-renderModeOptions=function(){const list=document.getElementById('budgetConditionOptions');if(list)list.innerHTML=[...new Set([...discounts.map(d=>d.label),'Transferencia'])].map(label=>`<option value="${esc(label)}"></option>`).join('');};
+renderModeOptions=function(){
+ const list=document.getElementById('budgetConditionOptions');
+ if(list)list.innerHTML=[...new Set(['Contado','Cuenta corriente','Transferencia','Cheque','Tarjeta','A convenir','Lista',...discounts.map(d=>d.label).filter(label=>!/%/.test(label))])].map(label=>`<option value="${esc(label)}"></option>`).join('');
+};
+function budgetCommitCondition(){
+ budgetSetCondition();const name=document.getElementById('budgetConditionInput').value.trim();
+ if(normKey(name)===normKey(budgetCommittedCondition))return;
+ budgetCommittedCondition=name;
+ const match=discounts.find(d=>normKey(d.label)===normKey(name));
+ if(match){document.getElementById('budgetGeneralDiscount').value=String(clampPct(match.percent)).replace('.',',');budgetSetGeneralDiscount();}
+}
+
 function budgetSetCondition(){
  touchCurrentBudgetForEdit();const value=document.getElementById('budgetConditionInput').value.slice(0,80);
  localStorage.setItem(BUDGET_CONDITION_KEY,value);document.getElementById('budgetDocumentNumber').textContent=currentBudgetCode||'Sin guardar';
@@ -122,7 +134,7 @@ function budgetValidPercent(value){
 function budgetSetGeneralDiscount(){
  const raw=document.getElementById('budgetGeneralDiscount').value,value=budgetValidPercent(raw),hint=document.getElementById('budgetGeneralHelp');
  if(value===null){hint.textContent='Ingresá un porcentaje válido entre 0 y 100 (hasta dos decimales).';hint.classList.add('invalid');return;}
- touchCurrentBudgetForEdit();localStorage.setItem(BUDGET_GENERAL_KEY,String(value));hint.textContent='La condición se imprime; este porcentaje define el total.';hint.classList.remove('invalid');
+ touchCurrentBudgetForEdit();localStorage.setItem(BUDGET_GENERAL_KEY,String(value));hint.textContent='Descuento sobre el subtotal; editable independientemente de la condición.';hint.classList.remove('invalid');
  document.getElementById('budgetDocumentNumber').textContent=currentBudgetCode||'Sin guardar';budgetRenderTotals();
 }
 function budgetCommitGeneralDiscount(){
@@ -130,11 +142,15 @@ function budgetCommitGeneralDiscount(){
  field.value=String(budgetDraftPct()).replace('.',',');
 }
 function budgetRenderTotals(){
- const totals=document.getElementById('cartTotals');if(!cart.length){totals.style.display='none';totals.innerHTML='';return;}
  const mode=getMode(),lineDiscount=budgetSpecialDiscountTotal(cart);
- totals.style.display='block';
- totals.innerHTML=`<div class="cart-summary">${lineDiscount?`<div class="cart-summary-row"><span>Importe de lista</span><strong>${$m(budgetListTotal(cart))}</strong></div>`:''}<div class="cart-summary-row"><span>Subtotal</span><strong>${$m(budgetAfterSpecialTotal(cart))}</strong></div>${lineDiscount?`<div class="cart-summary-row budget-saving"><span>Ahorro por descuentos de línea (informativo)</span><span>${$m(lineDiscount)}</span></div>`:''}<div class="cart-summary-row"><span>Descuento general ${mode.percent}%</span><strong>−${$m(budgetGeneralDiscountTotal(cart,mode.percent))}</strong></div><div class="cart-summary-row total"><span>TOTAL</span><strong>${$m(budgetFinalTotal(cart,mode.percent))}</strong></div></div>`;
+ document.getElementById('budgetSubtotalValue').textContent=$m(budgetAfterSpecialTotal(cart));
+ document.getElementById('budgetDiscountValue').textContent='−'+$m(budgetGeneralDiscountTotal(cart,mode.percent));
+ document.getElementById('budgetTotalValue').textContent=$m(budgetFinalTotal(cart,mode.percent));
+ const saving=document.getElementById('budgetLineSaving');saving.hidden=!lineDiscount;
+ saving.textContent=lineDiscount?'Ahorro por descuentos de línea (informativo): '+$m(lineDiscount):'';
+ // El input permanece en el DOM para conservar foco y selección mientras se escribe.
 }
+
 renderCart=function(){
  hideClientAutocomplete();const saved=budgetHistory.find(h=>String(h.id)===String(currentBudgetCode));
  document.getElementById('budgetDocumentNumber').textContent=currentBudgetCode||'Sin guardar';
