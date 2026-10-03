@@ -1,3 +1,5 @@
+> Documento histórico. Para v0.12.18 usar SEGURIDAD_ENDPOINTS_v0.12.18.md; las claves separadas ya no son la configuración vigente.
+
 # Cuenta corriente v0.12.6 · Imputación manual de pagos
 
 Reemplazar Apps Script por `Pancko_AppsScript_v0.12.6.gs`, conservar `SHEET_ID`/propiedades y actualizar la implementación existente sin cambiar `/exec`. Worker v0.12.2 idéntico, no redeplegar. No hay hojas, columnas, endpoints ni tokens nuevos.

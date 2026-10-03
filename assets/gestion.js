@@ -1,11 +1,12 @@
-/* Pancko Gestión v0.11.7 · Extiende la base sin cambiar sus reglas comerciales. */
+
+/* Pancko Gestión v0.12.18 · Extiende la base sin cambiar sus reglas comerciales. */
 'use strict';
 let budgetClientId=localStorage.getItem('pk_draft_client_id') || '';
 let quickClientReturn=false;
 let catalogPreview=null;
 let managementSyncBusy=false;
 let lastCatalogMessage='';
-const gestionModules={remitos:{economic:false,status:'prepared'},cc:{economic:false,status:'prepared'},recibos:{economic:false,status:'prepared'},cheques:{economic:false,status:'prepared'},scanner:{status:'prepared'}};
+const gestionModules={remitos:{economic:false,status:'prepared'},cc:{economic:true,status:'central-manual'},recibos:{economic:false,status:'prepared'},cheques:{economic:false,status:'prepared'},scanner:{status:'prepared'}};
 function getBudgetPrintOptions(){return document.getElementById('budgetPrintOptions')?.value || localStorage.getItem('pk_budget_print_options') || 'full';}
 function setBudgetPrintOptions(value){touchCurrentBudgetForEdit();localStorage.setItem('pk_budget_print_options',['none','configured','full'].includes(value)?value:'full');}
 function persistDraftClient(){localStorage.setItem('pk_draft_client_name',document.getElementById('clientName').value);localStorage.setItem('pk_draft_client_id',budgetClientId);}
@@ -121,10 +122,10 @@ function openCatalogPreview(p){
   document.getElementById('catalogApplyBtn').textContent=p.type==='publish'?'Publicar en Sheet':'Aplicar en este dispositivo';
   document.getElementById('catalogApplyBtn').disabled=false;document.getElementById('catalogPreviewModal').classList.add('open');
 }
-function cancelCatalogPreview(){if(catalogApplying)return;catalogPreview=null;document.getElementById('catalogPreviewModal').classList.remove('open');document.getElementById('catalogPublishToken').value='';}
+function cancelCatalogPreview(){if(catalogApplying)return;catalogPreview=null;document.getElementById('catalogPreviewModal').classList.remove('open');}
 async function catalogRequest(path,options={}){
   const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),60000);
-  try{const res=await fetch(PANCKO_API_URL+path,{...options,cache:'no-store',signal:controller.signal});const data=await res.json();if(!res.ok||!data.ok)throw new Error(data.error || `HTTP ${res.status}`);return data;}
+  try{const res=await panckoFetch(PANCKO_API_URL+path,{...options,cache:'no-store',signal:controller.signal});const data=await res.json();if(!res.ok||!data.ok)throw new Error(data.error || `HTTP ${res.status}`);return data;}
   catch(e){if(e.name==='AbortError')throw new Error('La consulta tardó demasiado. Si estabas publicando, pudo completarse: reintentá desde esta revisión para conservar el mismo ID.');if(e instanceof SyntaxError)throw new Error('El backend no respondió artículos válidos. Revisá la implementación de Apps Script y Worker.');throw e;}finally{clearTimeout(timeout);}
 }
 function catalogCentralInfo(data){return {version:data.version||'',name:data.list_name||'',count:Number.isFinite(Number(data.count))?Number(data.count):null,published_at:data.updated_at||'',checked_at:new Date().toISOString()};}
@@ -143,19 +144,19 @@ async function previewCentralCatalog(){
 async function publishCentralCatalog(){
   if(catalogBusy||catalogApplying)return;catalogSetBusy(true);
   try{
-    const name=catalogName(document.getElementById('catalogListName').value),token=document.getElementById('catalogPublishToken').value.trim();
-    if(!token)throw new Error('Ingresá la clave de publicación configurada en Apps Script.');
+    const name=catalogName(document.getElementById('catalogListName').value),token=panckoAppToken();
+    if(!token)throw new Error('Ingresá la Clave operativa Pancko en Sincronización.');
     const rows=validateArticleRows(products),fingerprint=JSON.stringify(products);
     lastCatalogMessage='Consultando versión antes de publicar…';renderCatalogManagement();
     const meta=await catalogRequest('/articles/meta');rememberCatalogCentral(meta);
-    if(!meta.publish_configured)throw new Error('Falta configurar PANCKO_ARTICLES_TOKEN en las propiedades de Apps Script.');
+    if(!meta.publish_configured)throw new Error('Falta configurar PANCKO_APP_TOKEN en las propiedades de Apps Script.');
     if(!meta.catalog_metadata_supported)throw new Error('Para guardar nombre, fecha y vista legible, actualizá la implementación de Apps Script a v0.11.2. El Worker v0.11.0 sigue siendo compatible.');
     const current=meta.version?await catalogRequest('/articles'):{articles:[],version:''};
     if(current.version!==meta.version)throw new Error('La versión central cambió. Volvé a revisar la publicación.');
     if(fingerprint!==JSON.stringify(products))throw new Error('El catálogo local cambió. Volvé a revisar la publicación.');
     const central=validateArticleRowsOrEmpty(current.articles);
     if(meta.version&&central.length!==Number(current.count))throw new Error('La lista central llegó incompleta. No se publicará.');
-    openCatalogPreview({...mergeArticleRows(central,rows),type:'publish',mode:'prices',name,incoming:rows,localFingerprint:fingerprint,expectedVersion:meta.version||'',uploadId:'art_'+crypto.randomUUID(),token,title:'Revisar publicación central',source:`Maestro local · versión actual: ${meta.version || 'primera publicación'}`});
+    openCatalogPreview({...mergeArticleRows(central,rows),type:'publish',mode:'prices',name,incoming:rows,localFingerprint:fingerprint,expectedVersion:meta.version||'',uploadId:'art_'+crypto.randomUUID(),title:'Revisar publicación central',source:`Maestro local · versión actual: ${meta.version || 'primera publicación'}`});
   }catch(e){lastCatalogMessage=e.message;showToast(e.message);}finally{catalogSetBusy(false);renderCatalogManagement();}
 }
 function catalogWriteBatch(values){
@@ -170,7 +171,7 @@ async function applyCatalogPreview(){
   try{
     if(p.localFingerprint&&p.localFingerprint!==JSON.stringify(products))throw new Error('El catálogo local cambió desde la revisión. Cancelá y volvé a revisar.');
     if(p.type==='publish'){
-      const data=await catalogRequest('/articles',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({articles:p.incoming,expected_version:p.expectedVersion,upload_id:p.uploadId,token:p.token,list_name:p.name,catalog_metadata_version:1})});
+      const data=await catalogRequest('/articles',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({articles:p.incoming,expected_version:p.expectedVersion,upload_id:p.uploadId,list_name:p.name,catalog_metadata_version:1})});
       const central=catalogCentralInfo(data.central||data),entry={event_id:'publish_'+data.version,action:'Publicación central',name:data.list_name||p.name,published_at:data.updated_at,count:data.count,version:data.version,mode:'prices'};
       catalogWriteBatch({pk_catalog_version:data.version,pk_catalog_central:JSON.stringify(central),pk_catalog_last_published_at:data.updated_at||'',pk_catalog_history:catalogNextHistory(entry)});
       lastCatalogMessage=`Publicada: ${entry.name} · ${data.count} artículos · ${catalogDate(data.updated_at)}. ${data.mirror_ok===false?'La publicación técnica está guardada, pero falló la vista legible: '+(data.mirror_warning||'revisar Apps Script'):'Vista legible de Sheet actualizada.'}${central.version!==data.version?' Existe una publicación central posterior; revisá el estado central.':''}`;
@@ -202,8 +203,8 @@ function renderManagementSync(){
   const pendingBud=budgetHistory.filter(h=>h._sync!=='synced').length,pendingLab=labRecords.filter(r=>r._sync!=='synced').length;
   document.getElementById('syncSummary').innerHTML=`Red: <b>${navigator.onLine?'conectada':'sin conexión'}</b><br>Presupuestos pendientes: <b>${pendingBud}</b><br>Colores pendientes: <b>${pendingLab}</b><br>El borrado de colores sigue siendo local.`;
   document.getElementById('retrySyncBtn').disabled=managementSyncBusy;
-  document.getElementById('pwaStatus').textContent=`Pancko Gestión v0.11.7 · ${'serviceWorker' in navigator?'PWA disponible en HTTPS.':'Este navegador no permite service worker.'}`;
-  if('serviceWorker' in navigator)navigator.serviceWorker.getRegistration().then(r=>{document.getElementById('pwaStatus').textContent=`Pancko Gestión v0.11.7 · ${r?.waiting?'Actualización esperando: cerrá todas las ventanas y reabrí.':r?.active?'Service worker activo. Datos base disponibles offline tras completar la instalación.':'Instalación offline aún no completada.'}`;}).catch(()=>{});
+  document.getElementById('pwaStatus').textContent=`Pancko Gestión v0.12.18 · ${'serviceWorker' in navigator?'PWA disponible en HTTPS.':'Este navegador no permite service worker.'}`;
+  if('serviceWorker' in navigator)navigator.serviceWorker.getRegistration().then(r=>{document.getElementById('pwaStatus').textContent=`Pancko Gestión v0.12.18 · ${r?.waiting?'Actualización esperando: cerrá todas las ventanas y reabrí.':r?.active?'Service worker activo. Datos base disponibles offline tras completar la instalación.':'Instalación offline aún no completada.'}`;}).catch(()=>{});
   renderCatalogManagement();
 }
 
@@ -247,3 +248,4 @@ function saveAnotherLabRecord(){labSavedFingerprint='';labSavedId='';saveLabReco
 document.addEventListener('keydown',event=>{if(event.key==='Escape' && document.getElementById('catalogPreviewModal').classList.contains('open')){event.preventDefault();event.stopImmediatePropagation();cancelCatalogPreview();}},true);
 document.getElementById('catalogPreviewModal').addEventListener('click',event=>{if(event.target===event.currentTarget)cancelCatalogPreview();});
 refreshHeader();
+

@@ -1,3 +1,5 @@
+> Documento histórico. Para v0.12.18 usar SEGURIDAD_ENDPOINTS_v0.12.18.md; las claves separadas ya no son la configuración vigente.
+
 # Backend de lista de precios — v0.11.2
 
 ## Actualización manual de Apps Script

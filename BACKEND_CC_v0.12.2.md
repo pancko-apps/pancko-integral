@@ -1,3 +1,5 @@
+> Documento histórico. Para v0.12.18 usar SEGURIDAD_ENDPOINTS_v0.12.18.md; las claves separadas ya no son la configuración vigente.
+
 # Cuenta corriente central · contrato v0.12.2
 
 ## Instalación

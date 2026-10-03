@@ -1,4 +1,5 @@
-/* Pancko Gestión v0.11.7 — sincronización de Caja, sin alterar los demás módulos. */
+
+/* Pancko Gestión v0.12.18 — sincronización de Caja, sin alterar los demás módulos. */
 'use strict';
 const CASH_IDENTITY_KEY='pk_cash_identity_v1';
 const CASH_SYNC_TIME_KEY='pk_cash_sync_time_v1';
@@ -6,14 +7,14 @@ let cashSyncTimer=null,cashSyncBusy=false,cashSyncInFlightId=null,cashSyncConfli
 function cashIdentity(){
  try{let x=JSON.parse(localStorage.getItem(CASH_IDENTITY_KEY)||'null');if(!x||typeof x!=='object')x={};
   if(!x.id){x.id='dev_'+crypto.randomUUID();localStorage.setItem(CASH_IDENTITY_KEY,JSON.stringify(x));}
-  return {id:x.id,name:String(x.name||''),token:String(x.token||'')};
+  return {id:x.id,name:String(x.name||''),token:panckoAppToken()};
  }catch{return {id:'unknown',name:'',token:''};}
 }
 function cashSyncEnabled(){const x=cashIdentity();return !!(x.name.trim()&&x.token.trim());}
 function cashSaveSettings(){
- const name=document.getElementById('cashDeviceName').value.trim(),token=document.getElementById('cashSyncToken').value.trim();
- if(!name||name.length>80||token.length<16){cashSyncError='Ingresá nombre de dispositivo y clave de Caja de al menos 16 caracteres.';cashRenderSyncStatus();return;}
- const current=cashIdentity();try{localStorage.setItem(CASH_IDENTITY_KEY,JSON.stringify({id:current.id,name,token}));cashSyncError='';cashSyncConflict='';cashRenderSyncStatus();cashScheduleSync(cashSelectedDate);}catch{cashSyncError='No se pudo guardar la configuración en este dispositivo.';cashRenderSyncStatus();}
+ const name=document.getElementById('cashDeviceName').value.trim();
+ if(!name||name.length>80){cashSyncError='Ingresá un nombre de dispositivo de hasta 80 caracteres.';cashRenderSyncStatus();return;}
+ const current=cashIdentity();try{localStorage.setItem(CASH_IDENTITY_KEY,JSON.stringify({id:current.id,name}));cashSyncError='';cashSyncConflict='';cashRenderSyncStatus();cashScheduleSync(cashSelectedDate);}catch{cashSyncError='No se pudo guardar la configuración en este dispositivo.';cashRenderSyncStatus();}
 }
 function cashSame(a,b){return JSON.stringify(a)===JSON.stringify(b);}
 function cashOp(date,kind,data){return {op_id:'op_'+crypto.randomUUID(),date,kind,data,created_at:new Date().toISOString()};}
@@ -65,7 +66,7 @@ function cashRenderSyncStatus(){
  const pending=(cashBook.sync_pending||[]).filter(o=>o.date===cashSelectedDate).length;
  const state=cashSyncConflict?'Conflicto / revisar':cashSyncBusy?'Sincronizando…':pending?'Pendiente de enviar · '+pending:cashSyncEnabled()&&cashBook.sync_versions?.[cashSelectedDate]?'Sincronizada':'Guardada localmente';
  const last=cashLastSync||localStorage.getItem(CASH_SYNC_TIME_KEY);
- el.textContent=state+(last?' · Última sincronización: '+cashStamp(last):'')+(cashSyncConflict?' · '+cashSyncConflict:cashSyncError?' · '+cashSyncError:'');
+ el.textContent=state+(last?' · Última sincronización: '+cashStamp(last):'')+(cashSyncConflict?' · '+cashSyncConflict:cashSyncError?' · Sincronización demorada. Los cambios siguen guardados localmente. '+cashSyncError:pending&&!cashSyncBusy?' · Los cambios siguen guardados localmente.':'');
  el.classList.toggle('cash-sync-warning',!!(pending||cashSyncConflict||cashSyncError));
 }
 function cashScheduleSync(date,slow=false){
@@ -74,7 +75,7 @@ function cashScheduleSync(date,slow=false){
 }
 async function cashApi(path,body){
  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),45000);
- try{const response=await fetch(PANCKO_API_URL+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...body,token:cashIdentity().token}),cache:'no-store',signal:controller.signal});
+ try{const response=await panckoFetch(PANCKO_API_URL+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),cache:'no-store',signal:controller.signal});
  const data=await response.json();if(!data.ok&&!data.conflict)throw new Error(data.error||'El backend de Caja no respondió correctamente.');return data;
  }finally{clearTimeout(timer);}
 }
@@ -126,8 +127,8 @@ async function cashSyncDate(date=cashSelectedDate,{refreshOnly=false}={}){
  }catch(e){cashSyncError=e?.name==='AbortError'?'Tiempo de espera agotado. Los cambios siguen locales.':String(e.message||e);return false;}
  finally{cashSyncInFlightId=null;cashSyncBusy=false;cashRenderSyncStatus();}
 }
-async function cashSyncNow(){if(!cashSyncEnabled()){cashSyncError='Configurá nombre y clave de Caja en este dispositivo.';cashRenderSyncStatus();return;}await cashSyncDate(cashSelectedDate);}
-async function cashRefreshFromCentral(){if(!cashSyncEnabled()){cashSyncError='Configurá nombre y clave de Caja en este dispositivo.';cashRenderSyncStatus();return;}await cashSyncDate(cashSelectedDate,{refreshOnly:true});}
+async function cashSyncNow(){if(!cashSyncEnabled()){cashSyncError='Configurá nombre y Clave operativa Pancko en este dispositivo.';cashRenderSyncStatus();return;}await cashSyncDate(cashSelectedDate);}
+async function cashRefreshFromCentral(){if(!cashSyncEnabled()){cashSyncError='Configurá nombre y Clave operativa Pancko en este dispositivo.';cashRenderSyncStatus();return;}await cashSyncDate(cashSelectedDate,{refreshOnly:true});}
 async function cashSyncAllPending(){
  const dates=[...new Set((cashBook.sync_pending||[]).map(o=>o.date))];
  for(const date of dates){if(date===cashSelectedDate)continue;await cashSyncDate(date);}
@@ -165,5 +166,6 @@ window.addEventListener('online',()=>{setTimeout(()=>cashSyncAllPending(),300);}
 window.addEventListener('storage',e=>{if(e.key===CASH_KEY||e.key===CASH_IDENTITY_KEY)cashRenderSyncStatus();});
 const cashStoredIdentity=cashIdentity();
 document.getElementById('cashDeviceName').value=cashStoredIdentity.name;
-document.getElementById('cashSyncToken').value=cashStoredIdentity.token;
+
 cashRenderSyncStatus();
+

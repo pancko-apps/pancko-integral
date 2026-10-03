@@ -1,3 +1,5 @@
+> Documento histórico. Para v0.12.18 usar SEGURIDAD_ENDPOINTS_v0.12.18.md; las claves separadas ya no son la configuración vigente.
+
 # CC · Unión explícita v0.12.4
 
 Reemplazar Apps Script por el archivo completo `Pancko_AppsScript_v0.12.4.gs` y actualizar la implementación web existente. Mismo `SHEET_ID`, URL /exec y `PANCKO_CC_TOKEN`; sin nuevas propiedades. Worker v0.12.2 sin cambios funcionales ni de bytes, no requiere despliegue.

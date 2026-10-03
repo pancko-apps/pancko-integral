@@ -1,12 +1,15 @@
-# Validación — Pancko Gestión v0.12.17
+# Validación v0.12.18
 
-- Se inspeccionó la captura de v0.12.16 con las X rojas. Los huecos entre campos/valores motivaron un cambio de anchos real, no sólo de padding.
-- Grilla de escritorio: anchos 8 + 48 + 8 + 5 + 7 + 5 + 7 + 8 + 4 = 100%; el bloque numérico empieza al 64% y ocupa 36%, frente a 56%/44% en v0.12.16. Fórmula queda en 8%, input máximo 72 px; títulos conservan su columna. La tabla tiene `min-width:1200px` y scroll interno si no cabe.
-- Sintaxis JS comprobada con `node --check` en scripts embebidos de `index.html`, `sw.js`, `assets/pwa-update.js` y `assets/budget-workbench.js`.
-- Pruebas automatizadas pasadas: 21 entradas rápidas, 26 casos de presupuesto, 26 de pulido, 19 de fórmula rápida, 41 controles de frontend, Caja, integración Cuenta Corriente PC/celular, PWA y service worker.
-- Byte por byte idénticos a v0.12.16: CSV de artículos/clientes/recetas, JS de presupuesto, Caja, Cuenta Corriente, Apps Script y Worker. Sólo cambian CSS, metadatos de versión/cache y documentación.
-- ZIP comprobado: estructura raíz, archivos esenciales, CRC y hashes SHA256.
+Pruebas automatizadas ejecutadas sobre código completo con DOM simulado, Cloudflare Request/Response y SpreadsheetApp/locks simulados. No se accedió a datos ni endpoints de producción.
 
-## Límite conocido
+- Seguridad: 66 comprobaciones. Rutas privadas Worker sin clave/inválida rechazan antes de reenviar; GAS directo y alias GET rechazan sin lectura/escritura. Clave válida, presupuesto guardar/borrar, colores guardar/listar, snapshots sin credenciales, compat, claves limitadas por módulo, expiración, strict, CORS/preflight, /test 404 y autenticación doble.
+- Operativa: 8 comprobaciones. Dispositivo nuevo con una sola clave, conexión ambos backends, header común, guardar presupuesto, sincronizar todo sin publicar lista, fallo de un módulo no detiene otros, pendientes conservados sin clave, persistencia de negocio sin claves.
+- Catálogo: publicación de 3998 productos, preview sin credenciales, recepción explícita/aplicación con nombre de lista. Puente de despliegue GAS anterior probado; strict no reintenta claves antiguas.
+- Frontend: 41 comprobaciones de carga completa (3998 artículos, 16958 recetas, clientes), navegación, presupuesto, tintométrico/etiqueta, snapshots, salidas, backups y borrado pendiente.
+- Presupuestos: 26 comprobaciones de carga, descuentos, fórmula, snapshot histórico, reapertura offline, A4/ticket/compartir alternativo. Carga rápida: 21 comprobaciones de bases, autocomplete/Enter/select-all y persistencia.
+- Cuenta Corriente: PC/celular simulados con clientes, cargo, pago, edición, anulación, saldo y reintento sin duplicar.
+- Caja: combinación PC/celular (5 casos); búsqueda local con positivos, egresos, importe cero, estados, apertura de fecha y recepción local.
+- PWA: registro/SW simulado, precache completo, limpieza selectiva, activación y recarga cache-busting con fallback visible; localStorage intacto.
+- Sintaxis: 10 scripts inline, todos los JS, Worker completo y Apps Script completo pasan node --check. Rutas precache existen. ZIP sin carpeta contenedora, sin claves reales y con CSV idénticos a v0.12.17.
 
-No hay navegador gráfico instalado en este entorno: el aspecto visual a zoom 100% y 110%, la lectura táctil en celular y el resultado de una impresión física no se comprobaron aquí. Las dimensiones y el responsive se revisaron en CSS y contra la captura, mientras que los flujos de JS se verificaron con pruebas automatizadas. La tabla puede tener scroll horizontal interno en un escritorio de menos de 1200 px de área útil, para evitar superponer los importes.
+No probado: despliegue real Cloudflare/GAS, PC/celular físicos, impresión/PDF físico, WhatsApp nativo ni navegador real/inspección visual de la nueva pantalla. La matriz usa simulaciones; no equivale a confirmar instalación en producción. Ejecutar la guía PC/celular después del despliegue. Esta entrega modifica sólo transporte/configuración; no rehace lógica económica ni presupuesto.
