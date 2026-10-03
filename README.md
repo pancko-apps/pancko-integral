@@ -1,3 +1,39 @@
+# Pancko Gestión v0.12.11 — Presupuestos: pulido visual
+
+## Subida
+
+Subir/reemplazar **todo el contenido del ZIP en la raíz del repositorio**, incluida **assets completa** y data/version.json. No alcanza con reemplazar index.html. No hay carpeta contenedora. Se conservan CSV, manifest, iconos y todos los archivos necesarios. No se publicó ni se interactuó con GitHub.
+
+## Cambios
+
+- Agregar artículo tiene fondo diferenciado, borde lateral de acento, etiqueta más visible y, en PC, input/botones de 46 px. Se mantienen sugerencias debajo, Enter, buscador completo y selección múltiple. En móvil se conserva tamaño moderado.
+- Descuento general pasó al resumen inferior como porcentaje editable. La cabecera conserva sólo la condición comercial. El input no se destruye al recalcular, para conservar foco y escritura.
+- Resumen principal: Subtotal, Desc. general, TOTAL. Se eliminó Importe de lista de ese bloque. El ahorro por descuentos de línea queda como información secundaria debajo del total.
+- Subtotal = suma de líneas netas de sus propios descuentos. General = descuento sobre ese subtotal, respetando las funciones de redondeo existentes; TOTAL conserva el cálculo existente. No cambia el importe visual de cada línea.
+- Condiciones sugeridas: Contado, Cuenta corriente, Transferencia, Cheque, Tarjeta, A convenir, Lista y nombres comerciales configurados sin porcentajes. También se admite texto libre y se conservan los nombres de presupuestos históricos.
+- Al confirmar una condición distinta cuyo nombre coincide con una condición configurada, se sugiere su porcentaje (por ejemplo Contado). Luego se puede modificar abajo. Volver a confirmar la misma condición no pisa una edición manual. Las condiciones sin coincidencia configurada conservan el porcentaje actual: no se inventa descuento para Tarjeta/Transferencia.
+- Se conserva el imprimible de v0.12.10, incluidas alternativas comerciales de pago y modos de impresión. Se conservan snapshots, tintométricos, historial, Usar como nuevo y limpieza completa a Consumidor final.
+
+## Alcance / backend
+
+Sólo frontend y versionado/cache. **No requiere actualizar Apps Script ni Worker**. Los archivos backend incluidos son los mismos de la base, por completitud: no desplegarlos por esta mejora. No hay hojas, endpoints, propiedades ni tokens nuevos. No se cambian estructuras de datos ni claves locales; no hay migración necesaria. Caja, Cuenta Corriente, artículos/CSV y lógica tintométrica permanecen iguales.
+
+## Archivos modificados
+
+index.html, assets/budget-workbench.js, assets/budget-workbench.css, assets/pwa-update.js (versión), sw.js (cache), data/version.json, README.md, CHANGELOG.md, VALIDACION.md, SHA256SUMS.txt.
+
+## PWA
+
+Cache v0.12.11, assets incluidos en precache. Actualizar con red y Forzar actualización; si indica cerrar y reabrir, cerrar todas las ventanas de Pancko. Se conserva localStorage. No borrar datos del sitio para actualizar.
+
+## Pruebas y límites
+
+Ver VALIDACION.md. Se ejecutaron pruebas automáticas con el código real en DOM y backend simulados, canvas real y validaciones estáticas. No se afirma prueba visual en navegador físico PC/celular ni envío efectivo por WhatsApp, impresión física o conexión a la Sheet productiva. No se modificó backend.
+
+---
+
+## Documentación de versiones anteriores
+
 # Pancko Gestión v0.12.10 — Pulido de Presupuestos
 
 **Para subir: reemplazá el contenido completo en la raíz del repositorio, incluida la carpeta `assets/`. No alcanza con subir `index.html`.** El ZIP tiene `index.html`, `sw.js`, `manifest.webmanifest`, `data/`, `assets/` y backend directamente en su raíz, sin carpeta envolvente. No se publicó ni se interactuó con GitHub.

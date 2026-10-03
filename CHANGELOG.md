@@ -1,3 +1,15 @@
+# v0.12.11
+
+- Carga de artículos más visible en escritorio.
+- Porcentaje general editable abajo; condición comercial arriba.
+- Resumen Subtotal / Desc. general / TOTAL; ahorro de línea secundario.
+- Condición configurada puede sugerir descuento, sin bloquear edición manual posterior.
+- Imprimibles, alternativas de pago, sugerencias, lotes, fórmulas e historial preservados.
+- Sin cambios de backend, datos maestros, Caja o Cuenta Corriente.
+- Versionado y precache actualizados. Pruebas y límites en VALIDACION.md.
+
+---
+
 # v0.12.10 — Sugerencias, lote y descuentos claros en Presupuestos
 
 Fecha: 02/10/2026. Base: v0.12.9.
