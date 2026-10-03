@@ -1,3 +1,30 @@
+# Pancko Gestión v0.12.14 — Presupuestos, densidad de escritorio
+
+## Subida
+
+Descomprimir y subir/reemplazar **todo el contenido del ZIP directamente en la raíz del repositorio**, incluida **`assets/` completa**, `index.html`, `sw.js` y `data/version.json`. El ZIP no tiene carpeta envolvente. No se interactuó con GitHub ni se publicó.
+
+## Cambios de la pantalla Presupuestos
+
+- Sólo desde 1024 px de ancho CSS, la cabecera del comprobante reduce padding, espacios entre campos y alto de inputs. Mantiene tipo, referencia, fecha, cliente y condición. Cliente/condición siguen visibles en dos columnas; la frase «Propuesta · sin impacto en cuenta corriente» baja a la zona secundaria inferior izquierda, junto a «Condiciones en las salidas».
+- Agregar artículo conserva el fondo y borde destacados, con altura interior levemente menor. Sus sugerencias, Enter, selector múltiple y foco no cambian.
+- La tabla de PC usa distribución fija de nueve columnas y ancho mínimo de 1040 px con scroll horizontal si la ventana es estrecha; descripción y fórmula conservan espacio útil. Se subieron moderadamente fuentes de códigos, nombres, fórmula, títulos, números y totales, y se redujo padding/interlineado de filas. Cantidad y % Dto. quedan centrados bajo sus títulos; Precio, Imp. Dto. e Importe quedan a la derecha con cifras tabulares. Importe sigue más destacado. No cambia el orden ni las cifras calculadas.
+- En el espacio inferior, el resumen mantiene Subtotal / Desc. general / TOTAL y su porcentaje editable. Se redujo padding sin mover el resumen de la derecha.
+- La X de cada renglón se reemplazó por un botón **🗑️** con título «Quitar línea», nombre accesible del artículo y destaque suave al pasar el cursor/foco. Ejecuta la misma acción `removeItem` de la v0.12.13 y elimina únicamente esa línea. El botón grande Limpiar presupuesto conserva su función.
+- En móvil no se modificaron reglas de estilo existentes; el aviso legal se muestra debajo del resumen por la nueva estructura del bloque inferior. No se hizo rediseño móvil.
+
+## Alcance / compatibilidad
+
+Cambian sólo `index.html` (ubicación del aviso y versión), `assets/budget-workbench.css` (reglas de PC), `assets/budget-workbench.js` (icono/tooltip de borrar), `sw.js`, `data/version.json` y el texto de versión de `assets/pwa-update.js`, más la documentación y los hashes. **No desplegar Apps Script ni Worker**: los archivos backend incluidos son idénticos a v0.12.13. CSV de artículos, clientes y recetas idénticos. No hay tokens, hojas, endpoints, estructura de presupuesto ni claves locales nuevas. La PWA usa cache v0.12.14; con red, Forzar actualización y, si lo pide, cerrar todas las ventanas y reabrir. Conserva `localStorage`.
+
+## Validación y límite visual
+
+Ver `VALIDACION.md`. Pasaron pruebas automáticas del código real en DOM/backend simulados, sintaxis, rutas y precache. **No se pudo medir el resultado visual en navegador de PC a zoom 100/110%**: esta ejecución no dispone de binarios Chromium, Firefox ni WebKit. También quedan sin prueba física móvil, impresión o envío WhatsApp real. La primera revisión visual en PC debe confirmar si el ancho mínimo de tabla produce desplazamiento horizontal en el monitor habitual; no afecta cálculos ni guardado.
+
+---
+
+## Documentación anterior
+
 # Pancko Gestión v0.12.13 — Presupuestos: carga sin modal y navegación rápida
 
 ## Subida

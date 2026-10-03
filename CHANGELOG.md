@@ -1,3 +1,13 @@
+# v0.12.14
+
+- Cabecera del presupuesto más baja; aviso secundario trasladado al bloque inferior izquierdo.
+- Grilla de PC más legible y compacta, nueve columnas con anchos definidos, títulos/cifras alineados.
+- Agregar artículo y resumen conservan protagonismo con menos padding vertical.
+- X por tachito de línea, misma función de borrado; hover/foco suave y tooltip.
+- Sólo frontend y versión de caché; sin cambios de Caja, CC, precios, laboratorio ni backend. Pruebas y límite visual en VALIDACION.md.
+
+---
+
 # v0.12.13
 
 - Tintométricos entran directo al presupuesto en todas las bases; modal sólo con 🎨.
