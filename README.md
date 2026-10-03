@@ -1,3 +1,31 @@
+# Pancko Gestión v0.12.12 — Fórmula rápida y select-all en Presupuestos
+
+## Subida al repositorio
+
+Descomprimir y subir/reemplazar **todos los archivos en la raíz del repositorio**, incluida la carpeta `assets/` completa, `index.html`, `sw.js` y `data/version.json`. El ZIP no tiene carpeta envolvente. No se interactuó con GitHub ni se publicó.
+
+## Qué cambió
+
+- Foco/clic selecciona todo en cantidad y descuento de cada línea, descuento general, búsqueda de cliente y campo Agregar artículo. También en el nuevo input de fórmula. Estos inputs numéricos de la grilla usan teclado numérico mediante `inputmode` y validación: cantidad mayor o igual a 1 y descuento de 0 a 100; lo inválido se revierte sin guardar `NaN`.
+- La columna Fórmula de artículos tintométricos ofrece input de código y botón 🎨 para el modal completo. La línea común muestra —. PASTEL/BLANCO conserva alta directa; TINT/DEEP/ACCENT individual conserva apertura automática del modal; en lote pueden completarse desde el input sin una cadena de modales.
+- **Enter** busca coincidencia exacta por color (`idcolor`) y, si no la hay, por ID de fórmula (`id_formula`) en las bases compatibles del snapshot del artículo. Una sola coincidencia valida con el cálculo y factor existentes, aplica el color y pasa al próximo campo de fórmula o al campo Agregar artículo. Varias coincidencias, base incompatible, fórmula inexistente, factor inválido o pulsos incompletos muestran error en la línea y no escriben nada. Tab conserva comportamiento normal; Escape restaura el código aplicado.
+- El input guarda en esa línea el mismo formato de snapshot del modal: artículo/precio base y producto original, código/nombre, base física y de fórmula, factor y modo, ID de receta, pulsos y precios por colorante, costo de tintas, fórmula original y usada, marcas de tiempo y `manualModified:false`. No edita el CSV ni recetas maestras. El modal continúa permitiendo inspección, edición/restauración de pulsos y marca `mod.` cuando corresponde. Reingresar el mismo código no pisa una edición manual; cambiarla pide confirmación.
+- Siguen activos las sugerencias y multi-selección, descuento general inferior, condición comercial, resumen y alternativas del imprimible, snapshots de presupuestos guardados, salidas A4/ticket/WhatsApp, offline y foco en Agregar artículo tras añadir.
+
+## Alcance y compatibilidad
+
+**Sólo frontend y versionado/cache.** No desplegar Apps Script ni Worker por esta versión. Los archivos backend incluidos son copia idéntica a v0.12.11. No cambia URL, tokens, hojas, endpoints, esquema de movimientos ni estructuras de presupuestos; reutiliza `tintData` vigente. CSV de artículos, clientes y recetas intactos. Caja y Cuenta Corriente intactas.
+
+Archivos modificados: `index.html`, `assets/budget-workbench.js`, `assets/budget-workbench.css`, `assets/pwa-update.js` (versión), `sw.js`, `data/version.json`, README, CHANGELOG, VALIDACION y hashes. El service worker precarga `data/recetas.csv`. Con red, Forzar actualización prepara el nuevo cache; si pide cerrar ventanas, cerrarlas y reabrir. `localStorage` se conserva.
+
+## Verificación y límites
+
+Ver `VALIDACION.md`. Las pruebas automáticas usan scripts reales con DOM y backend simulados, canvas de ticket real, revisión de archivos y precache. No hubo revisión visual en navegadores físicos PC/móvil, impresión física, envío real WhatsApp ni Sheet productiva. Para cargar fórmulas nuevas offline, el dispositivo debe haber descargado `recetas.csv` previamente mediante la PWA; el simulador offline comprueba restauración del snapshot, mientras la disponibilidad del CSV la comprueba el service worker.
+
+---
+
+## Documentación anterior
+
 # Pancko Gestión v0.12.11 — Presupuestos: pulido visual
 
 ## Subida

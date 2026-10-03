@@ -1,22 +1,16 @@
-# Validación v0.12.11
+# Validación v0.12.12
 
-## Resultados
+## Verificaciones ejecutadas
 
-- 26 verificaciones de pulido: sugerencias reales 1700/, clic, Enter exacto/único/múltiple, casillas/lote, líneas independientes y snapshots, reglas tintométricas, línea sin descuento general, resumen neto, porcentaje editable con input estable, condición que sugiere 30% y admite cambio manual a 25%, resumen sin Importe de lista, términos comerciales, ticket, porcentaje inválido, limpieza completa, historial/copia, offline y ausencia de errores inesperados.
-- 26 verificaciones de Presupuestos: búsqueda, selecciones, descuentos/cantidades, fórmulas y compatibilidad, historial, copias, A4/ticket/compartir y offline.
-- 41 verificaciones generales: datos CSV, navegación, clientes, presupuesto, salidas con canvas real, tintométrico y persistencia/respaldo.
-- Regresión Caja: buscador de ingresos/egresos/importe cero, fecha/dispositivo/anulados, apertura y ausencia de escrituras.
-- Cuenta Corriente con backend simulado: PC crea cliente/cargo; celular recibe, paga; PC recibe. Edición/anulación, saldos y reintento sin duplicados.
-- PWA: recarga con URL fresca, estados, actualización, skipWaiting/claim, conservación de localStorage, fallback de cierre y reapertura.
-- Service worker: precache/rutas, versión desde red, limpieza selectiva de cache.
-- Sintaxis: 11 archivos externos/backend, 9 scripts inline y 204 handlers. Rutas relativas, IDs únicos, JSON, delimitadores CSS y precache.
-- Comparación contra v0.12.10: CSV y backend idénticos; inline de Caja/CC/laboratorio/salidas intactos salvo versión frontend.
-- ZIP: raíz correcta, 32 archivos, integridad CRC y SHA256 verificados.
-
-## Ejemplo de cálculo
-
-Precio 285714, descuento de línea 10%: descuento 28571, importe de línea/subtotal 257143. Descuento general 30%: descuento 77143, total 180000. La línea sigue mostrando 257143. Se conserva redondeo de funciones existentes, sin cambio contable.
+- 19 pruebas nuevas sobre presupuestos: no tintable sin fórmula; PASTEL con input/modal; select-all; 8299 con nombre Ice Age y snapshot completo; ausencia de modal en Enter; rechazo de código inexistente/incompatible/ambiguo sin mutar línea; botón avanzado y pulsos manuales marcados mod.; reingreso del mismo código conserva edición manual; reemplazo con confirmación; cantidad/descuento y total; importe inválido no persiste NaN; historial/A4; restauración offline; dos códigos consecutivos en líneas independientes; navegación a la siguiente fórmula; consola sin errores.
+- 26 verificaciones de Presupuestos de v0.12.11: artículos, bases PASTEL/BLANCO y TINT/DEEP/ACCENT, tintas manuales, snapshot/cambio de lista, historial, impresión/compartir y offline.
+- 26 verificaciones del pulido v0.12.11: sugerencias, lote, descuentos, condición comercial, ticket, limpiar borrador y copia del historial.
+- 41 verificaciones generales: CSV, clientes, navegación, A4/ticket/WhatsApp simulado, laboratorio, persistencia y datos locales.
+- Regresión Caja: búsqueda por ingreso/egreso/importe cero, apertura, fecha/dispositivo/anulados, sólo lectura.
+- Regresión Cuenta Corriente con backend simulado: PC/celular, cliente, cargo, pago, edición, anulación y reintentos.
+- PWA y service worker: versión, cache, precarga de recetas, refresco, claim/skipWaiting, localStorage intacto.
+- Sintaxis de archivos JS, Apps Script y scripts inline/handlers; rutas/manifest/version.json; CSV y backend idénticos a v0.12.11; hash y CRC del ZIP.
 
 ## Límites
 
-Pruebas en DOM/backend simulados con código real y canvas real. Sin navegador físico para revisión visual a distintos anchos; responsive inspeccionado en CSS. No se probó PWA instalada física, impresión física, envío real por WhatsApp ni la Sheet productiva. Los tests no equivalen a una prueba de producción. No se cambiaron los módulos ajenos ni backend.
+El DOM y backend de pruebas son simulados; no se revisó visualmente en navegador físico, ni se imprimió/envió a WhatsApp real o consultó la Sheet productiva. La prueba offline verifica conservación y lectura de una fórmula ya aplicada en el borrador. El CSV de recetas está en el precache del service worker, pero el simulador offline de JS no reproduce Cache Storage de un dispositivo instalado: por eso no se afirma una prueba física de ingreso de fórmulas nuevas sin red.

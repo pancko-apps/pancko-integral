@@ -1,3 +1,13 @@
+# v0.12.12
+
+- Select-all en campos rápidos de Presupuestos; cantidad/descuento de línea admiten reemplazo directo con validación.
+- Input de fórmula por línea tintométrica y botón 🎨 para el modal avanzado.
+- Enter valida coincidencia única/base/factor y usa snapshot del mismo formato de v0.12.11. Errores dejan la línea intacta; foco avanza a la siguiente fórmula.
+- Protege modificaciones manuales de pulsos y mantiene guardado/impresión/offline.
+- Sólo frontend, sin migración ni despliegue backend. Ver VALIDACION.md para pruebas y límites.
+
+---
+
 # v0.12.11
 
 - Carga de artículos más visible en escritorio.
