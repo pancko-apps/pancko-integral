@@ -1,4 +1,4 @@
-/* v0.12.12 · Presupuesto de mostrador, integrado al shell Pancko. */
+/* v0.12.13 · Presupuesto de mostrador, integrado al shell Pancko. */
 #cartScreen .budget-document{background:var(--bg2);border:1px solid var(--border);border-radius:13px;margin-bottom:14px;overflow:visible}
 #cartScreen .budget-document-meta{display:grid;grid-template-columns:minmax(130px,.7fr) minmax(150px,1fr) minmax(110px,.6fr);gap:14px;padding:14px 16px;border-bottom:1px solid var(--border);align-items:start}
 #cartScreen .budget-document-meta>div{min-width:0}#cartScreen .budget-document-meta span:not(.budget-proposal-tag){display:block;color:var(--text-muted);font-size:.68rem;text-transform:uppercase;letter-spacing:.055em;margin-bottom:4px}
@@ -52,7 +52,7 @@
  .budget-picker{padding:10px}.budget-picker-card{padding:14px;max-height:94dvh}.budget-picker-filters{grid-template-columns:1fr;gap:0}.budget-picker-results{max-height:42dvh}.budget-picker-table{min-width:520px}
 }
 
-/* v0.12.12: descuento independiente, sugerencias y selección de lote. */
+/* v0.12.13: descuento independiente, sugerencias y selección de lote. */
 #cartScreen .budget-terms{grid-column:2;grid-row:1/3;display:grid;grid-template-columns:minmax(130px,1fr) minmax(90px,110px);gap:7px 10px;align-self:start}
 #cartScreen .budget-terms .field{min-width:0;margin:0}#cartScreen .budget-rate-control{display:flex;align-items:center;gap:5px}#cartScreen .budget-rate-control input{min-width:0;width:100%;text-align:right;font-variant-numeric:tabular-nums}
 #cartScreen .budget-terms-hint{grid-column:1/-1;color:var(--text-muted);font-size:.7rem;line-height:1.3}#cartScreen .budget-terms-hint.invalid{color:#c53d48;font-weight:700}
@@ -66,7 +66,7 @@
 .budget-picker-table td:nth-child(3){white-space:normal}.budget-picker-table td:nth-child(4){white-space:nowrap}
 @media(max-width:760px){#cartScreen .budget-terms{grid-column:1;grid-row:auto}#cartQuickProductSuggest .budget-suggestion{grid-template-columns:76px minmax(0,1fr)}#cartQuickProductSuggest .budget-suggestion small{grid-column:2}.budget-picker-table{min-width:560px}}
 
-/* v0.12.12: entrada protagonista, condición comercial y resumen editable estable. */
+/* v0.12.13: entrada protagonista, condición comercial y resumen editable estable. */
 #cartScreen .budget-terms{grid-template-columns:minmax(0,1fr)}
 #cartScreen .budget-entry{background:var(--surface2);border:1px solid var(--border);border-left:4px solid var(--accent);border-radius:10px;padding:12px;gap:8px}
 #cartScreen .budget-entry label{font-weight:800;color:var(--accent);letter-spacing:.035em}
@@ -79,7 +79,7 @@
 @media(min-width:1024px){#cartScreen .budget-entry{padding:14px 16px}#cartScreen .budget-entry label{font-size:.84rem}#cartScreen .budget-entry input,#cartScreen .budget-entry>.btn{min-height:46px}#cartScreen .budget-entry input{border-color:var(--accent);font-size:.94rem}}
 @media(max-width:760px){#cartScreen .budget-entry{padding:9px}#cartScreen .budget-general-row{grid-template-columns:auto 70px minmax(0,1fr)}}
 
-/* v0.12.12: código rápido de fórmula con acceso al editor completo. */
+/* v0.12.13: código rápido de fórmula con acceso al editor completo. */
 #cartScreen .budget-formula{min-width:158px;max-width:215px}
 #cartScreen .budget-formula-controls{display:flex;align-items:center;gap:5px}
 #cartScreen .budget-formula-controls input{width:106px;min-width:0;min-height:36px;text-align:left;font-variant-numeric:tabular-nums}
@@ -89,3 +89,12 @@
 #cartScreen .budget-formula .budget-formula-error[hidden]{display:none!important}
 #cartScreen .budget-formula input[aria-invalid="true"]{border-color:#d44450}
 @media(max-width:760px){#cartScreen .budget-formula-controls{width:100%;max-width:225px}#cartScreen .budget-formula-controls input{width:100%;flex:1}#cartScreen .budget-formula .budget-formula-note,#cartScreen .budget-formula .budget-formula-error{width:100%}}
+
+/* v0.12.13: sugerencias de fórmulas compatibles, flotantes fuera del scroll de la grilla. */
+#budgetFormulaSuggest[hidden]{display:none!important}
+#budgetFormulaSuggest{position:fixed;z-index:900;max-height:225px;overflow:auto;background:var(--bg2);border:1px solid var(--accent);border-radius:9px;box-shadow:0 14px 28px rgba(0,0,0,.25);color:var(--text)}
+#budgetFormulaSuggest .budget-formula-suggestion{display:grid;grid-template-columns:minmax(48px,70px) minmax(0,1fr) auto;align-items:center;gap:8px;width:100%;min-height:36px;padding:7px 9px;background:transparent;border:0;border-bottom:1px solid var(--border);color:var(--text);font:inherit;font-size:.74rem;text-align:left;cursor:pointer}
+#budgetFormulaSuggest .budget-formula-suggestion:hover,#budgetFormulaSuggest .budget-formula-suggestion:focus-visible{background:var(--surface2)}
+#budgetFormulaSuggest .budget-formula-suggestion strong{color:var(--accent)}
+#budgetFormulaSuggest .budget-formula-suggestion span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#budgetFormulaSuggest .budget-formula-suggestion small{color:var(--text-muted);font-size:.67rem}

@@ -1,4 +1,4 @@
-/* Pancko Gestión v0.12.12 · Comprobante de presupuesto. No cambia reglas del laboratorio. */
+/* Pancko Gestión v0.12.13 · Comprobante de presupuesto. No cambia reglas del laboratorio. */
 'use strict';
 function budgetSelectAll(input){if(input&&typeof input.select==='function')input.select();}
 function budgetClone(value){return JSON.parse(JSON.stringify(value));}
@@ -60,12 +60,12 @@ function budgetAppendProducts(codes,batch=false){
  const input=document.getElementById('cartQuickProductInput');input.value='';input.dataset.cod='';input.dataset.cleared='0';
  renderCart();
  if(batch&&added.length>1){
-  const pending=selected.filter(p=>['required','unknown'].includes(budgetTintEntryRule(p))).length;
-  document.getElementById('budgetQuickStatus').textContent=added.length+' artículos agregados en líneas separadas.'+(pending?' '+pending+' fórmulas/bases pendientes para revisar desde la grilla.':'');
+  const pending=selected.filter(p=>budgetTintEntryRule(p)!=='plain').length;
+  document.getElementById('budgetQuickStatus').textContent=added.length+' artículos agregados en líneas separadas.'+(pending?' '+pending+' fórmulas disponibles para completar desde la grilla.':'');
   input.focus();return;
  }
  const rule=budgetTintEntryRule(selected[0]);document.getElementById('budgetQuickStatus').textContent='Agregado: '+selected[0].ARTIC+(rule==='unknown'?' · Revisá la base antes de aplicar una fórmula.':'');
- if(rule==='required'||rule==='unknown')openTintEditModal(added[0].uid);else input.focus();
+ input.focus();
 }
 selectCartQuickProduct=function(cod){budgetAppendProducts([cod]);};
 document.addEventListener('pointerdown',event=>{if(!event.target.closest('#cartQuickProductSuggest')&&!event.target.closest('#cartQuickProductInput'))budgetHideSuggestions();});
@@ -156,22 +156,107 @@ function budgetUpdateQty(input){
  const value=String(input.value).trim().replace(',','.');
  if(!/^\d+(?:\.\d+)?$/.test(value)||!Number.isFinite(Number(value))||Number(value)<1){
   const item=getCartItemByKey(input.dataset.key);input.value=item?String(itemQty(item)):'1';
-  document.getElementById('budgetQuickStatus').textContent='Ingresá una cantidad válida mayor o igual a 1.';return;
+  document.getElementById('budgetQuickStatus').textContent='Ingresá una cantidad válida mayor o igual a 1.';return false;
  }
- updateQty(input.dataset.key,value);
+ const item=getCartItemByKey(input.dataset.key);if(!item)return false;
+ touchCurrentBudgetForEdit();item.qty=Math.max(1,Number(value));input.value=String(item.qty);
+ save();budgetRefreshLine(input,item);return true;
 }
 function budgetUpdateLineDiscount(input){
  const value=budgetValidPercent(input.value);
  if(value===null){const item=getCartItemByKey(input.dataset.key);input.value=item?String(itemExtraPct(item)):'0';
-  document.getElementById('budgetQuickStatus').textContent='Ingresá un descuento de línea entre 0 y 100.';return;}
- updateItemExtraDiscount(input.dataset.key,value);
+  document.getElementById('budgetQuickStatus').textContent='Ingresá un descuento de línea entre 0 y 100.';return false;}
+ const item=getCartItemByKey(input.dataset.key);if(!item)return false;
+ touchCurrentBudgetForEdit();item.extraDiscount=clampPct(value);input.value=String(item.extraDiscount);
+ save();budgetRefreshLine(input,item);return true;
+}
+function budgetRefreshLine(input,item){
+ const cells=input.closest('tr')?.querySelectorAll('td')||[];
+ for(const cell of cells){
+  if(cell.getAttribute('data-label')==='Imp. Dto.')cell.textContent=$m(itemSpecialDiscountTotal(item));
+  if(cell.getAttribute('data-label')==='Importe')cell.textContent=$m(itemAfterSpecialTotal(item));
+ }
+ document.getElementById('budgetLineCount').textContent=cart.length+' líneas · '+cart.reduce((sum,i)=>sum+itemQty(i),0)+' unidades';
+ document.getElementById('budgetDocumentNumber').textContent=currentBudgetCode||'Sin guardar';
+ budgetRenderTotals();
+}
+function budgetLineKey(event,input,kind){
+ if(event.key!=='Enter')return;
+ event.preventDefault();
+ const valid=kind==='qty'?budgetUpdateQty(input):budgetUpdateLineDiscount(input);
+ if(!valid){input.focus();return;}
+ const position=cart.findIndex(i=>String(i.uid||i.COD)===String(input.dataset.key));
+ const next=cart[position+1];
+ const field=next?[...document.querySelectorAll('#cartItems [data-budget-field="'+kind+'"]')].find(i=>String(i.dataset.key)===String(next.uid||next.COD)):null;
+ (field||document.getElementById('cartQuickProductInput')).focus();
+}
+function budgetInitFormulaSuggestions(){
+ const box=document.createElement('div');box.id='budgetFormulaSuggest';box.className='budget-formula-suggest';box.hidden=true;
+ box.setAttribute('role','listbox');box.setAttribute('aria-label','Fórmulas compatibles');
+ document.body.appendChild(box);
+ document.addEventListener('pointerdown',event=>{
+  if(!event.target.closest('#budgetFormulaSuggest')&&!event.target.closest('#cartItems .budget-formula'))budgetHideFormulaSuggestions();
+ });
+ window.addEventListener('scroll',budgetHideFormulaSuggestions,true);
+ window.addEventListener('resize',budgetHideFormulaSuggestions);
+}
+function budgetHideFormulaSuggestions(){
+ const box=document.getElementById('budgetFormulaSuggest');if(box){box.hidden=true;box.innerHTML='';}
+ for(const input of document.querySelectorAll('#cartItems .budget-formula input'))input.setAttribute('aria-expanded','false');
+}
+function budgetFormulaCandidates(input){
+ const item=getCartItemByKey(input.dataset.key),q=normKey(input.value.trim());
+ if(!item||q.length<2)return [];
+ const bases=compatibleBasesForProduct(budgetProductForItem(item));if(!bases.length)return [];
+ const matches=tintRecipes.filter(r=>{
+  if(!bases.includes(normKey(r.base)))return false;
+  return normKey(r.idcolor||r.codigo_formula).includes(q)||normKey(r.id_formula).includes(q)||q.length>=3&&normKey(r.descripcion).includes(q);
+ });
+ const counts=new Map();
+ for(const rec of matches){const key=normKey(rec.base)+'|'+normKey(rec.idcolor||rec.codigo_formula);counts.set(key,(counts.get(key)||0)+1);}
+ matches.sort((a,b)=>{
+  const score=r=>Number(normKey(r.idcolor||r.codigo_formula).startsWith(q))*4+Number(normKey(r.id_formula).startsWith(q))*2;
+  return score(b)-score(a)||String(a.idcolor||'').localeCompare(String(b.idcolor||''),'es');
+ });
+ const valid=[];
+ for(const rec of matches){
+  if(counts.get(normKey(rec.base)+'|'+normKey(rec.idcolor||rec.codigo_formula))!==1)continue;
+  const calc=budgetResolveTint(item,tintRecipeLabel(rec));
+  if(!calc.ok||normKey(calc.rec.idcolor)!==normKey(rec.idcolor||rec.codigo_formula)||normKey(calc.base_formula)!==normKey(rec.base)||!Array.isArray(calc.lines)||!calc.lines.length||calc.lines.some(l=>!Number.isFinite(l.pulsos)||l.pulsos<=0||!Number.isFinite(l.subtotal)||l.subtotal<0))continue;
+  if(!valid.some(r=>normKey(r.base)===normKey(rec.base)&&normKey(r.idcolor||r.codigo_formula)===normKey(rec.idcolor||rec.codigo_formula)))valid.push(rec);
+  if(valid.length>=8)break;
+ }
+ return valid;
+}
+function budgetSuggestFormula(input){
+ const box=document.getElementById('budgetFormulaSuggest'),matches=budgetFormulaCandidates(input);
+ if(!box||!matches.length){budgetHideFormulaSuggestions();return matches;}
+ const rect=input.getBoundingClientRect(),viewport=window.innerHeight||800;
+ box.style.left=Math.max(8,rect.left)+'px';box.style.width=Math.max(225,Math.min(340,(window.innerWidth||1024)-rect.left-10))+'px';
+ box.style.top=(rect.bottom+235<viewport?rect.bottom+3:Math.max(8,rect.top-235))+'px';
+ box.innerHTML=matches.map(r=>`<button type="button" class="budget-formula-suggestion" role="option" data-key="${esc(input.dataset.key)}" data-color="${esc(r.idcolor||r.codigo_formula)}" data-base="${esc(r.base)}" onclick="budgetChooseFormula(this)"><strong>${esc(r.idcolor||r.codigo_formula)}</strong><span>${esc(r.descripcion||'Sin nombre')}</span><small>${esc(r.base)}</small></button>`).join('');
+ box.hidden=false;input.setAttribute('aria-expanded','true');budgetFormulaError(input,'');return matches;
+}
+function budgetChooseFormula(button){
+ const input=[...document.querySelectorAll('#cartItems .budget-formula input')].find(i=>String(i.dataset.key)===String(button.dataset.key));
+ if(!input)return false;
+ input.value=button.dataset.color;return budgetApplyFormula(input,button.dataset.base);
+}
+function budgetChooseFormulaRecord(input,rec){
+ input.value=rec.idcolor||rec.codigo_formula;return budgetApplyFormula(input,rec.base);
 }
 function budgetFormulaKey(event,input){
- if(event.key==='Enter'){event.preventDefault();budgetApplyFormula(input);}
+ if(event.key==='Enter'){
+  event.preventDefault();const query=normKey(input.value.trim());
+  const candidates=budgetFormulaCandidates(input),exact=candidates.some(r=>normKey(r.idcolor||r.codigo_formula)===query||normKey(r.id_formula)===query);
+  if(!exact&&candidates.length===1){budgetChooseFormulaRecord(input,candidates[0]);return;}
+  if(!exact&&candidates.length>1){budgetSuggestFormula(input);budgetFormulaError(input,'Hay varias coincidencias. Elegí una sugerencia de la lista.');return;}
+  budgetApplyFormula(input);
+ }
  if(event.key==='Escape'){
   event.preventDefault();const item=getCartItemByKey(input.dataset.key);
   input.value=item?.tintData?cleanLabColorCode(item.tintData.color_original||item.tintData.color):'';
-  budgetFormulaError(input,'');input.blur?.();
+  budgetHideFormulaSuggestions();budgetFormulaError(input,'');input.blur?.();
  }
 }
 function budgetFormulaError(input,message){
@@ -179,22 +264,23 @@ function budgetFormulaError(input,message){
  const box=input.closest('.budget-formula')?.querySelector('.budget-formula-error');
  if(box){box.textContent=message;box.hidden=!message;}
 }
-function budgetApplyFormula(input){
+function budgetApplyFormula(input,selectedBase=''){
  const item=getCartItemByKey(input.dataset.key);if(!item)return false;
  const p=budgetProductForItem(item),code=input.value.trim(),wanted=normKey(code);
  if(!code){budgetFormulaError(input,'Escribí un código de fórmula y presioná Enter.');return false;}
  if(!isTintableProduct(p)){budgetFormulaError(input,'Este artículo no admite fórmula tintométrica.');return false;}
  const bases=compatibleBasesForProduct(p);
- const byColor=tintRecipes.filter(r=>bases.includes(normKey(r.base))&&normKey(r.idcolor||r.codigo_formula)===wanted);
- const byFormula=byColor.length?[]:tintRecipes.filter(r=>bases.includes(normKey(r.base))&&normKey(r.id_formula)===wanted);
+ const allowed=base=>bases.includes(normKey(base))&&(!selectedBase||normKey(base)===normKey(selectedBase));
+ const byColor=tintRecipes.filter(r=>allowed(r.base)&&normKey(r.idcolor||r.codigo_formula)===wanted);
+ const byFormula=byColor.length?[]:tintRecipes.filter(r=>allowed(r.base)&&normKey(r.id_formula)===wanted);
  const matches=byColor.length?byColor:byFormula;
  if(matches.length!==1){
   const known=tintRecipes.some(r=>normKey(r.idcolor||r.codigo_formula)===wanted||normKey(r.id_formula)===wanted);
-  budgetFormulaError(input,matches.length>1?'Hay varias fórmulas compatibles para ese código. Elegí la base en 🎨.':known?'La fórmula existe, pero no es compatible con este artículo/base. Revisá en 🎨.':'Fórmula no encontrada. Revisá el código o abrí 🎨.');return false;
+  budgetFormulaError(input,matches.length>1?'Hay varias fórmulas compatibles para ese código. Elegí una sugerencia o abrí 🎨.':known?'La fórmula existe, pero no es compatible con este artículo/base. Revisá en 🎨.':'Fórmula no encontrada. Revisá el código o abrí 🎨.');return false;
  }
  const rec=matches[0],color=cleanLabColorCode(rec.idcolor||rec.codigo_formula);
  if(item.tintData&&normKey(cleanLabColorCode(item.tintData.color_original||item.tintData.color))===normKey(color)&&normKey(item.tintData.base_formula)===normKey(rec.base)){
-  budgetFormulaError(input,'');input.value=color;budgetFocusNextFormula(item.uid||item.COD);return true;
+  budgetHideFormulaSuggestions();budgetFormulaError(input,'');input.value=color;budgetFocusNextFormula(item.uid||item.COD);return true;
  }
  const calc=budgetResolveTint(item,tintRecipeLabel(rec));
  if(!calc.ok){budgetFormulaError(input,calc.msg||'No se pudo validar la fórmula. Abrí 🎨.');return false;}
@@ -207,7 +293,7 @@ function budgetApplyFormula(input){
  item.base_ARTIC=item.base_ARTIC||p.ARTIC||item.ARTIC;
  item.ARTIC=`${item.base_ARTIC} (${color})`;item.PR_CON_IVA=basePrice+calc.tintCost;item.PR_SIN_IVA=item.PR_CON_IVA/1.21;
  item.tintData={...item.tintData,color,descripcion:calc.rec.descripcion||'',manualModified:false,base_formula:calc.base_formula,base_fisica:calc.base_fisica,factor:calc.factor,factor_mode:calc.factor_mode||'especial',id_formula:calc.rec.id_formula||'',color_original:color,tintCost:calc.tintCost,formula_original:budgetClone(calc.lines),formula:budgetClone(calc.lines),created_at:item.tintData?.created_at||now,updated_at:now};
- const key=item.uid||item.COD;save();renderCart();budgetFocusNextFormula(key);return true;
+ const key=item.uid||item.COD;budgetHideFormulaSuggestions();save();renderCart();budgetFocusNextFormula(key);return true;
 }
 function budgetFocusNextFormula(key){
  const position=cart.findIndex(i=>String(i.uid||i.COD)===String(key));
@@ -216,7 +302,7 @@ function budgetFocusNextFormula(key){
  (field||document.getElementById('cartQuickProductInput')).focus();
 }
 renderCart=function(){
- hideClientAutocomplete();const saved=budgetHistory.find(h=>String(h.id)===String(currentBudgetCode));
+ hideClientAutocomplete();budgetHideFormulaSuggestions();const saved=budgetHistory.find(h=>String(h.id)===String(currentBudgetCode));
  document.getElementById('budgetDocumentNumber').textContent=currentBudgetCode||'Sin guardar';
  document.getElementById('budgetDocumentDate').textContent=saved?.fecha||new Date().toLocaleDateString('es-AR');
  document.getElementById('budgetLineCount').textContent=cart.length+' líneas · '+cart.reduce((sum,i)=>sum+itemQty(i),0)+' unidades';
@@ -226,7 +312,7 @@ renderCart=function(){
   const formula=t?cleanLabColorCode(t.color_original||t.color):'';
   const formulaNote=t?.descripcion||(!t?(rule==='required'?'Agregar fórmula · pendiente':rule==='unknown'?'Revisar base / fórmula':'Agregar fórmula (opcional)'): '');
   const description=item.base_ARTIC||(t?String(item.ARTIC).replace(/\s*\([^()]*\)\s*$/,''):item.ARTIC);
-  return `<tr><td data-label="Código" class="budget-code">${esc(item.COD)}</td><td data-label="Descripción" class="budget-description"><strong>${esc(description)}</strong></td><td data-label="Fórmula" class="budget-formula">${canTint?`<div class="budget-formula-controls"><input type="text" inputmode="text" autocomplete="off" spellcheck="false" maxlength="64" placeholder="Código" aria-label="Código de fórmula de ${esc(description)}" value="${esc(formula)}" data-key="${esc(key)}" onfocus="budgetSelectAll(this)" onclick="budgetSelectAll(this)" onkeydown="budgetFormulaKey(event,this)"><button type="button" class="budget-formula-advanced" title="Abrir tintométrico avanzado" aria-label="Abrir tintométrico avanzado de ${esc(description)}" data-key="${esc(key)}" onclick="openTintEditModal(this.dataset.key)">🎨</button></div><small class="budget-formula-note">${esc(formulaNote)}${t?.manualModified?' · mod.':''}</small><small class="budget-formula-error" role="alert" hidden></small>`:'—'}</td><td data-label="Cantidad"><input aria-label="Cantidad de ${esc(description)}" type="text" inputmode="numeric" onfocus="budgetSelectAll(this)" onclick="budgetSelectAll(this)" value="${itemQty(item)}" data-key="${esc(key)}" onchange="budgetUpdateQty(this)"></td><td data-label="Precio" class="budget-money">${$m(itemListUnit(item))}</td><td data-label="% Dto."><input aria-label="Descuento de ${esc(description)}" type="text" inputmode="decimal" onfocus="budgetSelectAll(this)" onclick="budgetSelectAll(this)" value="${itemExtraPct(item)}" data-key="${esc(key)}" onchange="budgetUpdateLineDiscount(this)"></td><td data-label="Imp. Dto." class="budget-money">${$m(itemSpecialDiscountTotal(item))}</td><td data-label="Importe" class="budget-money budget-line-total">${$m(itemAfterSpecialTotal(item))}</td><td class="budget-remove"><button type="button" class="btn btn-back" aria-label="Quitar ${esc(description)}" data-key="${esc(key)}" onclick="removeItem(this.dataset.key)">×</button></td></tr>`;
+  return `<tr><td data-label="Código" class="budget-code">${esc(item.COD)}</td><td data-label="Descripción" class="budget-description"><strong>${esc(description)}</strong></td><td data-label="Fórmula" class="budget-formula">${canTint?`<div class="budget-formula-controls"><input type="text" inputmode="text" autocomplete="off" spellcheck="false" maxlength="64" placeholder="Código" aria-label="Código de fórmula de ${esc(description)}" aria-autocomplete="list" aria-controls="budgetFormulaSuggest" aria-expanded="false" value="${esc(formula)}" data-key="${esc(key)}" onfocus="budgetSelectAll(this)" onclick="budgetSelectAll(this)" oninput="budgetSuggestFormula(this)" onkeydown="budgetFormulaKey(event,this)"><button type="button" class="budget-formula-advanced" title="Abrir tintométrico avanzado" aria-label="Abrir tintométrico avanzado de ${esc(description)}" data-key="${esc(key)}" onclick="openTintEditModal(this.dataset.key)">🎨</button></div><small class="budget-formula-note">${esc(formulaNote)}${t?.manualModified?' · mod.':''}</small><small class="budget-formula-error" role="alert" hidden></small>`:'—'}</td><td data-label="Cantidad"><input aria-label="Cantidad de ${esc(description)}" type="text" inputmode="numeric" onfocus="budgetSelectAll(this)" onclick="budgetSelectAll(this)" value="${itemQty(item)}" data-key="${esc(key)}" data-budget-field="qty" onchange="budgetUpdateQty(this)" onkeydown="budgetLineKey(event,this,'qty')"></td><td data-label="Precio" class="budget-money">${$m(itemListUnit(item))}</td><td data-label="% Dto."><input aria-label="Descuento de ${esc(description)}" type="text" inputmode="decimal" onfocus="budgetSelectAll(this)" onclick="budgetSelectAll(this)" value="${itemExtraPct(item)}" data-key="${esc(key)}" data-budget-field="discount" onchange="budgetUpdateLineDiscount(this)" onkeydown="budgetLineKey(event,this,'discount')"></td><td data-label="Imp. Dto." class="budget-money">${$m(itemSpecialDiscountTotal(item))}</td><td data-label="Importe" class="budget-money budget-line-total">${$m(itemAfterSpecialTotal(item))}</td><td class="budget-remove"><button type="button" class="btn btn-back" aria-label="Quitar ${esc(description)}" data-key="${esc(key)}" onclick="removeItem(this.dataset.key)">×</button></td></tr>`;
  }).join('')}</tbody></table></div>`:'<div class="budget-empty"><strong>Presupuesto en carga</strong><p>Elegí el cliente y agregá el primer artículo por código o descripción.</p></div>';
  budgetRenderTotals();
 };
@@ -324,6 +410,7 @@ clearCart=function(){
 };
 budgetInitTerms();
 budgetInitPicker();
+budgetInitFormulaSuggestions();
 // Sólo el borrador obtiene IDs faltantes; el historial permanece intacto.
 {let changed=false;const ids=new Set();for(const item of cart){if(!item.uid||ids.has(item.uid)){item.uid='u_'+crypto.randomUUID();changed=true;}ids.add(item.uid);}if(changed)save();}
 renderCart();
