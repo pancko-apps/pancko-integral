@@ -1,28 +1,19 @@
-# Pancko Gestión v0.12.15 — Presupuestos de escritorio
+# Pancko Gestión v0.12.16 — ajuste de columnas de Presupuestos
 
-Esta entrega es el sitio completo para subir a la **raíz** del repositorio de GitHub Pages. Conservá las carpetas `assets/` y `data/` enteras. Reemplazá los archivos existentes por los del ZIP; no subas la carpeta contenedora como subdirectorio. No se publicó ni se interactuó con GitHub.
+ZIP completo del sitio para subir **el contenido interior** a la raíz del repositorio de GitHub Pages. `index.html`, `sw.js`, `assets/` y `data/` deben quedar al mismo nivel. No se interactuó con GitHub ni se publicó la app.
 
-## Cambios
+## Qué cambió
 
-- La cabecera de Presupuestos deja sólo referencia, fecha y aviso breve de propuesta. Ya no repite «Tipo de comprobante: Presupuesto».
-- Cliente, alta rápida y condición comercial pasan a un bloque compacto debajo de las líneas y a la izquierda del resumen; mantienen los mismos campos, IDs y eventos.
-- Las columnas numéricas permanecen en el mismo orden y se agrupan más a la derecha. Descripción gana espacio; Fórmula usa menos ancho.
-- La fórmula muestra código y botón avanzado en una sola línea. El nombre del color se conserva en el presupuesto y en el tooltip del campo, sin ocupar otra línea visible. `mod.` identifica las tintas cambiadas a mano. Los errores de validación siguen apareciendo si ocurren.
-- La grilla de escritorio tiene menos alto por fila. La vista de móvil sigue usando tarjetas y conserva todos los controles.
-- Versión, caché de PWA y `data/version.json` avanzan a v0.12.15.
+Sólo se ajustó CSS de la grilla de Presupuestos para escritorio (desde 1024 px). Descripción toma 36% en lugar de 34%. El bloque numérico, desde Cantidad hasta Acción, ocupa 44% en vez de 46%: Cantidad 6%, Precio 9%, % Dto. 6%, Imp. Dto. 9%, Importe 10% y Acción 4%. El bloque comienza al 56% de la tabla en vez del 54%; los espacios horizontales internos se reducen de 6 a 3 px en esas columnas. Los inputs de Cantidad y % Dto. se alinean hacia el importe siguiente y conservan su función, con ancho máximo de 58 px. Se preserva el ancho de las columnas monetarias para que los precios grandes no se corten. Orden, alineación, fórmula, datos comerciales y resumen siguen como en v0.12.15. Móvil no recibe estas reglas de compactación.
 
-## Archivos y datos
+Versiones de `index.html`, `sw.js`, `assets/pwa-update.js` y `data/version.json` pasan a v0.12.16 para actualizar la PWA. El único archivo de interfaz con cambios visuales es `assets/budget-workbench.css`.
 
-Frontend modificado: `index.html`, `assets/budget-workbench.js`, `assets/budget-workbench.css`, `assets/pwa-update.js`, `sw.js`, `data/version.json`. Este README, `CHANGELOG.md`, `VALIDACION.md` y `SHA256SUMS.txt` documentan la entrega. Subí **assets completo** para no mezclar versiones.
+## Archivos, datos y backend
 
-Los CSV de artículos, clientes y recetas son los de v0.12.14. Los archivos completos de Apps Script y Worker se incluyen por integridad del paquete, pero **no se modificaron y no hay que desplegarlos**. No cambian tokens, hojas, endpoints, estructura de presupuestos ni almacenamiento local.
+Subí **assets completo**, además de `index.html`, `sw.js` y `data/` completos, para evitar mezclas de caché. En `data/` sólo cambia `version.json`; `articulos.csv`, `clientes.csv` y `recetas.csv` son byte por byte iguales a v0.12.15. `assets/budget-workbench.js`, Caja, Cuenta Corriente y todo el backend también son byte por byte iguales. Los archivos Apps Script y Worker están en el ZIP sólo para que el paquete sea completo: **no requieren actualización ni despliegue**. No hay tokens, hojas, endpoints, esquemas ni migraciones nuevas.
 
-## Actualización
+## Después de subir
 
-1. Descomprimí el ZIP y subí **el contenido interior** a la raíz del repo, con `index.html`, `sw.js`, `assets/` y `data/` al mismo nivel.
-2. Una vez publicado GitHub Pages, con red abrí Sincronización y usá «Forzar actualización». Si aparece el aviso de cerrar ventanas, cerrá todas las ventanas de Pancko y reabrí. Comprobá que figure v0.12.15.
-3. Conservá `localStorage`; la actualización de caché no requiere borrar datos de la app.
+Con red, usá «Forzar actualización» en Sincronización. Si la PWA pide cerrar todas las ventanas de Pancko, cerralas y reabrí hasta que muestre v0.12.16. La actualización conserva `localStorage`.
 
-## Alcance de validación
-
-Se controlan sintaxis, rutas, CSV/versionado, estructura del ZIP, carga de líneas y fórmulas, cálculos, impresión/compartir, guardado y reapertura, Caja, Cuenta Corriente y PWA con pruebas automatizadas. Se revisa la captura compartida y la estructura responsive. Ver `VALIDACION.md` para resultados y límites. El zoom visual real de 100% y 110% debe comprobarse en el navegador de Tincho después de subir; en este entorno no hay navegador gráfico instalado.
+Ver `VALIDACION.md` para pruebas y límites.
