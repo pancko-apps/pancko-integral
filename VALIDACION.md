@@ -1,16 +1,14 @@
-# Validación v0.12.12
+# Validación v0.12.13
 
-## Verificaciones ejecutadas
+## Pruebas automáticas
 
-- 19 pruebas nuevas sobre presupuestos: no tintable sin fórmula; PASTEL con input/modal; select-all; 8299 con nombre Ice Age y snapshot completo; ausencia de modal en Enter; rechazo de código inexistente/incompatible/ambiguo sin mutar línea; botón avanzado y pulsos manuales marcados mod.; reingreso del mismo código conserva edición manual; reemplazo con confirmación; cantidad/descuento y total; importe inválido no persiste NaN; historial/A4; restauración offline; dos códigos consecutivos en líneas independientes; navegación a la siguiente fórmula; consola sin errores.
-- 26 verificaciones de Presupuestos de v0.12.11: artículos, bases PASTEL/BLANCO y TINT/DEEP/ACCENT, tintas manuales, snapshot/cambio de lista, historial, impresión/compartir y offline.
-- 26 verificaciones del pulido v0.12.11: sugerencias, lote, descuentos, condición comercial, ticket, limpiar borrador y copia del historial.
-- 41 verificaciones generales: CSV, clientes, navegación, A4/ticket/WhatsApp simulado, laboratorio, persistencia y datos locales.
-- Regresión Caja: búsqueda por ingreso/egreso/importe cero, apertura, fecha/dispositivo/anulados, sólo lectura.
-- Regresión Cuenta Corriente con backend simulado: PC/celular, cliente, cargo, pago, edición, anulación y reintentos.
-- PWA y service worker: versión, cache, precarga de recetas, refresco, claim/skipWaiting, localStorage intacto.
-- Sintaxis de archivos JS, Apps Script y scripts inline/handlers; rutas/manifest/version.json; CSV y backend idénticos a v0.12.11; hash y CRC del ZIP.
+- Carga directa de producto común y de PASTEL, BLANCO, TINT, DEEP y ACCENT; sin modal y con input/🎨 sólo para tintométricos. Modal abre al pedirlo.
+- Búsqueda «82»: sugerencias de bases compatibles, orden por código, click que aplica snapshot, Enter con varias opciones que pide elegir, Enter con código exacto único que aplica; fórmula incompatible no modifica la línea.
+- Fórmula + Enter salta una línea común para pasar al siguiente tintométrico. Cantidad y % Dto. + Enter confirman el valor y enfocan la línea siguiente. Cambio por Tab conserva input y actualiza línea/resumen sin reconstruir grilla. Select-all presente.
+- Historial/copia, A4/ticket/compartir simulado, línea y precio, recuperación offline del snapshot, PWA/cache y sintaxis/rutas/versionado.
+- Regresión Presupuestos v0.12.12 (26 pruebas), pulido v0.12.11 (26), fórmula rápida v0.12.12 (19), frontend general (41), Caja local, Cuenta Corriente PC/celular con backend simulado, PWA y service worker.
+- CSV `articulos.csv`, `clientes.csv`, `recetas.csv` y archivos backend comparados byte a byte contra v0.12.12. ZIP con raíz correcta, hashes SHA256 y CRC.
 
 ## Límites
 
-El DOM y backend de pruebas son simulados; no se revisó visualmente en navegador físico, ni se imprimió/envió a WhatsApp real o consultó la Sheet productiva. La prueba offline verifica conservación y lectura de una fórmula ya aplicada en el borrador. El CSV de recetas está en el precache del service worker, pero el simulador offline de JS no reproduce Cache Storage de un dispositivo instalado: por eso no se afirma una prueba física de ingreso de fórmulas nuevas sin red.
+El DOM/backend son simulados; la presentación visual en navegadores físicos, impresión física, WhatsApp real y Sheet productiva no se probaron. El simulador offline conserva una fórmula ya guardada. La búsqueda de fórmulas nuevas sin red requiere recetas.csv previamente cacheado por la PWA; se inspeccionó su presencia en el precache, pero no se hizo una prueba offline en un dispositivo físico.

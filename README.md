@@ -1,3 +1,29 @@
+# Pancko Gestión v0.12.13 — Presupuestos: carga sin modal y navegación rápida
+
+## Subida
+
+Descomprimir y subir/reemplazar **todo el contenido del ZIP directamente en la raíz del repositorio**, incluida la carpeta **`assets/` completa**, `index.html`, `sw.js` y `data/version.json`. No hay carpeta envolvente. No se interactuó con GitHub ni se publicó.
+
+## Cambios
+
+- Todos los artículos tintométricos (PASTEL/BLANCO/TINT/DEEP/ACCENT) entran directo al presupuesto. El producto común entra sin fórmula. Tras agregar un artículo el foco vuelve a Agregar artículo. El modal abre sólo al tocar 🎨 de la línea. Los artículos sin base identificada también entran a la grilla con aviso para revisar antes de aplicar fórmula.
+- Fórmula sugiere hasta ocho recetas del CSV compatibles con las bases del snapshot de ese artículo. Se buscan códigos/color e ID de receta; con tres caracteres o más también nombres. Se prioriza el comienzo del código. Cada sugerencia se valida con las funciones de compatibilidad, factor y pulsos existentes; las recetas duplicadas por base/código o incompletas no se ofrecen. La lista flota fuera del scroll de la tabla para que pueda verse en la última línea.
+- Tocar una sugerencia carga su color/base exactos sin modal y guarda el snapshot habitual. Enter con código exacto único aplica directo; Enter con una sola sugerencia parcial también la aplica. Si hay varias coincidencias para texto parcial, pide elegir una; si el código exacto tiene varias bases, no aplica silenciosamente. Incompatibles y ausentes muestran error junto al input. El botón 🎨 queda siempre disponible para revisión/edición manual.
+- Enter en Fórmula pasa al siguiente input de fórmula tintométrica, salteando productos comunes. Enter en Cantidad y en % Dto. confirma el valor y pasa al mismo campo de la siguiente línea; al final vuelve a Agregar artículo. Tab conserva el orden normal y el mismo campo físico: la tabla no se reconstruye al confirmar cantidad/descuento, sólo se actualizan importe de línea, resumen y persistencia.
+- Se conserva select-all en campos de trabajo rápido, condiciones comerciales, descuentos general/por línea, selección múltiple, historial, salidas, Caja, CC y la estructura de `tintData`. El modal conserva edición/restauración de tintas y marca `mod.` en los pulsos modificados.
+
+## Alcance / instalación
+
+Sólo frontend y versión de caché: `index.html`, `assets/budget-workbench.js`, `assets/budget-workbench.css`, `assets/pwa-update.js` (versión), `sw.js`, `data/version.json`, README/CHANGELOG/VALIDACION y hashes. Los CSV y los archivos backend del ZIP son copias idénticas a v0.12.12. **No actualizar Apps Script ni Worker**. Sin tokens, hojas, endpoints ni esquemas de datos nuevos. No hay migración. Service worker cache v0.12.13; con red, Forzar actualización y, si lo indica, cerrar todas las ventanas de Pancko y reabrir. `localStorage` no se borra.
+
+## Pruebas y límites
+
+Ver `VALIDACION.md`. Pruebas automáticas con scripts de la app, DOM/backend simulados, canvas real, sintaxis/rutas, caché y ZIP. No hubo inspección visual en navegador físico, impresión física, envío WhatsApp real ni Sheet productiva. Offline físico para buscar fórmulas nuevas depende de que `recetas.csv` ya esté en el cache de la PWA del dispositivo; el simulador confirma restauración del snapshot existente, y se revisó el precache del service worker.
+
+---
+
+## Documentación anterior
+
 # Pancko Gestión v0.12.12 — Fórmula rápida y select-all en Presupuestos
 
 ## Subida al repositorio

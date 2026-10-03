@@ -1,3 +1,12 @@
+# v0.12.13
+
+- Tintométricos entran directo al presupuesto en todas las bases; modal sólo con 🎨.
+- Autocompletado breve de fórmulas compatibles por base/factor, código y nombre; opción exacta o única con Enter, ambiguas por selección explícita.
+- Enter recorre Fórmula (saltando comunes), Cantidad y % Dto. por columnas; Tab mantiene foco/orden sin reconstruir la grilla al editar números.
+- Snapshot, descuentos, salidas, offline y módulos ajenos conservados. Sólo frontend; ver VALIDACION.md.
+
+---
+
 # v0.12.12
 
 - Select-all en campos rápidos de Presupuestos; cantidad/descuento de línea admiten reemplazo directo con validación.
