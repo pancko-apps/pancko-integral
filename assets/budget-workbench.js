@@ -13,6 +13,7 @@ function budgetProductForItem(item){
 }
 function budgetTintEntryRule(p){
  if(!isTintableProduct(p))return 'plain';
+ if(specialProductInfo(p))return 'optional';
  const physical=normKey(p.base_fisica_tinto),base=normKey(p.base_tinto);
  if([physical,base].some(b=>['TINT','DEEP','ACCENT'].includes(b)))return 'required';
  if([physical,base].some(b=>['PASTEL','BLANCO','BLANCA'].includes(b)))return 'optional';
@@ -209,18 +210,20 @@ function budgetFormulaCandidates(input){
  if(!item||q.length<2)return [];
  const bases=compatibleBasesForProduct(budgetProductForItem(item));if(!bases.length)return [];
  const matches=tintRecipes.filter(r=>{
+  if(!recipeCompatibleWithProduct(r,budgetProductForItem(item)))return false;
   if(!bases.includes(normKey(r.base)))return false;
   return normKey(r.idcolor||r.codigo_formula).includes(q)||normKey(r.id_formula).includes(q)||q.length>=3&&normKey(r.descripcion).includes(q);
  });
  const counts=new Map();
- for(const rec of matches){const key=normKey(rec.base)+'|'+normKey(rec.idcolor||rec.codigo_formula);counts.set(key,(counts.get(key)||0)+1);}
+ for(const rec of matches){const key=normKey(rec.base)+'|'+normKey(rec.idcolor||rec.codigo_formula)+(isSpecialRecipe(rec)?'|'+rec.articulo_patron_cod:'');counts.set(key,(counts.get(key)||0)+1);}
  matches.sort((a,b)=>{
   const score=r=>Number(normKey(r.idcolor||r.codigo_formula).startsWith(q))*4+Number(normKey(r.id_formula).startsWith(q))*2;
   return score(b)-score(a)||String(a.idcolor||'').localeCompare(String(b.idcolor||''),'es');
  });
  const valid=[];
  for(const rec of matches){
-  if(counts.get(normKey(rec.base)+'|'+normKey(rec.idcolor||rec.codigo_formula))!==1)continue;
+  if(counts.get(normKey(rec.base)+'|'+normKey(rec.idcolor||rec.codigo_formula)+(isSpecialRecipe(rec)?'|'+rec.articulo_patron_cod:''))!==1)continue;
+  if(isSpecialRecipe(rec)&&valid.some(r=>isSpecialRecipe(r)&&normKey(r.codigo_formula)===normKey(rec.codigo_formula)))continue;
   const calc=budgetResolveTint(item,tintRecipeLabel(rec));
   if(!calc.ok||normKey(calc.rec.idcolor)!==normKey(rec.idcolor||rec.codigo_formula)||normKey(calc.base_formula)!==normKey(rec.base)||!Array.isArray(calc.lines)||!calc.lines.length||calc.lines.some(l=>!Number.isFinite(l.pulsos)||l.pulsos<=0||!Number.isFinite(l.subtotal)||l.subtotal<0))continue;
   if(!valid.some(r=>normKey(r.base)===normKey(rec.base)&&normKey(r.idcolor||r.codigo_formula)===normKey(rec.idcolor||rec.codigo_formula)))valid.push(rec);
@@ -234,7 +237,7 @@ function budgetSuggestFormula(input){
  const rect=input.getBoundingClientRect(),viewport=window.innerHeight||800;
  box.style.left=Math.max(8,rect.left)+'px';box.style.width=Math.max(225,Math.min(340,(window.innerWidth||1024)-rect.left-10))+'px';
  box.style.top=(rect.bottom+235<viewport?rect.bottom+3:Math.max(8,rect.top-235))+'px';
- box.innerHTML=matches.map(r=>`<button type="button" class="budget-formula-suggestion" role="option" data-key="${esc(input.dataset.key)}" data-color="${esc(r.idcolor||r.codigo_formula)}" data-base="${esc(r.base)}" onclick="budgetChooseFormula(this)"><strong>${esc(r.idcolor||r.codigo_formula)}</strong><span>${esc(r.descripcion||'Sin nombre')}</span><small>${esc(r.base)}</small></button>`).join('');
+ box.innerHTML=matches.map(r=>`<button type="button" class="budget-formula-suggestion" role="option" data-key="${esc(input.dataset.key)}" data-color="${esc(r.idcolor||r.codigo_formula)}" data-base="${esc(r.base)}" onclick="budgetChooseFormula(this)"><strong>${esc(r.idcolor||r.codigo_formula)}</strong><span>${esc(r.descripcion||'Sin nombre')}</span><small>${isSpecialRecipe(r)?'SPECIAL · '+esc(specialFamilyLabel(r.familia_especial)):esc(r.base)}</small></button>`).join('');
  box.hidden=false;input.setAttribute('aria-expanded','true');budgetFormulaError(input,'');return matches;
 }
 function budgetChooseFormula(button){
@@ -270,10 +273,11 @@ function budgetApplyFormula(input,selectedBase=''){
  if(!code){budgetFormulaError(input,'Escribí un código de fórmula y presioná Enter.');return false;}
  if(!isTintableProduct(p)){budgetFormulaError(input,'Este artículo no admite fórmula tintométrica.');return false;}
  const bases=compatibleBasesForProduct(p);
- const allowed=base=>bases.includes(normKey(base))&&(!selectedBase||normKey(base)===normKey(selectedBase));
- const byColor=tintRecipes.filter(r=>allowed(r.base)&&normKey(r.idcolor||r.codigo_formula)===wanted);
- const byFormula=byColor.length?[]:tintRecipes.filter(r=>allowed(r.base)&&normKey(r.id_formula)===wanted);
- const matches=byColor.length?byColor:byFormula;
+ const allowed=(base,r)=>bases.includes(normKey(base))&&(!selectedBase||normKey(base)===normKey(selectedBase))&&recipeCompatibleWithProduct(r,p);
+ const byColor=tintRecipes.filter(r=>allowed(r.base,r)&&normKey(r.idcolor||r.codigo_formula)===wanted);
+ const byFormula=byColor.length?[]:tintRecipes.filter(r=>allowed(r.base,r)&&normKey(r.id_formula)===wanted);
+ let matches=byColor.length?byColor:byFormula;
+ if(specialProductInfo(p)&&matches.length){const found=findSpecialRecipeForProduct(p,matches[0].codigo_formula||matches[0].idcolor);matches=found?[found.rec]:[];}
  if(matches.length!==1){
   const known=tintRecipes.some(r=>normKey(r.idcolor||r.codigo_formula)===wanted||normKey(r.id_formula)===wanted);
   budgetFormulaError(input,matches.length>1?'Hay varias fórmulas compatibles para ese código. Elegí una sugerencia o abrí 🎨.':known?'La fórmula existe, pero no es compatible con este artículo/base. Revisá en 🎨.':'Fórmula no encontrada. Revisá el código o abrí 🎨.');return false;
@@ -292,7 +296,7 @@ function budgetApplyFormula(input,selectedBase=''){
  touchCurrentBudgetForEdit();item.product_snapshot=budgetClone(item.product_snapshot||p);item.base_price_snapshot=basePrice;
  item.base_ARTIC=item.base_ARTIC||p.ARTIC||item.ARTIC;
  item.ARTIC=`${item.base_ARTIC} (${color})`;item.PR_CON_IVA=basePrice+calc.tintCost;item.PR_SIN_IVA=item.PR_CON_IVA/1.21;
- item.tintData={...item.tintData,color,descripcion:calc.rec.descripcion||'',manualModified:false,base_formula:calc.base_formula,base_fisica:calc.base_fisica,factor:calc.factor,factor_mode:calc.factor_mode||'especial',id_formula:calc.rec.id_formula||'',color_original:color,tintCost:calc.tintCost,formula_original:budgetClone(calc.lines),formula:budgetClone(calc.lines),created_at:item.tintData?.created_at||now,updated_at:now};
+ item.tintData={...item.tintData,...specialTintSnapshot(calc.rec),color,descripcion:calc.rec.descripcion||'',manualModified:false,base_formula:calc.base_formula,base_fisica:calc.base_fisica,factor:calc.factor,factor_mode:calc.factor_mode||'especial',id_formula:calc.rec.id_formula||'',color_original:color,tintCost:calc.tintCost,formula_original:budgetClone(calc.lines),formula:budgetClone(calc.lines),created_at:item.tintData?.created_at||now,updated_at:now};
  const key=item.uid||item.COD;budgetHideFormulaSuggestions();save();renderCart();budgetFocusNextFormula(key);return true;
 }
 function budgetFocusNextFormula(key){
@@ -310,9 +314,9 @@ renderCart=function(){
   const p=budgetProductForItem(item),t=item.tintData,key=item.uid||item.COD,canTint=isTintableProduct(p)||!!t;
   const rule=canTint?budgetTintEntryRule(p):'plain';
   const formula=t?cleanLabColorCode(t.color_original||t.color):'';
-  const formulaNote=t?.descripcion||(!t?(rule==='required'?'Agregar fórmula · pendiente':rule==='unknown'?'Revisar base / fórmula':'Agregar fórmula (opcional)'): '');
+ const formulaNote=t?.descripcion||(!t?(specialProductInfo(p)?'SPECIAL · '+specialFamilyLabel(specialProductInfo(p).family):rule==='required'?'Agregar fórmula · pendiente':rule==='unknown'?'Revisar base / fórmula':'Agregar fórmula (opcional)'): '');
   const description=item.base_ARTIC||(t?String(item.ARTIC).replace(/\s*\([^()]*\)\s*$/,''):item.ARTIC);
-  return `<tr><td data-label="Código" class="budget-code">${esc(item.COD)}</td><td data-label="Descripción" class="budget-description"><strong>${esc(description)}</strong></td><td data-label="Fórmula" class="budget-formula">${canTint?`<div class="budget-formula-controls"><input type="text" inputmode="text" autocomplete="off" spellcheck="false" maxlength="64" placeholder="Código" title="${esc(formulaNote)}" aria-label="Código de fórmula de ${esc(description)}${formulaNote?' · '+esc(formulaNote):''}" aria-autocomplete="list" aria-controls="budgetFormulaSuggest" aria-expanded="false" value="${esc(formula)}" data-key="${esc(key)}" onfocus="budgetSelectAll(this)" onclick="budgetSelectAll(this)" oninput="budgetSuggestFormula(this)" onkeydown="budgetFormulaKey(event,this)"><button type="button" class="budget-formula-advanced" title="Abrir tintométrico avanzado" aria-label="Abrir tintométrico avanzado de ${esc(description)}" data-key="${esc(key)}" onclick="openTintEditModal(this.dataset.key)">🎨</button>${t?.manualModified?'<span class="budget-formula-mod" title="Fórmula modificada manualmente">mod.</span>':''}</div><small class="budget-formula-error" role="alert" hidden></small>`:'—'}</td><td data-label="Cantidad"><input aria-label="Cantidad de ${esc(description)}" type="text" inputmode="numeric" onfocus="budgetSelectAll(this)" onclick="budgetSelectAll(this)" value="${itemQty(item)}" data-key="${esc(key)}" data-budget-field="qty" onchange="budgetUpdateQty(this)" onkeydown="budgetLineKey(event,this,'qty')"></td><td data-label="Precio" class="budget-money">${$m(itemListUnit(item))}</td><td data-label="% Dto."><input aria-label="Descuento de ${esc(description)}" type="text" inputmode="decimal" onfocus="budgetSelectAll(this)" onclick="budgetSelectAll(this)" value="${itemExtraPct(item)}" data-key="${esc(key)}" data-budget-field="discount" onchange="budgetUpdateLineDiscount(this)" onkeydown="budgetLineKey(event,this,'discount')"></td><td data-label="Imp. Dto." class="budget-money">${$m(itemSpecialDiscountTotal(item))}</td><td data-label="Importe" class="budget-money budget-line-total">${$m(itemAfterSpecialTotal(item))}</td><td class="budget-remove"><button type="button" class="btn btn-back budget-line-delete" aria-label="Quitar línea: ${esc(description)}" title="Quitar línea" data-key="${esc(key)}" onclick="removeItem(this.dataset.key)">🗑️</button></td></tr>`;
+  return `<tr><td data-label="Código" class="budget-code">${esc(item.COD)}</td><td data-label="Descripción" class="budget-description"><strong>${esc(description)}</strong></td><td data-label="Fórmula" class="budget-formula">${canTint?`<div class="budget-formula-controls"><input type="text" inputmode="text" autocomplete="off" spellcheck="false" maxlength="64" placeholder="Código" title="${esc(formulaNote)}" aria-label="Código de fórmula de ${esc(description)}${formulaNote?' · '+esc(formulaNote):''}" aria-autocomplete="list" aria-controls="budgetFormulaSuggest" aria-expanded="false" value="${esc(formula)}" data-key="${esc(key)}" onfocus="budgetSelectAll(this)" onclick="budgetSelectAll(this)" oninput="budgetSuggestFormula(this)" onkeydown="budgetFormulaKey(event,this)"><button type="button" class="budget-formula-advanced" title="Abrir tintométrico avanzado" aria-label="Abrir tintométrico avanzado de ${esc(description)}" data-key="${esc(key)}" onclick="openTintEditModal(this.dataset.key)">🎨</button>${specialProductInfo(p)?`<span class="budget-formula-mod" title="Receta especial por artículo patrón">SPECIAL · ${esc(specialFamilyLabel(specialProductInfo(p).family))}</span>`:''}${t?.manualModified?'<span class="budget-formula-mod" title="Fórmula modificada manualmente">mod.</span>':''}</div><small class="budget-formula-error" role="alert" hidden></small>`:'—'}</td><td data-label="Cantidad"><input aria-label="Cantidad de ${esc(description)}" type="text" inputmode="numeric" onfocus="budgetSelectAll(this)" onclick="budgetSelectAll(this)" value="${itemQty(item)}" data-key="${esc(key)}" data-budget-field="qty" onchange="budgetUpdateQty(this)" onkeydown="budgetLineKey(event,this,'qty')"></td><td data-label="Precio" class="budget-money">${$m(itemListUnit(item))}</td><td data-label="% Dto."><input aria-label="Descuento de ${esc(description)}" type="text" inputmode="decimal" onfocus="budgetSelectAll(this)" onclick="budgetSelectAll(this)" value="${itemExtraPct(item)}" data-key="${esc(key)}" data-budget-field="discount" onchange="budgetUpdateLineDiscount(this)" onkeydown="budgetLineKey(event,this,'discount')"></td><td data-label="Imp. Dto." class="budget-money">${$m(itemSpecialDiscountTotal(item))}</td><td data-label="Importe" class="budget-money budget-line-total">${$m(itemAfterSpecialTotal(item))}</td><td class="budget-remove"><button type="button" class="btn btn-back budget-line-delete" aria-label="Quitar línea: ${esc(description)}" title="Quitar línea" data-key="${esc(key)}" onclick="removeItem(this.dataset.key)">🗑️</button></td></tr>`;
  }).join('')}</tbody></table></div>`:'<div class="budget-empty"><strong>Presupuesto en carga</strong><p>Elegí el cliente y agregá el primer artículo por código o descripción.</p></div>';
  budgetRenderTotals();
 };
@@ -322,7 +326,7 @@ function budgetTintSelectionKey(item,value){return (item.uid||item.COD)+'|'+norm
 function budgetResolveTint(item,value){
  const p=budgetProductForItem(item),saved=item.tintData;
  if(!isTintableProduct(p))return {ok:false,msg:'Este artículo no tiene compatibilidad tintométrica registrada.'};
- const allowed=compatibleBasesForProduct(p),explicit=/\[(PASTEL|TINT|DEEP|ACCENT)\]/i.exec(value);
+ const allowed=compatibleBasesForProduct(p),explicit=/\[(PASTEL|TINT|DEEP|ACCENT)\]/i.exec(value),special=specialProductInfo(p);
  if(explicit&&!allowed.includes(normKey(explicit[1])))return {ok:false,msg:'Fórmula incompatible: la base '+explicit[1]+' no corresponde a este artículo ('+allowed.join(' / ')+').'};
  const color=cleanLabColorCode(extractColorId(value));
  if(!color)return {ok:false,msg:'Ingresá un color para agregar o editar la fórmula.'};
@@ -331,7 +335,7 @@ function budgetResolveTint(item,value){
  if(same){
   const lines=saved.formula_original?.length?saved.formula_original:saved.formula;
   if(!Array.isArray(lines)||!lines.length)return {ok:false,msg:'La fórmula histórica está incompleta. Revisá el presupuesto antes de modificarla.'};
-  calc={ok:true,rec:{idcolor:color,descripcion:saved.descripcion||'',id_formula:saved.id_formula||''},base_formula:saved.base_formula,base_fisica:saved.base_fisica,factor:Number(saved.factor),factor_mode:saved.factor_mode||'especial',lines:budgetClone(lines),tintCost:lines.reduce((sum,x)=>sum+num(x.subtotal),0)};
+  calc={ok:true,rec:{...saved,idcolor:color,descripcion:saved.descripcion||'',id_formula:saved.id_formula||''},base_formula:saved.base_formula,base_fisica:saved.base_fisica,factor:Number(saved.factor),factor_mode:saved.factor_mode||'especial',lines:budgetClone(lines),tintCost:lines.reduce((sum,x)=>sum+num(x.subtotal),0)};
  }else{
   if(p.legacy_snapshot_only)return {ok:false,msg:'El artículo ya no está en el catálogo y sólo conserva su fórmula histórica. Podés ajustar esa fórmula; para otro color, revisá el artículo con su ficha completa.'};
   calc=calcTintForProduct(p,color,{factorMode:saved?.factor_mode||'especial'});
@@ -347,21 +351,21 @@ function budgetResolveTint(item,value){
  if(!calc.ok)return calc;
  if(!allowed.includes(normKey(calc.base_formula)))return {ok:false,msg:'Fórmula incompatible con la base del artículo. No se aplicó ningún cambio.'};
  if(!Number.isFinite(calc.factor)||calc.factor<=0)return {ok:false,msg:'El artículo no tiene un factor/envase válido para esta fórmula. Revisá su ficha antes de aplicarla.'};
- if(!same&&Math.abs(calc.factor-effectiveFactorForProduct(p,calc.base_formula,calc.factor_mode))>0.000001)return {ok:false,msg:'El factor de la fórmula no coincide con el artículo.'};
+ if(!same&&!special&&Math.abs(calc.factor-effectiveFactorForProduct(p,calc.base_formula,calc.factor_mode))>0.000001)return {ok:false,msg:'El factor de la fórmula no coincide con el artículo.'};
  return calc;
 }
 openTintEditModal=function(key){
  const item=getCartItemByKey(key);if(!item)return;const p=budgetProductForItem(item);
  if(!isTintableProduct(p)){alert('Este artículo no tiene tintométrico.');return;}
  editingTintKey=key;editingTintCalc=null;budgetTintPreviewKey='';
- document.getElementById('tintEditProductInfo').innerHTML=`<b>${esc(item.base_ARTIC||p.ARTIC||item.ARTIC)}</b><br>Código: ${esc(item.COD)} · Base: ${esc(p.base_fisica_tinto||p.base_tinto||'sin determinar')}<br>Precio base de esta línea: ${$m(budgetBasePrice(item))}`;
+ document.getElementById('tintEditProductInfo').innerHTML=`<b>${esc(item.base_ARTIC||p.ARTIC||item.ARTIC)}</b><br>Código: ${esc(item.COD)} · ${specialProductInfo(p)?'SPECIAL · '+esc(specialFamilyLabel(specialProductInfo(p).family)):'Base: '+esc(p.base_fisica_tinto||p.base_tinto||'sin determinar')}<br>Precio base de esta línea: ${$m(budgetBasePrice(item))}`;
  const input=document.getElementById('tintEditColorInput');input.value=item.tintData?`${cleanLabColorCode(item.tintData.color_original||item.tintData.color)} — ${item.tintData.descripcion||''}`:'';input.dataset.cleared='1';
  renderTintEditOptions();previewTintEdit(false);renderTintManualRows(item.tintData?.formula||[]);
  document.getElementById('tintEditModal').classList.add('open');
 };
 renderTintEditOptions=function(){
  const item=getCartItemByKey(editingTintKey);if(!item)return;const p=budgetProductForItem(item),q=normKey(document.getElementById('tintEditColorInput').value),allowed=compatibleBasesForProduct(p);
- document.getElementById('tintEditColorList').innerHTML=tintRecipes.filter(r=>allowed.includes(normKey(r.base))&&(!q||normKey(r.idcolor||r.codigo_formula).includes(q)||normKey(r.descripcion).includes(q))).slice(0,90).map(r=>`<option value="${esc(tintRecipeLabel(r))}"></option>`).join('');
+ document.getElementById('tintEditColorList').innerHTML=tintRecipes.filter(r=>recipeCompatibleWithProduct(r,p)&&allowed.includes(normKey(r.base))&&(!q||normKey(r.idcolor||r.codigo_formula).includes(q)||normKey(r.descripcion).includes(q))).slice(0,90).map(r=>`<option value="${esc(tintRecipeLabel(r))}"></option>`).join('');
 };
 previewTintEdit=function(refreshManual=true){
  const item=getCartItemByKey(editingTintKey);if(!item)return;const value=document.getElementById('tintEditColorInput').value.trim(),box=document.getElementById('tintEditPreview');
@@ -369,7 +373,7 @@ previewTintEdit=function(refreshManual=true){
  if(!calc.ok){box.innerHTML=`<span class="${value?'tinto-bad':'muted'}">${esc(calc.msg)}</span>`;if(refreshManual)renderTintManualRows([]);return;}
  editingTintCalc=calc;budgetTintPreviewKey=budgetTintSelectionKey(item,value);
  if(refreshManual)renderTintManualRows(calc.lines);
- box.innerHTML=`<div class="tinto-ok"><b>Compatible:</b> ${esc(calc.rec.idcolor)} · ${esc(calc.rec.descripcion)}</div><div class="muted">Base fórmula: ${esc(calc.base_formula)} · Base física: ${esc(calc.base_fisica)} · Factor: ${fmtFactorLabel(calc.factor)}</div><div>Total con fórmula original: <b>${$m(budgetBasePrice(item)+calc.tintCost)}</b></div>`;
+ box.innerHTML=`<div class="tinto-ok"><b>Compatible:</b> ${esc(calc.rec.idcolor)} · ${esc(calc.rec.descripcion)}</div>${isSpecialRecipe(calc.rec)?`<div class="muted"><b>SPECIAL · ${esc(specialFamilyLabel(calc.rec.familia_especial))}</b> · Patrón ${esc(calc.rec.articulo_patron_cod)} · ${esc(calc.rec.contenido_patron)} ${esc(calc.rec.unidad_patron)}</div>`:''}<div class="muted">Base fórmula: ${esc(calc.base_formula)} · Base física: ${esc(calc.base_fisica)} · Factor: ${fmtFactorLabel(calc.factor)}</div><div>Total con fórmula original: <b>${$m(budgetBasePrice(item)+calc.tintCost)}</b></div>`;
 };
 updateTintManualTotal=function(){const item=getCartItemByKey(editingTintKey);if(!item)return;const cost=getCurrentTintManualLines().reduce((sum,l)=>sum+l.subtotal,0);document.getElementById('tintManualTotal').innerHTML=`Tintas: <b>${$m(cost)}</b> · Total lista de esta línea: <b>${$m(budgetBasePrice(item)+cost)}</b>`;};
 restoreTintOriginalFormula=function(){const item=getCartItemByKey(editingTintKey);if(!item)return;const calc=budgetResolveTint(item,document.getElementById('tintEditColorInput').value.trim());if(!calc.ok){alert(calc.msg);return;}renderTintManualRows(calc.lines);previewTintEdit(false);};
@@ -383,7 +387,7 @@ saveTintEdit=function(){
  const p=budgetProductForItem(item),basePrice=budgetBasePrice(item),tintCost=manual.reduce((sum,l)=>sum+l.subtotal,0),modified=!formulasAreEqual(manual,calc.lines),now=new Date().toISOString();
  touchCurrentBudgetForEdit();item.product_snapshot=budgetClone(item.product_snapshot||p);item.base_price_snapshot=basePrice;
  item.base_ARTIC=item.base_ARTIC||p.ARTIC||item.ARTIC;item.ARTIC=`${item.base_ARTIC} (${colorLabelWithMod(calc.rec.idcolor,modified)})`;item.PR_CON_IVA=basePrice+tintCost;item.PR_SIN_IVA=item.PR_CON_IVA/1.21;
- item.tintData={...item.tintData,color:calc.rec.idcolor,descripcion:calc.rec.descripcion||'',manualModified:modified,base_formula:calc.base_formula,base_fisica:calc.base_fisica,factor:calc.factor,factor_mode:calc.factor_mode||'especial',id_formula:calc.rec.id_formula||'',color_original:calc.rec.idcolor,tintCost,formula_original:budgetClone(calc.lines),formula:budgetClone(manual),created_at:item.tintData?.created_at||now,updated_at:now};
+ item.tintData={...item.tintData,...specialTintSnapshot(calc.rec),color:calc.rec.idcolor,descripcion:calc.rec.descripcion||'',manualModified:modified,base_formula:calc.base_formula,base_fisica:calc.base_fisica,factor:calc.factor,factor_mode:calc.factor_mode||'especial',id_formula:calc.rec.id_formula||'',color_original:calc.rec.idcolor,tintCost,formula_original:budgetClone(calc.lines),formula:budgetClone(manual),created_at:item.tintData?.created_at||now,updated_at:now};
  save();closeTintEditModal();renderCart();document.getElementById('cartQuickProductInput').focus();
 };
 function budgetUseHistory(id){

@@ -1,13 +1,11 @@
-# Pancko Gestión v0.12.18 — Seguridad endpoints
+# Pancko Gestión v0.12.20 · Recetas SPECIAL · Cañada producción
 
-**Requiere frontend completo con assets, Worker completo, Apps Script completo y configurar PANCKO_APP_TOKEN en ambos.** Una sola Clave operativa Pancko por dispositivo, en Sincronización.
+ZIP completo de frontend para publicar manualmente en el repo estable **después de respaldo y prueba controlada**. No se publicó desde esta entrega. Los archivos de `backend/` están incluidos como referencia histórica y son idénticos a v0.12.18: **no desplegarlos como un cambio de esta versión**.
 
-Leer primero **SEGURIDAD_ENDPOINTS_v0.12.18.md**: contiene tabla del relevamiento, variables, orden exacto Worker → Apps Script → frontend, compat temporal, paso a strict, pruebas guiadas y rollback.
+Leer [RECETAS_SPECIAL_v0.12.20.md](RECETAS_SPECIAL_v0.12.20.md) para formato, carga manual, escala, límites y checklist. Subir el contenido del ZIP con `index.html` en la raíz. El CSV actual sólo tiene fórmulas NORMAL; ninguna SPECIAL real fue añadida.
 
-ZIP listo para subir: index.html está en la raíz. Subir contenido completo sin carpeta extra. backend contiene los dos códigos completos para copiar/desplegar manualmente; subirlos al repo no despliega los backends. Ninguna clave real está incluida.
+Archivos cambiados frente a v0.12.18: `index.html`, `assets/budget-workbench.js`, `assets/gestion.js`, `assets/pwa-update.js`, `sw.js`, `data/version.json`, y **únicamente el encabezado** de `data/recetas.csv`. Archivos nuevos: `assets/special-recipes.js`, `assets/special-editor.js`, este documento y tests. Worker, Apps Script, Sheet, artículos, clientes y recetas existentes no fueron modificados.
 
-CSV de artículos/clientes/recetas idénticos a v0.12.17. data/version.json cambia sólo versión de app. No cambia estructura de datos ni hojas. No cambia lógica económica ni UX de presupuestos. No se publicó ni se interactuó con GitHub/Cloudflare/Sheets de producción.
+El editor manual persiste recetas en el navegador; para que todos los equipos las reciban hay que añadir la fila al CSV y publicar con nueva versión de recetas. Guardar un registro de laboratorio no da de alta una receta. La Sheet actual no es fuente de recetas para la app.
 
-Sincronizar todo conserva pendientes y muestra resultados por módulo. Lista central sólo consulta versión; publicar y recibir/aplicar siguen requiriendo revisión explícita.
-
-VALIDACION.md declara pruebas realizadas y límites. Los documentos de backend anteriores se conservan como referencia histórica; sus instrucciones de claves separadas están sustituidas por SEGURIDAD_ENDPOINTS_v0.12.18.md.
+La guía de seguridad anterior sigue en `SEGURIDAD_ENDPOINTS_v0.12.18.md` como referencia de la versión estable que sirvió de base. No se cambiaron sus endpoints ni claves.

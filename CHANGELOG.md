@@ -1,3 +1,11 @@
+# v0.12.20 — Recetas SPECIAL manuales en Cañada
+
+- Doce COD especiales, seis familias separadas y escala desde el artículo patrón.
+- Presupuestos y Tintométrico filtran NORMAL/SPECIAL; vista previa y snapshot del artículo patrón.
+- Editor manual offline para alta y corrección, con fila CSV exportable. Sin recetas reales precargadas.
+- Encabezado opcional de recetas ampliado; 16.958 filas existentes intactas. Sin Worker, Apps Script ni Sheet nuevos.
+- Ver RECETAS_SPECIAL_v0.12.20.md para publicación y pruebas pendientes.
+
 # v0.12.18 — Seguridad endpoints / clave única
 
 - Una Clave operativa Pancko por dispositivo: pk_app_token_v1.
