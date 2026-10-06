@@ -1,7 +1,11 @@
-# Pancko Gestión v0.12.23 · Cañada · CSV de recetas actualizado
+# Pancko Gestión v0.12.24 · Cañada · Comandas locales
 
-Contiene la app completa y `data/recetas.csv`: 16.958 filas anteriores, 110 NORMAL nuevas (incluye GPPTR) y 76 SPECIAL; total 17.144. Subir el contenido completo del ZIP, con `index.html` en la raíz del repo, cuando se decida publicar. Esta entrega no publica ni modifica Sheet, Apps Script o Worker.
+ZIP completo para subir manualmente el contenido a la raíz del repo `pancko-integral` cuando decidas publicarlo. Conserva las 17.144 recetas de v0.12.23, incluida GPPTR. `index.html` debe quedar en la raíz. No se publicó ni modificó producción durante esta entrega.
 
-GPPTR: IdFormula 241632, PASTEL, «Gris perla mod Patria», patrón RECUPLAST INTERIOR MATE PASTEL 1 LTS; AXX=1.25 | B=2.5 | C=5 | D=7.5. Fuente: verificación de Tincho con tintométrico oficial y descarga previa R15.
+Comandas: pantalla accesible desde el lateral PC y la tarjeta móvil. Carga rápida, catálogo o texto libre; cantidades exactas o pedido genérico; mensaje por WhatsApp sin destinatario fijo; historial y modelos locales. Guardar una comanda sólo escribe las tres claves `pk_comandas_history_v1`, `pk_comandas_models_v1`, `pk_comandas_draft_v1`. No sincroniza entre dispositivos.
 
-Respaldar los datos locales y el CSV anterior. Las recetas manuales guardadas en cada dispositivo no se borran. Publicar el ZIP completo es necesario para respetar pulsos SPECIAL menores que 0,125.
+La clave de borrador recupera la comanda en curso tras cerrar la app. Una comanda guardada se puede reenviar sin duplicarla. El historial permite recibir, anular y duplicar. Los modelos son copias independientes y editables al cargarlos. No afectan stock, caja, CC, presupuestos ni tintometría.
+
+Para probar: abrir Comandas en PC o móvil, ingresar `rec int mate bl 6x1 + 4x4 + 3x10 + 3x20`, verificar cuatro COD; ingresar `recumix int 1,25 y 5 kg`, verificar dos COD; ingresar `Tinta B` y editar el pedido; guardar, enviar, reabrir historial, marcar recibida, duplicar, guardar/usar modelo. Una frase dudosa debe quedar libre. Hacé copia de los datos locales antes de limpiar almacenamiento del navegador.
+
+El código del parser y flujo local se probó con el catálogo real. La revisión visual de la UI a tamaños PC y móvil queda pendiente de prueba en navegador: el navegador de ejecución bloqueó la URL local. Hay reglas responsive específicas para 650 px y menores.

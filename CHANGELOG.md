@@ -1,6 +1,7 @@
-# v0.12.23 — GPPTR incluida
+# v0.12.24 — Comandas
 
-- Se agrega GPPTR, omitida en los exportables nuevos, con base PASTEL y pulsos confirmados.
-- 17.144 recetas: 16.958 anteriores, 109 NORMAL de exportable, GPPTR y 76 SPECIAL.
-- Identificador de versión del CSV y caché actualizados para que un dispositivo con v0.12.22 recargue el archivo.
-- Sigue el tratamiento decimal SPECIAL de v0.12.22.
+- Módulo local de pedidos al depósito con entrada rápida, catálogo y texto libre.
+- WhatsApp, historial local, estado recibida/anulada y modelos frecuentes.
+- Borrador local y menú PC/móvil; nuevas claves exclusivas de Comandas.
+- Recetas y cálculo SPECIAL de v0.12.23 conservados.
+- Worker, Apps Script, Sheet y extensión sin cambios.

@@ -1,0 +1,30 @@
+/* Comandas: isolated layout; existing module styles remain untouched. */
+.mobile-home .tile-comandas{background:linear-gradient(135deg,#446b90,#275171);color:#fff}
+#comandasScreen{max-width:1200px}
+.comandas-tabs{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0}
+.comandas-tabs .btn{flex:1;min-width:150px}
+.comandas-panel[hidden]{display:none!important}
+.comandas-panel>.card{margin-bottom:16px}
+.comandas-panel .card h2{font-size:1.12rem;margin:0 0 8px}
+.comandas-fields,.comandas-line-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.comandas-panel label{display:block;font-weight:650;font-size:.84rem;margin-bottom:9px}
+.comandas-panel input,.comandas-panel textarea{display:block;width:100%;min-width:0;margin-top:5px;padding:11px;border:1px solid var(--border);border-radius:9px;background:var(--bg2);color:var(--text);font:inherit}
+.comandas-date{display:block;margin:12px 0;padding:5px 0;font-weight:700}
+.comandas-add{display:flex;gap:8px;margin:8px 0 17px;align-items:end}
+.comandas-add input{margin:0;flex:1}
+.comandas-add button{min-height:42px}
+.comandas-matches{max-height:275px;overflow:auto;margin:4px 0 15px}
+.comandas-matches button{width:100%;display:flex;gap:10px;align-items:start;justify-content:space-between;padding:11px;text-align:left;border:1px solid var(--border);background:var(--bg2);color:var(--text);cursor:pointer}
+.comandas-matches button:hover,.comandas-matches button:focus-visible{border-color:var(--accent)}
+.comandas-matches small{white-space:nowrap;color:var(--text-muted)}
+.comandas-line{border:1px solid var(--border);border-radius:12px;padding:14px;margin:10px 0;background:var(--bg2)}
+.comandas-line-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.comandas-line-head .btn{min-height:36px}
+.comandas-line-note{grid-column:1/-1}
+.comandas-history-item{margin-bottom:13px}
+.comandas-history-item details{margin:10px 0 14px}
+.comandas-history-item summary{cursor:pointer;font-weight:700}
+.comandas-history-item pre{font:inherit;white-space:pre-wrap;overflow-wrap:anywhere;margin:10px 0;padding:12px;border:1px solid var(--border);border-radius:10px;background:var(--bg2);line-height:1.55}
+.comandas-status{font-size:.8rem;color:var(--accent);font-weight:700}
+#comandasNotice:not(:empty){margin:8px 0 15px;padding:9px 12px;border:1px solid var(--border);border-radius:8px;color:var(--text)}
+@media(max-width:650px){.comandas-tabs .btn{min-width:0;font-size:.78rem;padding:10px 6px}.comandas-fields,.comandas-line-grid{grid-template-columns:1fr}.comandas-add{flex-wrap:wrap}.comandas-add button{width:100%}.comandas-line-note{grid-column:auto}.comandas-history-item .gestion-actions .btn{flex:1 1 45%}}
