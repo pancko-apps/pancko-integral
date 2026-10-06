@@ -17,6 +17,19 @@
 .comandas-matches button{width:100%;display:flex;gap:10px;align-items:start;justify-content:space-between;padding:11px;text-align:left;border:1px solid var(--border);background:var(--bg2);color:var(--text);cursor:pointer}
 .comandas-matches button:hover,.comandas-matches button:focus-visible{border-color:var(--accent)}
 .comandas-matches small{white-space:nowrap;color:var(--text-muted)}
+.comandas-entry{display:grid;grid-template-columns:minmax(0,2fr) minmax(135px,1fr) auto;align-items:end;gap:8px}
+.comandas-entry-product,.comandas-entry-quantity{min-width:0}
+.comandas-entry-product{position:relative}
+.comandas-entry label{margin:0 0 4px}
+.comandas-entry input{margin:0}
+.comandas-entry>.btn{min-height:43px}
+.comandas-product-control{display:flex;align-items:center;border:1px solid var(--border);border-radius:9px;background:var(--bg2)}
+.comandas-product-control input{border:0;min-width:0;flex:1;background:transparent}
+.comandas-product-control button{border:0;background:transparent;color:var(--text);font-size:1.4rem;min-width:42px;min-height:42px;cursor:pointer}
+.comandas-product-control button[hidden]{display:none}
+.comandas-entry .comandas-matches{position:absolute;top:100%;left:0;z-index:20;width:100%;max-height:245px;overflow:auto;margin:2px 0 0;background:var(--bg2);box-shadow:0 8px 20px rgba(0,0,0,.18)}
+.comandas-entry .comandas-matches:empty{display:none}
+.comandas-entry .comandas-matches button{padding:8px 10px}
 .comandas-line{border:1px solid var(--border);border-radius:12px;padding:14px;margin:10px 0;background:var(--bg2)}
 .comandas-list-heading{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
 .comandas-list-heading span{font-size:.8rem;color:var(--text-muted);white-space:nowrap}
@@ -33,7 +46,8 @@
 @media(max-width:650px){
   .comandas-tabs .btn{min-width:0;font-size:.78rem;padding:10px 6px}
   .comandas-fields,.comandas-line-grid{grid-template-columns:1fr}
-  .comandas-add{flex-wrap:wrap}.comandas-add button{width:100%}
+  .comandas-entry{grid-template-columns:1fr;gap:7px}
+  .comandas-entry>.btn{width:100%}
   .comandas-line-note{grid-column:auto}
   .comandas-history-item .gestion-actions .btn{flex:1 1 45%}
   .comandas-line{padding:0;margin:6px 0;overflow:hidden}

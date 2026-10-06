@@ -1,9 +1,9 @@
 {
-  "app": "Pancko Gestión v0.12.26",
+  "app": "Pancko Gestión v0.12.27",
   "articulos": "articulos_tinto_preparado_v10_rustico_local_patch__2026-05-28",
   "recetas": "normal_110_special_76_gpptr__2026-10-06",
   "clientes": "clientes_master__2026-05-23",
-  "shell": "0.12.26",
+  "shell": "0.12.27",
   "catalog": "0.11.2",
   "caja": "0.12.25-draft-sync",
   "cuenta_corriente": "0.12.6-central",

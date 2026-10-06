@@ -1,5 +1,7 @@
-# v0.12.26 — Comandas compactas en móvil
+# v0.12.27 — Carga rápida de Comandas
 
-- Lista móvil de filas breves con producto y resumen del pedido.
-- Una sola tarjeta de edición abierta por vez; el alta libre abre su edición.
-- PC conserva la edición visible; Caja v0.12.25 y demás módulos sin cambios funcionales.
+- Producto y Cantidad en un solo bloque compacto. Sugerencias sin agregar prematuramente.
+- Búsqueda por texto continuo, como la carga rápida de Presupuestos, con fragmentos abreviados complementarios.
+- Enter desde Cantidad o botón agrega; selección enfoca Cantidad; X limpia Producto.
+- Cantidad por envase, cantidad simple o pedido literal, con texto libre.
+- Caja v0.12.25 y los demás módulos sin cambios funcionales.

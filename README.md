@@ -1,9 +1,9 @@
-# Pancko Gestión v0.12.26 · Cañada · Comandas compactas en móvil
+# Pancko Gestión v0.12.27 · Cañada · Carga de Comandas
 
-ZIP completo para reemplazo manual del frontend de `pancko-integral`. Incluye Caja v0.12.25 sin cambios funcionales, Comandas con lista compacta móvil y las 17.144 recetas previas. `index.html` queda en la raíz del repo. No se publicó durante esta entrega.
+ZIP completo del frontend `pancko-integral` para reemplazo manual. `index.html` queda en la raíz del repo. No se publicó desde esta entrega.
 
-En pantallas de hasta 650 px, Comandas enseña una fila por ítem con producto y cantidad/pedido. Tocarla despliega los cinco campos de edición y Eliminar; tocar otra cierra la anterior. La carga rápida y búsqueda están arriba; la lista, abajo. En PC se conserva el formulario abierto por ítem. El borrador, historial, modelos, parser y formato WhatsApp mantienen las mismas claves locales: `pk_comandas_draft_v1`, `pk_comandas_history_v1`, `pk_comandas_models_v1`. No hay migración de datos.
+En Comandas, Producto y Cantidad forman una sola carga. El buscador prioriza la coincidencia continua usada en Presupuestos y después encuentra fragmentos por palabra. Elegir una sugerencia sólo llena Producto y enfoca Cantidad; Agregar o Enter desde Cantidad crea la línea. X limpia Producto sin alterar la comanda ni la cantidad ya escrita. Se admite texto libre, números, `6x1`, `6*1`, `3x20lt`, `1 caja` y pedidos literales. La lista compacta móvil de v0.12.26 continúa y el editor se abre con un toque.
 
-Pruebas: el test de Comandas genera 20 líneas y comprueba que inicialmente ninguna está abierta, sólo una puede expandirse, el resumen se actualiza al editar y se vuelve a cerrar. También pasan los tests anteriores de Caja, recetas, presupuestos y Comandas. El navegador de la ejecución bloquea la URL local, así que la comprobación visual en celular real queda pendiente de hacer tras subir el paquete.
+Los datos previos quedan en `pk_comandas_draft_v1`, `pk_comandas_history_v1`, `pk_comandas_models_v1`; no hay migración. Caja v0.12.25, Presupuestos, Tintométrico, Worker, Apps Script, Sheet, extensión y sincronización mantienen su comportamiento. La actualización de shell/PWA y su número de versión son necesarios para recibir el nuevo archivo de Comandas.
 
-Worker, Apps Script, Sheet, tokens, sync de otros módulos y extensión: sin cambios.
+Las pruebas automatizadas cubren las cuatro búsquedas solicitadas, selección sin agregado, foco, cantidades y texto libre, además de los flujos previos. Revisar visualmente en el celular tras publicar; este entorno no puede abrir su instancia local en el navegador de prueba.
