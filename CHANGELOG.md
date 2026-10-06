@@ -1,3 +1,10 @@
+# v0.12.21 — Paleta, limpieza de fórmula y versión visible
+
+- El lateral muestra v0.12.21; el estado PWA y version.json coinciden.
+- La paleta de Presupuestos crea una fórmula NORMAL o SPECIAL para el producto elegido, guarda offline y exige vista previa antes de aplicar.
+- Si se vacía Fórmula y se sale del campo o se presiona Enter, se quitan tintas y costo, conservando cantidad/descuento. La paleta también permite guardar sin fórmula.
+- Worker, Apps Script, Sheet y filas de recetas existentes no cambian.
+
 # v0.12.20 — Recetas SPECIAL manuales en Cañada
 
 - Doce COD especiales, seis familias separadas y escala desde el artículo patrón.

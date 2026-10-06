@@ -51,6 +51,19 @@ function editManualRecipe(key){
  manualRecipeFeedback('Editando receta. Al publicar, reemplazá su fila anterior en el CSV si cambiaste código, familia o patrón.');
  manualField('manualRecipeCode').focus();
 }
+function persistManualRecipe(row,editingKey=''){
+ const key=manualRecipeKey(row);
+ if(key!==editingKey&&tintRecipes.some(r=>manualRecipeKey(r)===key))return {ok:false,error:'Ya existe esa combinación de código y patrón/base. Elegí su fila para editarla.'};
+ const manual=manualSpecialRows().filter(r=>manualRecipeKey(r)!==editingKey&&manualRecipeKey(r)!==key);
+ manual.push(row);
+ try{
+  localStorage.setItem(SPECIAL_MANUAL_KEY,JSON.stringify(manual));
+  if(editingKey&&editingKey!==key){const hidden=hiddenSpecialKeys();hidden.add(editingKey);localStorage.setItem(SPECIAL_HIDDEN_KEY,JSON.stringify([...hidden]));}
+ }catch(e){return {ok:false,error:'No se pudo guardar en este navegador: '+e.message};}
+ tintRecipes=tintRecipes.filter(r=>manualRecipeKey(r)!==editingKey&&manualRecipeKey(r)!==key).concat(row);
+ buildTintIndex();renderManualRecipeList();renderTintStatus();
+ return {ok:true,key,row};
+}
 function saveManualRecipe(){
  const type=manualField('manualRecipeType').value,code=manualField('manualRecipeCode').value.trim(),desc=manualField('manualRecipeDescription').value.trim();
  const pulses=manualField('manualRecipePulses').value.trim(),notes=manualField('manualRecipeNotes').value.trim();
@@ -71,20 +84,11 @@ function saveManualRecipe(){
  }else{
   row.base=manualField('manualRecipeBase').value;row.formula_1l=pulses;
  }
- const key=manualRecipeKey(row);
- if(key!==manualRecipeEditingKey&&tintRecipes.some(r=>manualRecipeKey(r)===key)){
-  manualRecipeFeedback('Ya existe esa combinación de código y patrón/base. Elegí su fila para editarla.',true);return;
- }
- const manual=manualSpecialRows().filter(r=>manualRecipeKey(r)!==manualRecipeEditingKey&&manualRecipeKey(r)!==key);
- manual.push(row);
- try{
-  localStorage.setItem(SPECIAL_MANUAL_KEY,JSON.stringify(manual));
-  if(manualRecipeEditingKey&&manualRecipeEditingKey!==key){const hidden=hiddenSpecialKeys();hidden.add(manualRecipeEditingKey);localStorage.setItem(SPECIAL_HIDDEN_KEY,JSON.stringify([...hidden]));}
- }catch(e){manualRecipeFeedback('No se pudo guardar en este navegador: '+e.message,true);return;}
- tintRecipes=tintRecipes.filter(r=>manualRecipeKey(r)!==manualRecipeEditingKey&&manualRecipeKey(r)!==key).concat(row);
- buildTintIndex();manualRecipeEditingKey=key;manualField('manualRecipeCSV').value=specialRecipeCSVRow(row);
+ const result=persistManualRecipe(row,manualRecipeEditingKey);
+ if(!result.ok){manualRecipeFeedback(result.error,true);return;}
+ manualRecipeEditingKey=result.key;manualField('manualRecipeCSV').value=specialRecipeCSVRow(row);
  manualRecipeFeedback('Guardada offline en este navegador. Copiá la fila CSV y publicala para compartirla con otros dispositivos.');
- renderManualRecipeList();renderTintStatus();renderLabColorOptions(false);renderLabFormula();
+ renderLabColorOptions(false);renderLabFormula();
 }
 async function copyManualRecipeRow(){
  const text=manualField('manualRecipeCSV').value;

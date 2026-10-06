@@ -80,6 +80,7 @@
 @media(max-width:760px){#cartScreen .budget-entry{padding:9px}#cartScreen .budget-general-row{grid-template-columns:auto 70px minmax(0,1fr)}}
 
 /* v0.12.15: código rápido de fórmula con acceso al editor completo. */
+#budgetNewRecipePanel[hidden],#budgetNewRecipeBaseField[hidden]{display:none!important}
 #cartScreen .budget-formula{min-width:158px;max-width:215px}
 #cartScreen .budget-formula-controls{display:flex;align-items:center;gap:5px}
 #cartScreen .budget-formula-controls input{width:106px;min-width:0;min-height:36px;text-align:left;font-variant-numeric:tabular-nums}

@@ -1,11 +1,11 @@
 {
-  "app": "Pancko Gestión v0.12.20",
+  "app": "Pancko Gestión v0.12.21",
   "articulos": "articulos_tinto_preparado_v10_rustico_local_patch__2026-05-28",
   "recetas": "pancko_tinto_MASTER_COMPACTO_special_optional_header__2026-10-06",
   "clientes": "clientes_master__2026-05-23",
-  "shell": "0.12.20",
+  "shell": "0.12.21",
   "catalog": "0.11.2",
   "caja": "0.12.7",
   "cuenta_corriente": "0.12.6-central",
-  "presupuestos": "0.12.20"
+  "presupuestos": "0.12.21"
 }
