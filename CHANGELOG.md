@@ -1,7 +1,5 @@
-# v0.12.24 — Comandas
+# v0.12.26 — Comandas compactas en móvil
 
-- Módulo local de pedidos al depósito con entrada rápida, catálogo y texto libre.
-- WhatsApp, historial local, estado recibida/anulada y modelos frecuentes.
-- Borrador local y menú PC/móvil; nuevas claves exclusivas de Comandas.
-- Recetas y cálculo SPECIAL de v0.12.23 conservados.
-- Worker, Apps Script, Sheet y extensión sin cambios.
+- Lista móvil de filas breves con producto y resumen del pedido.
+- Una sola tarjeta de edición abierta por vez; el alta libre abre su edición.
+- PC conserva la edición visible; Caja v0.12.25 y demás módulos sin cambios funcionales.

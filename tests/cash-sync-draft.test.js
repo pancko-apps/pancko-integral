@@ -1,0 +1,41 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
+const html=fs.readFileSync(path.resolve(__dirname,'../index.html'),'utf8');
+function source(name){let start=html.indexOf('function '+name+'(');assert(start>0,name);if(html.slice(start-6,start)==='async ')start-=6;let open=html.indexOf('){',start)+1,level=0;for(let i=open;i<html.length;i++){if(html[i]==='{')level++;if(html[i]==='}'&&!--level)return html.slice(start,i+1);}throw Error(name);}
+// Use the production implementations for save, atomic local commit and sync.
+const funcs=['cashCommit','cashSaveMovement','cashSyncWrite','cashSyncDate'];
+const date='2026-10-06',day={date,state:'open',movements:[],audit:[]},initial={schema_version:1,revision:0,days:[day],sync_pending:[],sync_versions:{}};
+const storage=new Map([['pk_cash_daily_v1',JSON.stringify(initial)]]);
+const fields={cashDetail:{value:'prueba 1',focus(){}},cashAmount:{value:'100',focus(){}}};
+const closeInputs=new Map([[date,{counts:{large:'20000'}}]]),dirty=new Set([date]);let remote=null;
+const context={console,crypto:require('node:crypto').webcrypto,Date,JSON,Math,Set,Map,Promise,localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)},document:{getElementById:id=>fields[id]||null},navigator:{onLine:true},cashBook:JSON.parse(storage.get('pk_cash_daily_v1')),cashRaw:storage.get('pk_cash_daily_v1'),cashStorageError:'',cashMessage:'',cashSaving:false,cashSelectedDate:date,cashEditingId:null,cashDraftPending:false,cashCloseInputs:closeInputs,cashCountDirtyDates:dirty,cashSyncBusy:false,cashSyncError:'',cashSyncConflict:'',cashSyncInFlightId:null,cashLastSync:null,PANCKO_API_URL:'',CASH_KEY:'pk_cash_daily_v1',CASH_SYNC_TIME_KEY:'pk_cash_sync_time_v1',cashRememberCloseInputs(){},cashReadBook:raw=>JSON.parse(raw),cashValidateBook:b=>b,cashInteger:n=>n,cashRecordMutation(next,previous){const old=previous.days[0].movements;for(const m of next.days[0].movements)if(!old.some(x=>x.id===m.id))next.sync_pending.push({op_id:'op_'+m.id,date,kind:'add',data:{movement:m}});},cashRequireOpen:(book,dt)=>book.days.find(d=>d.date===dt),cashAudit:(d)=>d.audit.push({at:new Date().toISOString()}),cashParseMoney:v=>Math.round(Number(v)*100),cashLoad(){this.cashRaw=storage.get('pk_cash_daily_v1');this.cashBook=JSON.parse(this.cashRaw);},cashCountFieldActive:()=>false,cashRenderSyncStatus(){},cashScheduleSync(){},renderCashHome(){},showToast(){},renderCashNotice(){},cashIdentity:()=>({id:'dev123456',name:'Prueba'}),cashSyncEnabled:()=>true,cashDateLabel:x=>x,cashStamp:x=>x,cashRemoteDayCopy:x=>x,cashOp:()=>{},cashConflictNotice:msg=>{throw Error(msg)},cashApi:async(url)=>url==='/cash/apply'?{revision:2,day:remote}:{day:remote,revision:2},renderCashModule(preserve=true){if(!preserve){fields.cashDetail.value='';fields.cashAmount.value='';}},setTimeout,clearTimeout};
+const ctx=vm.createContext(context);vm.runInContext(funcs.map(source).join('\n'),ctx);
+(async()=>{
+ await vm.runInContext("cashSaveMovement('signed')",ctx);
+ assert.equal(fields.cashDetail.value,'');assert.equal(fields.cashAmount.value,'');
+ assert.equal(ctx.cashBook.days[0].movements.length,1);
+ remote=JSON.parse(JSON.stringify(ctx.cashBook.days[0]));fields.cashDetail.value='prueba 2';fields.cashAmount.value='200';
+ assert.equal(await vm.runInContext('cashSyncDate(cashSelectedDate)',ctx),true);
+ assert.equal(fields.cashDetail.value,'prueba 2');assert.equal(fields.cashAmount.value,'200');
+ assert.deepEqual(closeInputs.get(date),{counts:{large:'20000'}});
+ await vm.runInContext("cashSaveMovement('signed')",ctx);
+ assert.equal(ctx.cashBook.days[0].movements.length,2);
+ assert.deepEqual(Array.from(ctx.cashBook.days[0].movements,m=>[m.detail,m.amount_cents]),[['prueba 1',10000],['prueba 2',20000]]);
+ assert.equal(new Set(ctx.cashBook.days[0].movements.map(m=>m.id)).size,2);
+ let release;
+ ctx.navigator.locks={request:(_key,write)=>new Promise(resolve=>{release=()=>resolve(write());})};
+ fields.cashDetail.value='prueba 3';fields.cashAmount.value='300';
+ const third=vm.runInContext("cashSaveMovement('signed')",ctx);
+ fields.cashDetail.value='prueba 4';fields.cashAmount.value='400';
+ release();await third;
+ assert.equal(fields.cashDetail.value,'prueba 4');assert.equal(fields.cashAmount.value,'400');
+ delete ctx.navigator.locks;
+ await vm.runInContext("cashSaveMovement('signed')",ctx);
+ assert.deepEqual(Array.from(ctx.cashBook.days[0].movements,m=>m.detail),['prueba 1','prueba 2','prueba 3','prueba 4']);
+ const originalSet=ctx.localStorage.setItem;
+ ctx.localStorage.setItem=(key,value)=>{if(key==='pk_cash_daily_v1')throw new Error('sin espacio');originalSet(key,value);};
+ fields.cashDetail.value='prueba 5';fields.cashAmount.value='500';
+ await vm.runInContext("cashSaveMovement('signed')",ctx);
+ assert.equal(fields.cashDetail.value,'prueba 5');assert.equal(fields.cashAmount.value,'500');
+ assert.equal(ctx.cashBook.days[0].movements.length,4);
+ console.log('OK Caja: Enter 1, sync, draft 2 intacto, Enter 2, dos movimientos sin duplicados; conteo protegido.');
+})().catch(e=>{console.error(e);process.exitCode=1});

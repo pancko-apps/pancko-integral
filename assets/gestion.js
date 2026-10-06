@@ -1,5 +1,5 @@
 
-/* Pancko Gestión v0.12.24 · Extiende la base sin cambiar sus reglas comerciales. */
+/* Pancko Gestión v0.12.26 · Extiende la base sin cambiar sus reglas comerciales. */
 'use strict';
 let budgetClientId=localStorage.getItem('pk_draft_client_id') || '';
 let quickClientReturn=false;
@@ -203,8 +203,8 @@ function renderManagementSync(){
   const pendingBud=budgetHistory.filter(h=>h._sync!=='synced').length,pendingLab=labRecords.filter(r=>r._sync!=='synced').length;
   document.getElementById('syncSummary').innerHTML=`Red: <b>${navigator.onLine?'conectada':'sin conexión'}</b><br>Presupuestos pendientes: <b>${pendingBud}</b><br>Colores pendientes: <b>${pendingLab}</b><br>El borrado de colores sigue siendo local.`;
   document.getElementById('retrySyncBtn').disabled=managementSyncBusy;
-  document.getElementById('pwaStatus').textContent=`Pancko Gestión v0.12.24 · ${'serviceWorker' in navigator?'PWA disponible en HTTPS.':'Este navegador no permite service worker.'}`;
-  if('serviceWorker' in navigator)navigator.serviceWorker.getRegistration().then(r=>{document.getElementById('pwaStatus').textContent=`Pancko Gestión v0.12.24 · ${r?.waiting?'Actualización esperando: cerrá todas las ventanas y reabrí.':r?.active?'Service worker activo. Datos base disponibles offline tras completar la instalación.':'Instalación offline aún no completada.'}`;}).catch(()=>{});
+  document.getElementById('pwaStatus').textContent=`Pancko Gestión v0.12.26 · ${'serviceWorker' in navigator?'PWA disponible en HTTPS.':'Este navegador no permite service worker.'}`;
+  if('serviceWorker' in navigator)navigator.serviceWorker.getRegistration().then(r=>{document.getElementById('pwaStatus').textContent=`Pancko Gestión v0.12.26 · ${r?.waiting?'Actualización esperando: cerrá todas las ventanas y reabrí.':r?.active?'Service worker activo. Datos base disponibles offline tras completar la instalación.':'Instalación offline aún no completada.'}`;}).catch(()=>{});
   renderCatalogManagement();
 }
 

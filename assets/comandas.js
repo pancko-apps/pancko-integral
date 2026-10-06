@@ -1,4 +1,4 @@
-/* Pancko Gestión · Comandas v0.12.24. Operación local, aislada de caja/ventas/sync. */
+/* Pancko Gestión · Comandas v0.12.26. Operación local, aislada de caja/ventas/sync. */
 'use strict';
 const COMANDAS_HISTORY_KEY='pk_comandas_history_v1';
 const COMANDAS_MODELS_KEY='pk_comandas_models_v1';
@@ -9,6 +9,7 @@ const comandasId=()=>typeof crypto!=='undefined'&&crypto.randomUUID?crypto.rando
 const comandasEmpty=()=>({id:null,createdAt:new Date().toISOString(),to:'Depósito / hermano',note:'',lines:[]});
 let comandasDraft=(()=>{const value=comandasRead(COMANDAS_DRAFT_KEY,null);return value&&Array.isArray(value.lines)?value:comandasEmpty();})();
 let comandasView='draft';
+let comandasExpandedId=null;
 function comandasNotice(text){const el=document.getElementById('comandasNotice');if(el)el.textContent=text||'';}
 function comandasWrite(key,value){try{localStorage.setItem(key,JSON.stringify(value));return true;}catch(e){comandasNotice('No se pudo guardar en este dispositivo. Revisá el espacio disponible.');return false;}}
 function comandasHistoryData(){const rows=comandasRead(COMANDAS_HISTORY_KEY,[]);return Array.isArray(rows)?rows:[];}
@@ -98,11 +99,23 @@ function comandasSearch(){
 function comandasSelectArticle(cod){
   const p=(typeof products!=='undefined'?products:[]).find(x=>String(x.COD)===String(cod));if(!p)return;
   const pres=comandasPresentation(p.ARTIC);
-  comandasDraft.lines.push({id:comandasId(),cod:String(p.COD),product:pres?.family||String(p.ARTIC),presentation:pres?.label||'',qty:1,request:'',obs:'',implicit:false});
+  const line={id:comandasId(),cod:String(p.COD),product:pres?.family||String(p.ARTIC),presentation:pres?.label||'',qty:1,request:'',obs:'',implicit:false};
+  comandasDraft.lines.push(line);comandasExpandedId=line.id;
   if(!comandasPersistDraft())return;
   document.getElementById('comandasSearch').value='';document.getElementById('comandasMatches').innerHTML='';comandasRenderLines();
 }
-function comandasAddBlank(){comandasDraft.lines.push(comandasFreeLine());comandasPersistDraft();comandasRenderLines();}
+function comandasAddBlank(){const line=comandasFreeLine();comandasDraft.lines.push(line);comandasExpandedId=line.id;comandasPersistDraft();comandasRenderLines();}
+function comandasLineSummary(line){
+  const qty=Number(line.qty),presentation=comandasClean(line.presentation);
+  const detail=line.qty!==''&&Number.isInteger(qty)&&qty>0?(line.implicit&&qty===1&&presentation?presentation:presentation?`${qty} × ${presentation}`:`${qty} ${qty===1?'unidad':'unidades'}`):comandasClean(line.request)||'Cantidad a definir';
+  return detail+(line.obs?' · Con observación':'');
+}
+function comandasToggle(index){
+  const line=comandasDraft.lines[index];if(!line)return;
+  comandasExpandedId=comandasExpandedId===line.id?null:line.id;
+  comandasRenderLines();
+  if(comandasExpandedId)document.getElementById('comandasLineToggle'+index)?.scrollIntoView?.({block:'nearest'});
+}
 function comandasChange(index,field,value){
   const line=comandasDraft.lines[index];if(!line)return;
   if(field==='qty'){
@@ -114,14 +127,19 @@ function comandasChange(index,field,value){
     if(value.trim()){line.qty='';document.querySelector(`#comandasLine${index} [data-field="qty"]`).value='';}
   }else{line[field]=value.slice(0,field==='obs'?350:160);if(field==='product'||field==='presentation')line.cod='';}
   comandasPersistDraft();
+  const title=document.getElementById('comandasLineTitle'+index),summary=document.getElementById('comandasLineSummary'+index);
+  if(title)title.textContent=comandasClean(line.product)||'Ítem sin nombre';
+  if(summary)summary.textContent=comandasLineSummary(line);
 }
-function comandasRemove(index){comandasDraft.lines.splice(index,1);comandasPersistDraft();comandasRenderLines();}
+function comandasRemove(index){const [removed]=comandasDraft.lines.splice(index,1);if(removed?.id===comandasExpandedId)comandasExpandedId=null;comandasPersistDraft();comandasRenderLines();}
 function comandasRenderLines(){
   const box=document.getElementById('comandasLines');if(!box)return;
-  box.innerHTML=comandasDraft.lines.length?comandasDraft.lines.map((x,i)=>`<div class="comandas-line" id="comandasLine${i}">
-    <div class="comandas-line-head"><strong>Ítem ${i+1}${x.cod?' · COD '+esc(x.cod):' · texto libre'}</strong><button class="btn btn-back" onclick="comandasRemove(${i})" aria-label="Eliminar ítem ${i+1}">Eliminar</button></div>
+  const count=document.getElementById('comandasLineCount');if(count)count.textContent=`${comandasDraft.lines.length} ${comandasDraft.lines.length===1?'ítem':'ítems'}`;
+  box.innerHTML=comandasDraft.lines.length?comandasDraft.lines.map((x,i)=>`<div class="comandas-line ${comandasExpandedId===x.id?'is-open':''}" id="comandasLine${i}">
+    <button type="button" class="comandas-line-toggle" id="comandasLineToggle${i}" aria-expanded="${comandasExpandedId===x.id}" aria-controls="comandasLineEditor${i}" onclick="comandasToggle(${i})"><span class="comandas-line-title" id="comandasLineTitle${i}">${esc(comandasClean(x.product)||'Ítem sin nombre')}</span><span class="comandas-line-summary" id="comandasLineSummary${i}">${esc(comandasLineSummary(x))}</span><span class="comandas-line-chevron" aria-hidden="true">⌄</span></button>
+    <div class="comandas-line-editor" id="comandasLineEditor${i}"><div class="comandas-line-head"><strong>Ítem ${i+1}${x.cod?' · COD '+esc(x.cod):' · texto libre'}</strong><button class="btn btn-back" onclick="comandasRemove(${i})" aria-label="Eliminar ítem ${i+1}">Eliminar</button></div>
     <div class="comandas-line-grid"><label>Producto<input value="${esc(x.product)}" oninput="comandasChange(${i},'product',this.value)"></label><label>Presentación<input value="${esc(x.presentation)}" placeholder="Ej. 4 L / 5 kg" oninput="comandasChange(${i},'presentation',this.value)"></label><label>Cantidad exacta<input data-field="qty" type="number" min="1" step="1" value="${esc(x.qty)}" placeholder="Sin cantidad" oninput="comandasChange(${i},'qty',this.value)"></label><label>Pedido genérico<input data-field="request" list="comandasRequests" value="${esc(x.request)}" placeholder="Traer / surtido / los que haya" oninput="comandasChange(${i},'request',this.value)"></label><label class="comandas-line-note">Observación<input value="${esc(x.obs)}" placeholder="Opcional" oninput="comandasChange(${i},'obs',this.value)"></label></div>
-  </div>`).join(''):'<p class="gestion-help">Todavía no hay productos. Escribí una frase o buscá en el catálogo.</p>';
+    </div></div>`).join(''):'<p class="gestion-help">Todavía no hay productos. Escribí una frase o buscá en el catálogo.</p>';
 }
 function comandasTab(view){comandasView=view;comandasRender();}
 function comandasRender(){
@@ -136,7 +154,7 @@ function comandasRender(){
 }
 function comandasNew(){
   if(comandasDraft.lines.length&&!comandasDraft.id&&!confirm('¿Descartar la comanda en curso sin guardar?'))return;
-  comandasDraft=comandasEmpty();comandasPersistDraft();comandasTab('draft');comandasNotice('Nueva comanda lista.');
+  comandasDraft=comandasEmpty();comandasExpandedId=null;comandasPersistDraft();comandasTab('draft');comandasNotice('Nueva comanda lista.');
 }
 function comandasValidated(){
   const lines=comandasDraft.lines.map(x=>({...x,product:comandasClean(x.product),presentation:comandasClean(x.presentation),request:comandasClean(x.request),obs:comandasClean(x.obs)}));
@@ -174,14 +192,14 @@ function comandasSend(){const record=comandasSave();if(record)comandasWhatsApp(r
 function comandasHistoryAction(id,action){
   const history=comandasHistoryData(),item=history.find(x=>x.id===id);if(!item)return;
   if(action==='send'){comandasWhatsApp(item);return;}
-  if(action==='duplicate'){comandasDraft={...comandasEmpty(),to:item.to,note:item.note,lines:comandasClone(item.lines).map(x=>({...x,id:comandasId()}))};comandasPersistDraft();comandasTab('draft');comandasNotice('Copia creada como nueva comanda.');return;}
+  if(action==='duplicate'){comandasDraft={...comandasEmpty(),to:item.to,note:item.note,lines:comandasClone(item.lines).map(x=>({...x,id:comandasId()}))};comandasExpandedId=null;comandasPersistDraft();comandasTab('draft');comandasNotice('Copia creada como nueva comanda.');return;}
   if(action==='model'){comandasStoreModel(item);return;}
   if(item.status!=='pending')return;
   if(action==='annul'&&!confirm('¿Anular esta comanda? Quedará en el historial.'))return;
   if(action==='received'||action==='annul'){
     item.status=action==='received'?'received':'annulled';item.closedAt=new Date().toISOString();
     if(!comandasWrite(COMANDAS_HISTORY_KEY,history))return;
-    if(comandasDraft.id===item.id){comandasDraft=comandasEmpty();comandasPersistDraft();}
+    if(comandasDraft.id===item.id){comandasDraft=comandasEmpty();comandasExpandedId=null;comandasPersistDraft();}
     comandasRenderHistory();comandasNotice(action==='received'?'Comanda marcada como recibida.':'Comanda anulada.');
   }
 }
@@ -197,7 +215,7 @@ function comandasStoreModel(source){
 function comandasModelFromDraft(){comandasDraftField();const lines=comandasValidated();if(lines)comandasStoreModel({...comandasDraft,lines});}
 function comandasUseModel(id){const model=comandasModelsData().find(x=>x.id===id);if(!model)return;
   if(comandasDraft.lines.length&&!confirm('¿Reemplazar la comanda en curso por este modelo?'))return;
-  comandasDraft={...comandasEmpty(),to:model.to,note:model.note,lines:comandasClone(model.lines).map(x=>({...x,id:comandasId()}))};comandasPersistDraft();comandasTab('draft');comandasNotice('Modelo cargado. Podés ajustar las cantidades.');
+  comandasDraft={...comandasEmpty(),to:model.to,note:model.note,lines:comandasClone(model.lines).map(x=>({...x,id:comandasId()}))};comandasExpandedId=null;comandasPersistDraft();comandasTab('draft');comandasNotice('Modelo cargado. Podés ajustar las cantidades.');
 }
 function comandasDeleteModel(id){if(!confirm('¿Eliminar este modelo? Las comandas del historial se conservan.'))return;
   if(comandasWrite(COMANDAS_MODELS_KEY,comandasModelsData().filter(x=>x.id!==id)))comandasRenderModels();

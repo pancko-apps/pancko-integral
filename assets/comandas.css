@@ -18,6 +18,9 @@
 .comandas-matches button:hover,.comandas-matches button:focus-visible{border-color:var(--accent)}
 .comandas-matches small{white-space:nowrap;color:var(--text-muted)}
 .comandas-line{border:1px solid var(--border);border-radius:12px;padding:14px;margin:10px 0;background:var(--bg2)}
+.comandas-list-heading{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.comandas-list-heading span{font-size:.8rem;color:var(--text-muted);white-space:nowrap}
+.comandas-line-toggle{display:none}
 .comandas-line-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px}
 .comandas-line-head .btn{min-height:36px}
 .comandas-line-note{grid-column:1/-1}
@@ -27,4 +30,20 @@
 .comandas-history-item pre{font:inherit;white-space:pre-wrap;overflow-wrap:anywhere;margin:10px 0;padding:12px;border:1px solid var(--border);border-radius:10px;background:var(--bg2);line-height:1.55}
 .comandas-status{font-size:.8rem;color:var(--accent);font-weight:700}
 #comandasNotice:not(:empty){margin:8px 0 15px;padding:9px 12px;border:1px solid var(--border);border-radius:8px;color:var(--text)}
-@media(max-width:650px){.comandas-tabs .btn{min-width:0;font-size:.78rem;padding:10px 6px}.comandas-fields,.comandas-line-grid{grid-template-columns:1fr}.comandas-add{flex-wrap:wrap}.comandas-add button{width:100%}.comandas-line-note{grid-column:auto}.comandas-history-item .gestion-actions .btn{flex:1 1 45%}}
+@media(max-width:650px){
+  .comandas-tabs .btn{min-width:0;font-size:.78rem;padding:10px 6px}
+  .comandas-fields,.comandas-line-grid{grid-template-columns:1fr}
+  .comandas-add{flex-wrap:wrap}.comandas-add button{width:100%}
+  .comandas-line-note{grid-column:auto}
+  .comandas-history-item .gestion-actions .btn{flex:1 1 45%}
+  .comandas-line{padding:0;margin:6px 0;overflow:hidden}
+  .comandas-line-toggle{appearance:none;display:grid;grid-template-columns:minmax(0,1fr) 22px;grid-template-rows:auto auto;gap:2px 8px;width:100%;min-height:60px;padding:10px 12px;border:0;background:transparent;color:var(--text);text-align:left;cursor:pointer;font:inherit}
+  .comandas-line-toggle:focus-visible{outline:3px solid var(--accent);outline-offset:-3px}
+  .comandas-line-title{grid-column:1;min-width:0;font-size:.88rem;font-weight:700;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
+  .comandas-line-summary{grid-column:1;min-width:0;font-size:.8rem;color:var(--text-muted);white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
+  .comandas-line-chevron{grid-column:2;grid-row:1/3;align-self:center;justify-self:center;font-size:1.3rem;color:var(--accent);transition:transform .15s}
+  .comandas-line.is-open .comandas-line-chevron{transform:rotate(180deg)}
+  .comandas-line-editor{display:none;padding:10px 12px 14px;border-top:1px solid var(--border)}
+  .comandas-line.is-open .comandas-line-editor{display:block}
+  .comandas-line-head{margin-bottom:7px;font-size:.75rem}
+}
