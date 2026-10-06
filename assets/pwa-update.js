@@ -1,6 +1,6 @@
-/* Pancko Gestión v0.12.21 · Recarga de archivos; el almacenamiento local permanece intacto. */
+/* Pancko Gestión v0.12.23 · Recarga de archivos; el almacenamiento local permanece intacto. */
 'use strict';
-const PANCKO_INSTALLED_VERSION='Pancko Gestión v0.12.21';
+const PANCKO_INSTALLED_VERSION='Pancko Gestión v0.12.23';
 const PANCKO_UPDATE_MARKER='pk_pwa_refresh_pending_v1';
 const PANCKO_REOPEN_MESSAGE='Actualización preparada. Cerrá todas las ventanas de Pancko y volvé a abrir.';
 let pwaPublishedVersion='',pwaCheckedAt='',pwaUpdateBusy=false;

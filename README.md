@@ -1,11 +1,7 @@
-# Pancko Gestión v0.12.21 · Recetas SPECIAL · Cañada producción
+# Pancko Gestión v0.12.23 · Cañada · CSV de recetas actualizado
 
-ZIP completo de frontend para publicar manualmente en el repo estable **después de respaldo y prueba controlada**. No se publicó desde esta entrega. Los archivos de `backend/` están incluidos como referencia histórica y son idénticos a v0.12.18: **no desplegarlos como un cambio de esta versión**.
+Contiene la app completa y `data/recetas.csv`: 16.958 filas anteriores, 110 NORMAL nuevas (incluye GPPTR) y 76 SPECIAL; total 17.144. Subir el contenido completo del ZIP, con `index.html` en la raíz del repo, cuando se decida publicar. Esta entrega no publica ni modifica Sheet, Apps Script o Worker.
 
-Leer [RECETAS_SPECIAL_v0.12.21.md](RECETAS_SPECIAL_v0.12.21.md) para formato, carga manual, escala, límites y checklist. Subir el contenido del ZIP con `index.html` en la raíz. El CSV actual sólo tiene fórmulas NORMAL; ninguna SPECIAL real fue añadida.
+GPPTR: IdFormula 241632, PASTEL, «Gris perla mod Patria», patrón RECUPLAST INTERIOR MATE PASTEL 1 LTS; AXX=1.25 | B=2.5 | C=5 | D=7.5. Fuente: verificación de Tincho con tintométrico oficial y descarga previa R15.
 
-Archivos cambiados frente a v0.12.18: `index.html`, `assets/budget-workbench.js`, `assets/gestion.js`, `assets/pwa-update.js`, `assets/budget-workbench.css`, `sw.js`, `data/version.json`, y **únicamente el encabezado** de `data/recetas.csv`. Archivos nuevos: `assets/special-recipes.js`, `assets/special-editor.js`, este documento y tests. Worker, Apps Script, Sheet, artículos, clientes y recetas existentes no fueron modificados.
-
-Desde la paleta se puede crear una receta para el artículo elegido. Borrar el código de Fórmula y salir de la casilla restaura el precio base de la línea. El editor manual persiste recetas en el navegador; para que todos los equipos las reciban hay que añadir la fila al CSV y publicar con nueva versión de recetas. Guardar un registro de laboratorio no da de alta una receta. La Sheet actual no es fuente de recetas para la app.
-
-La guía de seguridad anterior sigue en `SEGURIDAD_ENDPOINTS_v0.12.18.md` como referencia de la versión estable que sirvió de base. No se cambiaron sus endpoints ni claves.
+Respaldar los datos locales y el CSV anterior. Las recetas manuales guardadas en cada dispositivo no se borran. Publicar el ZIP completo es necesario para respetar pulsos SPECIAL menores que 0,125.
