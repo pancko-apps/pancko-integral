@@ -1,3 +1,7 @@
+## v0.12.30 · Caja diaria
+
+Diagnóstico exportable, respaldo del día, reintento verificable y recepción conservadora de movimientos centrales. Ver `ENTREGA_v0.12.30_CAJA_SYNC.md`.
+
 # v0.12.28 — Tintométrico, Microcemento y PWA
 
 - Botón Limpiar en Laboratorio: vacía la preparación actual sin borrar datos guardados.
