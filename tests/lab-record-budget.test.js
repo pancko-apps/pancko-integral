@@ -1,0 +1,12 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
+const html=fs.readFileSync(path.resolve(__dirname,'../index.html'),'utf8');
+const first=html.slice(html.indexOf('function renderLabSavedRecord(r){'),html.indexOf('function loadLabRecord(id){'));
+const second=html.slice(html.indexOf('function addLabToBudget(){'),html.indexOf('/* ═══════════════════════',html.indexOf('function addLabToBudget(){')));
+const inputs={labResult:{innerHTML:''},labColorInput:{value:'X100'},labManualRows:{},labFormulaTableBox:{}};
+const cart=[],ctx={console,Date,Math,JSON,cart,document:{getElementById:id=>inputs[id]},selectedLabProduct:{COD:'10',ARTIC:'Pintura pastel 1 L',PR_CON_IVA:1000},selectedLabCalc:null,selectedLabManualLines:[],colorantPrices:{B:10},num:x=>Number(x)||0,recipePulse:x=>x,cleanLabColorCode:x=>String(x).replace('/MOD',''),isSpecialRecipe:()=>false,esc:x=>String(x),renderLabManualRows(){},renderLabFormulaTable(){},touchCurrentBudgetForEdit(){},formulasAreEqual:(a,b)=>JSON.stringify(a)===JSON.stringify(b),extractColorId:x=>x,colorLabelWithMod:(x,mod)=>x+(mod?'/MOD':''),specialTintSnapshot:()=>({tipo_receta:'NORMAL'}),save(){},showScreen(){},alert:msg=>{throw Error(String(msg))},currentLabFactorModeForProduct:()=> 'especial'};
+vm.createContext(ctx);vm.runInContext(first+'\n'+second,ctx);
+vm.runInContext(`renderLabSavedRecord({color:'X100/MOD',color_original:'X100',descripcion:'Gris propio',base_formula:'PASTEL',base_fisica:'PASTEL',factor:1,formula_original:[{colorante:'B',pulsos:4,precioPulso:9,subtotal:36}],formula:[{colorante:'B',pulsos:5,precioPulso:9,subtotal:45}],id_formula:'X100'})`,ctx);
+assert.equal(ctx.selectedLabCalc.ok,true);
+vm.runInContext('addLabToBudget()',ctx);
+assert.equal(cart.length,1);assert.equal(cart[0].PR_CON_IVA,1050);assert.equal(cart[0].tintData.formula[0].pulsos,5);assert.equal(cart[0].tintData.formula[0].precioPulso,10);
+console.log('OK Laboratorio: registro recibido modificado se agrega a presupuesto con pulsos conservados y precio por pulso local.');

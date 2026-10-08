@@ -1,3 +1,7 @@
+## v0.12.31 · Recetas propias compartidas
+
+Corrige registro recibido → presupuesto; alta NORMAL/SPECIAL desde cero o preparación; cola de recetas con revisión central. Backends nuevos preparados, sin desplegar.
+
 ## v0.12.30 · Caja diaria
 
 Diagnóstico exportable, respaldo del día, reintento verificable y recepción conservadora de movimientos centrales. Ver `ENTREGA_v0.12.30_CAJA_SYNC.md`.

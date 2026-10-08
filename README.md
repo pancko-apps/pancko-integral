@@ -1,3 +1,7 @@
+# Pancko Gestión v0.12.31 · Cañada · Recetas propias compartidas
+
+Ver `ENTREGA_v0.12.31_RECETAS_PROPIAS.md` para instalación y pruebas.
+
 # Pancko Gestión v0.12.30 · Cañada · Diagnóstico y sincronización de Caja
 
 Ver `ENTREGA_v0.12.30_CAJA_SYNC.md` para respaldo previo, cambios y prueba entre dispositivos.
