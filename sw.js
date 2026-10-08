@@ -1,9 +1,9 @@
-/* Pancko Gestión v0.12.27 · Recarga de navegación con cache busting; datos locales intactos. */
-const CACHE_NAME='pancko-gestion-v0.12.27';
-const APP_ASSETS=['./','./index.html','./manifest.webmanifest','./assets/operational-sync.js','./assets/icon-192.png','./assets/icon-512.png','./assets/cc-product-detail.js','./assets/cc-payment-applications.js','./assets/pwa-update.js','./assets/budget-workbench.js','./assets/special-recipes.js','./assets/special-editor.js','./assets/comandas.js','./assets/comandas.css','./assets/budget-workbench.css','./data/version.json','./data/articulos.csv','./data/clientes.csv','./data/recetas.csv'];
+/* Pancko Gestión v0.12.28 · Recarga de navegación con cache busting; datos locales intactos. */
+const CACHE_NAME='pancko-gestion-v0.12.28';
+const APP_ASSETS=['./','./index.html','./manifest.webmanifest','./assets/operational-sync.js','./assets/icon-192.png','./assets/icon-512.png','./assets/icon-maskable-192.png','./assets/icon-maskable-512.png','./assets/apple-touch-icon.png','./assets/favicon.png','./assets/cc-product-detail.js','./assets/cc-payment-applications.js','./assets/pwa-update.js','./assets/budget-workbench.js','./assets/special-recipes.js','./assets/special-editor.js','./assets/comandas.js','./assets/comandas.css','./assets/budget-workbench.css','./data/version.json','./data/articulos.csv','./data/clientes.csv','./data/recetas.csv'];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE_NAME).then(cache=>cache.addAll(APP_ASSETS.map(path=>new Request(path,{cache:'reload'}))))); // espera cierre de ventanas: no mezcla una página vieja con código nuevo.
 });
-self.addEventListener('message',event=>{if(event.data?.type==='PANCKO_SKIP_WAITING')self.skipWaiting();});
+self.addEventListener('message',event=>{if(event.data?.type==='PANCKO_SKIP_WAITING')self.skipWaiting();if(event.data?.type==='PANCKO_DIAGNOSTICS')event.ports?.[0]?.postMessage({cacheName:CACHE_NAME});});
 self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>(k.startsWith('pancko-integral-')||k.startsWith('pancko-gestion-'))&&k!==CACHE_NAME).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});
 self.addEventListener('fetch',event=>{
  const request=event.request,url=new URL(request.url);

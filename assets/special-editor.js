@@ -29,7 +29,7 @@ function newManualRecipe(){
  renderManualRecipeFields();
  if(selectedLabProduct&&specialProductInfo(selectedLabProduct))renderManualPatternOptions(String(selectedLabProduct.COD));
  manualRecipeFeedback('Nueva receta. Verificá el COD patrón antes de guardar.');
- manualField('manualRecipeCode').focus();
+ manualField('manualRecipeCode').focus({preventScroll:true});
 }
 function renderManualRecipeList(){
  const el=manualField('specialRecipeList');if(!el)return;
@@ -49,7 +49,7 @@ function editManualRecipe(key){
  manualField('manualRecipeActive').checked=normKey(r.activo)==='SI';
  manualField('manualRecipeCSV').value=specialRecipeCSVRow(r);
  manualRecipeFeedback('Editando receta. Al publicar, reemplazá su fila anterior en el CSV si cambiaste código, familia o patrón.');
- manualField('manualRecipeCode').focus();
+ manualField('manualRecipeCode').focus({preventScroll:true});
 }
 function persistManualRecipe(row,editingKey=''){
  const key=manualRecipeKey(row);
@@ -94,6 +94,6 @@ async function copyManualRecipeRow(){
  const text=manualField('manualRecipeCSV').value;
  if(!text){manualRecipeFeedback('Guardá o elegí una receta antes de copiar.',true);return;}
  try{await navigator.clipboard.writeText(text);manualRecipeFeedback('Fila copiada. Agregala al final del CSV publicado o reemplazá la fila anterior si fue una edición.');}
- catch(e){manualField('manualRecipeCSV').focus();manualField('manualRecipeCSV').select();manualRecipeFeedback('Seleccioná y copiá la fila CSV manualmente.');}
+ catch(e){manualField('manualRecipeCSV').focus({preventScroll:true});manualField('manualRecipeCSV').select();manualRecipeFeedback('Seleccioná y copiá la fila CSV manualmente.');}
 }
 renderManualRecipeFields();renderManualRecipeList();

@@ -1,3 +1,7 @@
+# Pancko Gestión v0.12.28 · Cañada · Pulido Tintométrico y PWA
+
+Ver `ENTREGA_v0.12.28.md` para cambios, instalación y pruebas.
+
 # Pancko Gestión v0.12.27 · Cañada · Carga de Comandas
 
 ZIP completo del frontend `pancko-integral` para reemplazo manual. `index.html` queda en la raíz del repo. No se publicó desde esta entrega.

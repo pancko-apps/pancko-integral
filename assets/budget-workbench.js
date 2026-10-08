@@ -63,10 +63,10 @@ function budgetAppendProducts(codes,batch=false){
  if(batch&&added.length>1){
   const pending=selected.filter(p=>budgetTintEntryRule(p)!=='plain').length;
   document.getElementById('budgetQuickStatus').textContent=added.length+' artículos agregados en líneas separadas.'+(pending?' '+pending+' fórmulas disponibles para completar desde la grilla.':'');
-  input.focus();return;
+  input.focus({preventScroll:true});return;
  }
  const rule=budgetTintEntryRule(selected[0]);document.getElementById('budgetQuickStatus').textContent='Agregado: '+selected[0].ARTIC+(rule==='unknown'?' · Revisá la base antes de aplicar una fórmula.':'');
- input.focus();
+ input.focus({preventScroll:true});
 }
 selectCartQuickProduct=function(cod){budgetAppendProducts([cod]);};
 document.addEventListener('pointerdown',event=>{if(!event.target.closest('#cartQuickProductSuggest')&&!event.target.closest('#cartQuickProductInput'))budgetHideSuggestions();});
@@ -82,9 +82,9 @@ const budgetPickerSelected=new Set();
 function budgetOpenPicker(query=document.getElementById('cartQuickProductInput').value.trim()){
  budgetHideSuggestions();const modal=document.getElementById('budgetProductPicker');modal.hidden=false;budgetPickerLimit=80;budgetPickerSelected.clear();document.getElementById('budgetPickerQuery').value=query;
  for(const id of ['brand','line','size']){const input=document.getElementById('budgetPicker_'+id),available=products.some(p=>budgetProductMeta(p,id));input.value='';input.disabled=!available;input.placeholder=available?'Filtrar…':'Sin dato en este catálogo';}
- budgetRenderPicker();document.getElementById('budgetPickerQuery').focus();
+ budgetRenderPicker();document.getElementById('budgetPickerQuery').focus({preventScroll:true});
 }
-function budgetClosePicker(){const modal=document.getElementById('budgetProductPicker');if(modal)modal.hidden=true;budgetPickerSelected.clear();document.getElementById('cartQuickProductInput')?.focus();}
+function budgetClosePicker(){const modal=document.getElementById('budgetProductPicker');if(modal)modal.hidden=true;budgetPickerSelected.clear();document.getElementById('cartQuickProductInput')?.focus({preventScroll:true});}
 function budgetUpdateSelectionCount(){const button=document.getElementById('budgetPickerAddSelected');button.disabled=!budgetPickerSelected.size;button.textContent='Agregar seleccionados ('+budgetPickerSelected.size+')';}
 function budgetToggleSelection(code,checked){if(!products.some(p=>String(p.COD)===String(code)))return;checked?budgetPickerSelected.add(String(code)):budgetPickerSelected.delete(String(code));budgetUpdateSelectionCount();}
 function budgetAddSelected(){if(!budgetPickerSelected.size)return;budgetAppendProducts([...budgetPickerSelected],budgetPickerSelected.size>1);}
@@ -185,11 +185,11 @@ function budgetLineKey(event,input,kind){
  if(event.key!=='Enter')return;
  event.preventDefault();
  const valid=kind==='qty'?budgetUpdateQty(input):budgetUpdateLineDiscount(input);
- if(!valid){input.focus();return;}
+ if(!valid){input.focus({preventScroll:true});return;}
  const position=cart.findIndex(i=>String(i.uid||i.COD)===String(input.dataset.key));
  const next=cart[position+1];
  const field=next?[...document.querySelectorAll('#cartItems [data-budget-field="'+kind+'"]')].find(i=>String(i.dataset.key)===String(next.uid||next.COD)):null;
- (field||document.getElementById('cartQuickProductInput')).focus();
+ (field||document.getElementById('cartQuickProductInput')).focus({preventScroll:true});
 }
 function budgetInitFormulaSuggestions(){
  const box=document.createElement('div');box.id='budgetFormulaSuggest';box.className='budget-formula-suggest';box.hidden=true;
@@ -325,7 +325,7 @@ function budgetFocusNextFormula(key){
  const position=cart.findIndex(i=>String(i.uid||i.COD)===String(key));
  const next=cart.slice(position+1).find(i=>isTintableProduct(budgetProductForItem(i))||!!i.tintData);
  const field=next?[...document.querySelectorAll('#cartItems .budget-formula input')].find(i=>String(i.dataset.key)===String(next.uid||next.COD)):null;
- (field||document.getElementById('cartQuickProductInput')).focus();
+ (field||document.getElementById('cartQuickProductInput')).focus({preventScroll:true});
 }
 renderCart=function(){
  hideClientAutocomplete();budgetHideFormulaSuggestions();const saved=budgetHistory.find(h=>String(h.id)===String(currentBudgetCode));
@@ -398,7 +398,7 @@ function budgetShowNewRecipeForm(){
  document.getElementById('budgetNewRecipeBase').innerHTML=bases.map(b=>`<option value="${esc(b)}">${esc(b)}</option>`).join('');
  for(const id of ['budgetNewRecipeCode','budgetNewRecipeDescription','budgetNewRecipePulses','budgetNewRecipeNotes'])document.getElementById(id).value='';
  document.getElementById('budgetNewRecipeFeedback').textContent='';
- document.getElementById('budgetNewRecipeCode').focus();
+ document.getElementById('budgetNewRecipeCode').focus({preventScroll:true});
 }
 function budgetSaveNewRecipe(){
  const item=getCartItemByKey(editingTintKey);if(!item)return;
@@ -451,7 +451,7 @@ saveTintEdit=function(){
  touchCurrentBudgetForEdit();item.product_snapshot=budgetClone(item.product_snapshot||p);item.base_price_snapshot=basePrice;
  item.base_ARTIC=item.base_ARTIC||p.ARTIC||item.ARTIC;item.ARTIC=`${item.base_ARTIC} (${colorLabelWithMod(calc.rec.idcolor,modified)})`;item.PR_CON_IVA=basePrice+tintCost;item.PR_SIN_IVA=item.PR_CON_IVA/1.21;
  item.tintData={...item.tintData,...specialTintSnapshot(calc.rec),color:calc.rec.idcolor,descripcion:calc.rec.descripcion||'',manualModified:modified,base_formula:calc.base_formula,base_fisica:calc.base_fisica,factor:calc.factor,factor_mode:calc.factor_mode||'especial',id_formula:calc.rec.id_formula||'',color_original:calc.rec.idcolor,tintCost,formula_original:budgetClone(calc.lines),formula:budgetClone(manual),created_at:item.tintData?.created_at||now,updated_at:now};
- save();closeTintEditModal();renderCart();document.getElementById('cartQuickProductInput').focus();
+ save();closeTintEditModal();renderCart();document.getElementById('cartQuickProductInput').focus({preventScroll:true});
 };
 function budgetUseHistory(id){
  const entry=budgetHistory.find(h=>String(h.id)===String(id));if(!entry||!Array.isArray(entry.cart))return;

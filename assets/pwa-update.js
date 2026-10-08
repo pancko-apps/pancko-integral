@@ -1,8 +1,9 @@
-/* Pancko Gestión v0.12.27 · Recarga de archivos; el almacenamiento local permanece intacto. */
+/* Pancko Gestión v0.12.28 · Recarga de archivos; el almacenamiento local permanece intacto. */
 'use strict';
-const PANCKO_INSTALLED_VERSION='Pancko Gestión v0.12.27';
+const PANCKO_INSTALLED_VERSION='Pancko Gestión v0.12.28';
 const PANCKO_UPDATE_MARKER='pk_pwa_refresh_pending_v1';
 const PANCKO_REOPEN_MESSAGE='Actualización preparada. Cerrá todas las ventanas de Pancko y volvé a abrir.';
+const PANCKO_BUILD_DATE='2026-10-08';
 let pwaPublishedVersion='',pwaCheckedAt='',pwaUpdateBusy=false;
 
 function pwaShowBanner(message,success=false){
@@ -80,3 +81,37 @@ async function pwaForceUpdate(){
  finally{pwaUpdateBusy=false;}
 }
 pwaRenderUpdate(pwaCheckAfterNavigation());
+
+async function pwaShowDiagnostics(){
+ const box=document.getElementById('pwaDiagnostics');if(!box)return;
+ let sw='Sin SW',cache='Sin Cache Storage';
+ try{
+  const reg=await pwaRegistration();
+  sw=reg?.active?'Activo · '+new URL(reg.active.scriptURL).pathname+(reg.waiting?' · nueva versión en espera':''):'Sin activar';
+  if(reg?.active){
+   sw=await new Promise(resolve=>{
+    const ch=new MessageChannel();const timer=setTimeout(()=>resolve(sw),1800);
+    ch.port1.onmessage=e=>{clearTimeout(timer);resolve(e.data?.cacheName||sw);};
+    reg.active.postMessage({type:'PANCKO_DIAGNOSTICS'},[ch.port2]);
+   });
+  }
+  if('caches' in window)cache=(await caches.keys()).filter(n=>n.startsWith('pancko-gestion-')||n.startsWith('pancko-integral-')).join(', ')||'Sin cache de Pancko';
+ }catch(e){sw='No disponible: '+e.message;}
+ let recetas='Sin dato',count='Sin cargar';
+ try{
+  const res=await fetch('./data/version.json',{cache:'no-store'});
+  if(res.ok)recetas=(await res.json()).recetas||recetas;
+ }catch(e){}
+ try{count=typeof tintRecipes==='object'?String(tintRecipes.length):count;}catch(e){}
+ const row=(name,value)=>'<div><strong>'+name+':</strong> '+String(value).replaceAll('<','&lt;')+'</div>';
+ box.innerHTML=row('App cargada',PANCKO_INSTALLED_VERSION)+row('Build',PANCKO_BUILD_DATE)+row('Service worker / cache',sw)+row('Caches guardadas',cache)+row('Versión recetas.csv',recetas)+row('Recetas cargadas',count);
+}
+async function pwaClearAppCache(){
+ if(!confirm('¿Limpiar solamente los archivos cacheados de Pancko? Se conservarán presupuestos, fórmulas manuales, caja, historial y ajustes de este dispositivo. Necesitás conexión para volver a cargarlos.'))return;
+ try{
+  const names=(await caches.keys()).filter(n=>n.startsWith('pancko-gestion-')||n.startsWith('pancko-integral-'));
+  await Promise.all(names.map(n=>caches.delete(n)));
+  await pwaShowDiagnostics();
+  pwaShowBanner('Archivos cacheados limpiados. Tocá Forzar actualización para traer los actuales.',true);
+ }catch(e){pwaShowBanner('No se pudo limpiar: '+e.message);}
+}

@@ -26,7 +26,7 @@ for(const [cod,meta] of Object.entries(products)){
 }
 rows.push({base:'PASTEL',idcolor:'8300',id_formula:'8300',descripcion:'Normal',formula_1l:'C=3'});
 vm.runInContext('tintRecipes=normalizeTintRecipes('+JSON.stringify(rows)+');buildTintIndex()',ctx);
-assert.equal(vm.runInContext('tintRecipes.length',ctx),7);
+assert.equal(vm.runInContext('tintRecipes.length',ctx),8);
 for(const [cod,meta] of Object.entries(products)){
  const p={COD:cod,usa_tinto:'NO',ARTIC:cod};
  const calc=vm.runInContext('calcTintForProduct('+JSON.stringify(p)+','+JSON.stringify('S'+meta.family)+')',ctx);
@@ -51,4 +51,4 @@ assert.equal(vm.runInContext('roundPulse(0.03)',ctx),0);
 const types=[['TEXTURA',25,'TINT',5],['AGRESTE',30,'DEEP',6],['RUSTICO',25,'PASTEL',2.4],['BASE_REVESTIMIENTO',25,'ACCENT',20]];
 for(const [tipo,kg,base,expect] of types){const p={COD:'X',usa_tinto:'SI',tipo_tinto:tipo,kilos_reales:kg,base_tinto:base};assert.equal(vm.runInContext('factorForSpecial('+JSON.stringify(p)+','+JSON.stringify(base)+')',ctx),expect)}
 const bad={...rows[0],familia_especial:'GRESS_PLATA'};assert(vm.runInContext('normalizeTintRecipes('+JSON.stringify([bad])+').length',ctx)===0);
-console.log('OK: 12 COD, seis familias, patrón real, segregación NORMAL/SPECIAL, precisión decimal, costos y fila inválida.');
+console.log('OK: 14 COD, siete familias, patrón real, segregación NORMAL/SPECIAL, precisión decimal, costos y fila inválida.');

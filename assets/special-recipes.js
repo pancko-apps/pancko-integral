@@ -6,9 +6,10 @@ const SPECIAL_PRODUCTS = Object.freeze({
  '44519053':{family:'FERROXIN',content:0.940,unit:'L'},'44519054':{family:'FERROXIN',content:3.760,unit:'L'},
  '89395004':{family:'GRESS_PLATA',content:4,unit:'KG'},'89395007':{family:'GRESS_PLATA',content:20,unit:'KG'},
  '89396004':{family:'GRESS_GRAFITO',content:4,unit:'KG'},'89396007':{family:'GRESS_GRAFITO',content:20,unit:'KG'},
- '80371003':{family:'OLD_OLDEST',content:1,unit:'L'},'80371004':{family:'OLD_OLDEST',content:4,unit:'L'}
+ '80371003':{family:'OLD_OLDEST',content:1,unit:'L'},'80371004':{family:'OLD_OLDEST',content:4,unit:'L'},
+ '86921004':{family:'MICROCEMENTO_PASTA',content:5,unit:'KG'},'86921007':{family:'MICROCEMENTO_PASTA',content:25,unit:'KG'}
 });
-const SPECIAL_FAMILIES = ['PERLADO','ALUMINIO','FERROXIN','GRESS_PLATA','GRESS_GRAFITO','OLD_OLDEST'];
+const SPECIAL_FAMILIES = ['PERLADO','ALUMINIO','FERROXIN','GRESS_PLATA','GRESS_GRAFITO','OLD_OLDEST','MICROCEMENTO_PASTA'];
 const SPECIAL_MANUAL_KEY='pk_special_recipes_manual_v1';
 const SPECIAL_HIDDEN_KEY='pk_special_recipes_hidden_v1';
 let specialRecipeLoadRejected=0;

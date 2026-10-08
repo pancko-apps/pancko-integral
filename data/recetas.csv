@@ -1,4 +1,4 @@
-﻿base,id_formula,idcolor,descripcion,formula_1l,tipo_receta,familia_especial,articulo_patron_cod,articulo_patron_descripcion,contenido_patron,unidad_patron,codigo_formula,formula_pulsos,source,activo,observaciones
+base,id_formula,idcolor,descripcion,formula_1l,tipo_receta,familia_especial,articulo_patron_cod,articulo_patron_descripcion,contenido_patron,unidad_patron,codigo_formula,formula_pulsos,source,activo,observaciones
 ACCENT,98018,01A1A,VELVET MAROON,E=16 | F=8 | KX=15 | V=85
 ACCENT,98019,01A1A SYC,VELVET MAROON,E=14 | F=7 | KX=13.5 | M=125.5
 ACCENT,98030,01B4D SYC,LAVENDER SILK,B=7.5 | KX=48 | M=88.5
@@ -17143,3 +17143,4 @@ SPECIAL:FERROXIN,226119,F010/011,Ferroxin Palito,,SPECIAL,FERROXIN,44519053,FERR
 SPECIAL:ALUMINIO,233220,SYC Aluminio 09,Aluminio 09,,SPECIAL,ALUMINIO,89459003,CREART HIDROESMALTE ALUMINIO 0.91 LTS,0.91,L,SYC Aluminio 09,SS=130,tintometrico_online,SI,lista 308; ESPECIAL_OK
 SPECIAL:FERROXIN,236316,FPV,FERROXIN Pablo V.,,SPECIAL,FERROXIN,44519053,FERROXIN PLATA  0.940 LTS,0.94,L,FPV,I=12 | C=8 | B=1,tintometrico_online,SI,lista 308; ESPECIAL_OK
 PASTEL,241632,GPPTR,Gris perla mod Patria,AXX=1.25 | B=2.5 | C=5 | D=7.5,NORMAL,,,,,,,,R15_tintometrico_online,SI,Patrón RECUPLAST INTERIOR MATE PASTEL 1 LTS; validado por Tincho
+"SPECIAL:MICROCEMENTO_PASTA","240197","Microcemento Nacar","Microcemento en Pasta Nácar","","SPECIAL","MICROCEMENTO_PASTA","86921004","MICROCEMENTO EN PASTA BASE 5 KGS","5","KG","Microcemento Nacar","B=2.2 | C=1.16 | I=0.6","oficial_online","SI","Patrón exacto oficial 5 KG; lista 308; idArticulo 4121"
