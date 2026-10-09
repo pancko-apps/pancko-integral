@@ -24,6 +24,12 @@ function queueSharedRecipe(row,oldKey=''){
 function renderSharedRecipeStatus(){
  const el=document.getElementById('sharedRecipeStatus');if(!el)return;
  const b=sharedRecipeBook();el.textContent=`Recetas propias locales: ${b.items.length} · Pendientes: ${b.pending.length}`+(!panckoAppToken()?' · Configurá la Clave operativa para compartir':'')+(sharedRecipeLastError?' · '+sharedRecipeLastError:'');
+ const headline=document.getElementById('recipeSyncHeadline'),detail=document.getElementById('recipeSyncDetail'),setup=document.getElementById('recipeSyncSetup'),banner=headline?.closest('.recipe-sync-banner');
+ if(!headline||!detail||!setup)return;
+ const noKey=!panckoAppToken();
+ headline.textContent=noKey?'Guardada en este dispositivo · Falta configurar sincronización':sharedRecipeLastError?'Sincronización pendiente':b.pending.length?'Enviando fórmulas pendientes…':'Recetas propias sincronizadas';
+ detail.textContent=`Recetas en este dispositivo: ${b.items.length} · Pendientes de subir: ${b.pending.length}`+(sharedRecipeLastError?' · '+sharedRecipeLastError:'');
+ setup.hidden=!noKey;banner?.classList.toggle('is-pending',noKey||!!sharedRecipeLastError||b.pending.length>0);
 }
 async function sharedRecipeRequest(path,body=null){
  const res=await panckoFetch(PANCKO_API_URL+path,body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{cache:'no-store'});

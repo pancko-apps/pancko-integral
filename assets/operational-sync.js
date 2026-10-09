@@ -1,10 +1,10 @@
 /* Pancko Gestión v0.12.18 — only transport/configuration, no economic logic. */
 const PANCKO_APP_TOKEN_KEY='pk_app_token_v1';
-const panckoModuleNames={budgets:'Presupuestos',colors:'Colores',cash:'Caja diaria',cc:'Cuenta corriente / clientes',catalog:'Lista central (consulta de versión)'};
+const panckoModuleNames={budgets:'Presupuestos',colors:'Colores',recipes:'Recetas propias',cash:'Caja diaria',cc:'Cuenta corriente / clientes',catalog:'Lista central (consulta de versión)'};
 const panckoModuleStates={},panckoModuleErrors={};let panckoSyncAllBusy=false;
 function panckoAppToken(){return localStorage.getItem(PANCKO_APP_TOKEN_KEY)||'';}
 function panckoSafeMessage(error){const token=panckoAppToken();return String(error?.message||error||'Error de sincronización').split(token||'\u0000').join('[clave oculta]');}
-function panckoModuleFor(url){const path=String(url).split('?')[0];return /\/cash\//.test(path)?'cash':/\/cc\//.test(path)?'cc':/\/articles/.test(path)?'catalog':/\/colou?r/.test(path)?'colors':/\/budget/.test(path)?'budgets':null;}
+function panckoModuleFor(url){const path=String(url).split('?')[0];return /\/cash\//.test(path)?'cash':/\/cc\//.test(path)?'cc':/\/recipes?(?:\/|$)/.test(path)?'recipes':/\/articles/.test(path)?'catalog':/\/colou?r/.test(path)?'colors':/\/budget/.test(path)?'budgets':null;}
 function panckoStatus(module,text){if(module)panckoModuleStates[module]=text;panckoRenderStates();}
 function panckoRenderStates(){const el=document.getElementById('panckoModuleStatus');if(!el)return;el.replaceChildren();for(const [key,name]of Object.entries(panckoModuleNames)){const row=document.createElement('p');const strong=document.createElement('strong');strong.textContent=name+': ';row.appendChild(strong);const span=document.createElement('span');span.textContent=panckoModuleStates[key]||(panckoAppToken()?'Listo para consultar':'Sin clave operativa configurada');row.appendChild(span);el.appendChild(row);}}
 async function panckoFetch(url,options={}){
@@ -32,6 +32,8 @@ function panckoSaveKey(){
   status.textContent=key?'Configuración guardada. Probá conexión para validar ambos backends.':'Clave retirada. Los datos locales se conservan.';
   for(const k of Object.keys(panckoModuleStates))delete panckoModuleStates[k];
   if(typeof ccRenderSync==='function')ccRenderSync();if(typeof cashRenderSyncStatus==='function')cashRenderSyncStatus();panckoRenderStates();
+  if(typeof renderSharedRecipeStatus==='function')renderSharedRecipeStatus();
+  if(key&&typeof syncSharedRecipes==='function')syncSharedRecipes();
  }catch{status.textContent='No se pudo guardar la configuración. Los datos de negocio no se modificaron.';}
 }
 async function panckoTestConnection(){
@@ -45,6 +47,7 @@ async function panckoSyncAll(){
  const jobs={
  budgets:async()=>{if(budgetCloudSyncRunning)throw new Error('Presupuestos ya está sincronizando.');await syncPendingBudgets();await syncBudgetsFromCloud();if(budgetHistory.some(x=>x._sync!=='synced')||JSON.parse(localStorage.getItem('pk_budget_delete_queue')||'[]').length)throw new Error('Hay presupuestos pendientes de enviar.');},
  colors:async()=>{if(labCloudSyncRunning)throw new Error('Colores ya está sincronizando.');await syncPendingLabRecords();await syncLabRecordsFromCloud();if(labRecords.some(x=>x._sync!=='synced'))throw new Error('Hay colores pendientes de enviar.');},
+ recipes:async()=>{if(typeof syncSharedRecipes!=='function')throw new Error('Módulo de recetas no disponible.');await syncSharedRecipes();if(sharedRecipeBook().pending.length||sharedRecipeLastError)throw new Error(sharedRecipeLastError||'Quedan recetas pendientes.');},
  cash:async()=>{if(cashSyncBusy)throw new Error('Caja está sincronizando; revisá al finalizar.');const dates=[...new Set([...(cashBook.sync_pending||[]).map(x=>x.date),cashSelectedDate])];let failure='';for(const date of dates){await cashSyncDate(date);if(cashSyncError||cashSyncConflict)failure=cashSyncError||cashSyncConflict;}if(failure||(cashBook.sync_pending||[]).length)throw new Error(failure||'Caja tiene cambios pendientes.');},
  cc:async()=>{if(ccSyncBusy||ccAutoReadBusy)throw new Error('CC está sincronizando; revisá al finalizar.');await ccSyncNow();if(ccSyncConflict||ccSyncError||ccPending().length)throw new Error(ccSyncConflict?'Conflicto: revisar':ccSyncError||'CC tiene pendientes.');},
  catalog:async()=>{const data=await catalogRequest('/articles/meta');rememberCatalogCentral(data);renderCatalogManagement();}

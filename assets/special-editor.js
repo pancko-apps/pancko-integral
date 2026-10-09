@@ -6,7 +6,7 @@ function manualRecipeFeedback(message,error=false){
  const el=manualField('manualRecipeFeedback');if(el){el.textContent=message;el.style.color=error?'#ff9a9a':'';}
 }
 function openManualRecipeScreen(){
- newManualRecipe();renderManualRecipeList();showScreen('recipeScreen');
+ newManualRecipe();renderManualRecipeList();renderSharedRecipeStatus();showScreen('recipeScreen');
 }
 function addManualColorantRow(color='',pulses=''){
  const box=manualField('manualColorantRows');if(!box)return;
@@ -95,7 +95,7 @@ function prepareManualRecipeFromLab(){
  setManualColorantRows(manualField('manualRecipePulses').value);
  manualRecipeFeedback('Asigná un código nuevo. Estos pulsos corresponden al envase de la preparación; confirmá el factor y guardá la receta.');
  previewManualRecipe();
- showScreen('recipeScreen');manualField('manualRecipeCode').focus({preventScroll:true});
+ renderSharedRecipeStatus();showScreen('recipeScreen');manualField('manualRecipeCode').focus({preventScroll:true});
 }
 function newManualRecipe(){
  manualRecipeEditingKey='';
@@ -172,7 +172,7 @@ function saveManualRecipe(){
  if(!result.ok){manualRecipeFeedback(result.error,true);return;}
  manualRecipeEditingKey=result.key;manualField('manualRecipeCSV').value=specialRecipeCSVRow(row);
  try{queueSharedRecipe(row,oldKey);}catch(e){manualRecipeFeedback('Guardada localmente, pero no se pudo crear la cola central: '+e.message,true);return;}
- manualRecipeFeedback('Guardada localmente. Se enviará al central; hasta confirmación figura pendiente. La fila CSV es un respaldo opcional.');
+ manualRecipeFeedback(typeof panckoAppToken==='function'&&!panckoAppToken()?'Guardada sólo en este dispositivo. Configurá la Clave operativa en Sincronización para compartirla.':'Guardada en este dispositivo. Queda pendiente hasta que el central confirme la sincronización.');
  syncSharedRecipes();
  renderLabColorOptions(false);renderLabFormula();
 }
