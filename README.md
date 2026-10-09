@@ -1,3 +1,7 @@
+# Pancko Gestión v0.12.32 · Cañada · Editor de fórmulas
+
+Ver `ENTREGA_v0.12.32_EDITOR_FORMULAS.md`. Backend v0.12.31 sin cambios.
+
 # Pancko Gestión v0.12.31 · Cañada · Recetas propias compartidas
 
 Ver `ENTREGA_v0.12.31_RECETAS_PROPIAS.md` para instalación y pruebas.

@@ -5,6 +5,33 @@ function manualField(id){return document.getElementById(id);}
 function manualRecipeFeedback(message,error=false){
  const el=manualField('manualRecipeFeedback');if(el){el.textContent=message;el.style.color=error?'#ff9a9a':'';}
 }
+function openManualRecipeScreen(){
+ newManualRecipe();renderManualRecipeList();showScreen('recipeScreen');
+}
+function addManualColorantRow(color='',pulses=''){
+ const box=manualField('manualColorantRows');if(!box)return;
+ const row=document.createElement('div');row.className='recipe-ink-row';
+ const select=document.createElement('select');select.setAttribute('aria-label','Colorante');
+ select.innerHTML='<option value="">Elegir colorante</option>'+tintColorantList().map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');select.value=color;
+ const input=document.createElement('input');input.type='text';input.inputMode='decimal';input.placeholder='Ej.: 3,5';input.setAttribute('aria-label','Pulsos');input.value=pulses;
+ const remove=document.createElement('button');remove.type='button';remove.className='btn btn-back';remove.textContent='×';remove.setAttribute('aria-label','Quitar colorante');remove.onclick=()=>{row.remove();syncManualColorantRows();};
+ for(const el of [select,input])el.addEventListener('input',syncManualColorantRows);
+ row.append(select,input,remove);box.append(row);syncManualColorantRows();
+}
+function setManualColorantRows(formula=''){
+ const box=manualField('manualColorantRows');if(!box)return;
+ box.replaceChildren();const parsed=parseTintFormula(formula);
+ parsed.forEach(x=>addManualColorantRow(x.colorante,String(x.pulsos1)));
+ if(!parsed.length)addManualColorantRow();syncManualColorantRows();
+}
+function syncManualColorantRows(){
+ const box=manualField('manualColorantRows');if(!box)return manualField('manualRecipePulses')?.value||'';
+ const parts=[...box.querySelectorAll('.recipe-ink-row')].map(row=>{
+  const color=row.querySelector('select').value,amount=row.querySelector('input').value.trim();
+  return color||amount?`${color}=${amount}`:'';
+ }).filter(Boolean);
+ const formula=parts.join(' | ');manualField('manualRecipePulses').value=formula;return formula;
+}
 function renderManualPatternOptions(preferred=''){
  const family=manualField('manualRecipeFamily')?.value,select=manualField('manualRecipePattern');if(!select)return;
  const current=preferred||select.value;
@@ -47,8 +74,9 @@ function manualNormalFactor(){
 function renderManualNormalFactor(){const hint=manualField('manualNormalFactorHint');if(hint)hint.textContent='La app dividirá los pulsos ingresados por el factor '+manualNormalFactor()+' y guardará el patrón NORMAL de 1 L. Revisá la vista previa antes de guardar.';}
 function previewManualRecipe(){
  const box=manualField('manualRecipePreview'),special=manualField('manualRecipeType').value==='SPECIAL';
- const parsed=parseTintFormula(manualField('manualRecipePulses').value),factor=special?1:manualNormalFactor();
- if(!parsed.length||!Number.isFinite(factor)||factor<=0||new Set(parsed.map(x=>x.colorante)).size!==parsed.length){box.textContent='Revisá colorantes, pulsos y factor del envase.';return;}
+ const raw=syncManualColorantRows(),parsed=parseTintFormula(raw),factor=special?1:manualNormalFactor();
+ const count=raw.split(/\s*\|\s*/).filter(Boolean).length;
+ if(!parsed.length||parsed.length!==count||parsed.some(x=>x.pulsos1<=0)||!Number.isFinite(factor)||factor<=0||new Set(parsed.map(x=>x.colorante)).size!==parsed.length){box.textContent='Revisá colorantes, pulsos y factor del envase.';return;}
  const pattern=special?manualField('manualRecipePattern').value:'1 L de base '+manualField('manualRecipeBase').value;
  box.textContent='Patrón que se guardará · '+pattern+' · '+parsed.map(x=>x.colorante+'='+Number((x.pulsos1/factor).toFixed(8))).join(' | ');
 }
@@ -64,23 +92,26 @@ function prepareManualRecipeFromLab(){
  }
  manualField('manualRecipeDescription').value=r.descripcion||'';
  manualField('manualRecipePulses').value=(selectedLabManualLines.length?selectedLabManualLines:selectedLabCalc.lines).map(x=>`${x.colorante}=${fmtRecipePulse(x.pulsos,r)}`).join(' | ');
+ setManualColorantRows(manualField('manualRecipePulses').value);
  manualRecipeFeedback('Asigná un código nuevo. Estos pulsos corresponden al envase de la preparación; confirmá el factor y guardá la receta.');
  previewManualRecipe();
- manualField('manualRecipePanel').open=true;manualField('manualRecipeCode').focus({preventScroll:true});
+ showScreen('recipeScreen');manualField('manualRecipeCode').focus({preventScroll:true});
 }
 function newManualRecipe(){
  manualRecipeEditingKey='';
  for(const id of ['manualRecipeCode','manualRecipeDescription','manualRecipePulses','manualRecipeNotes','manualRecipeCSV'])manualField(id).value='';
- manualField('manualRecipeType').value='SPECIAL';manualField('manualRecipeActive').checked=true;
+ manualField('manualRecipeType').value='NORMAL';manualField('manualRecipeActive').checked=true;
  if(selectedLabProduct&&specialProductInfo(selectedLabProduct))manualField('manualRecipeFamily').value=specialProductInfo(selectedLabProduct).family;
  renderManualRecipeFields();
  if(selectedLabProduct&&specialProductInfo(selectedLabProduct))renderManualPatternOptions(String(selectedLabProduct.COD));
+ setManualColorantRows();
  manualRecipeFeedback('Nueva receta. Verificá el COD patrón antes de guardar.');
  manualField('manualRecipeCode').focus({preventScroll:true});
 }
 function renderManualRecipeList(){
  const el=manualField('specialRecipeList');if(!el)return;
- const q=normKey(manualField('specialRecipeSearch')?.value),rows=tintRecipes.filter(r=>r.source==='pancko_shared'||r.source==='pancko_manual'||isSpecialRecipe(r))
+ const q=normKey(manualField('specialRecipeSearch')?.value),includeSpecial=!!manualField('manualIncludeSpecial')?.checked;
+ const rows=tintRecipes.filter(r=>r.source==='pancko_shared'||r.source==='pancko_manual'||(includeSpecial&&isSpecialRecipe(r)))
   .filter(r=>!q||normKey([r.codigo_formula,r.descripcion,r.familia_especial,r.articulo_patron_cod].join(' ')).includes(q))
   .sort((a,b)=>String(a.familia_especial).localeCompare(String(b.familia_especial))||String(a.codigo_formula).localeCompare(String(b.codigo_formula))).slice(0,100);
  el.innerHTML=rows.length?rows.map(r=>`<button type="button" class="btn btn-back" style="display:block;width:100%;text-align:left;margin:3px 0" data-key="${esc(manualRecipeKey(r))}" onclick="editManualRecipe(this.dataset.key)">${esc(r.codigo_formula||r.idcolor)} · ${esc(r.descripcion)} · ${isSpecialRecipe(r)?'SPECIAL '+esc(specialFamilyLabel(r.familia_especial))+' · Patrón '+esc(r.articulo_patron_cod):'NORMAL · Base '+esc(r.base)}${normKey(r.activo)==='NO'?' · INACTIVA':''}</button>`).join(''):'<span class="muted">Sin fórmulas propias cargadas.</span>';
@@ -93,6 +124,7 @@ function editManualRecipe(key){
  manualField('manualRecipeCode').value=r.codigo_formula||r.idcolor||'';
  manualField('manualRecipeDescription').value=r.descripcion||'';
  manualField('manualRecipePulses').value=isSpecialRecipe(r)?r.formula_pulsos||'':r.formula_1l||'';
+ setManualColorantRows(manualField('manualRecipePulses').value);
  manualField('manualRecipeNotes').value=r.observaciones||'';
  manualField('manualRecipeActive').checked=normKey(r.activo)==='SI';
  manualField('manualRecipeCSV').value=specialRecipeCSVRow(r);
@@ -114,7 +146,7 @@ function persistManualRecipe(row,editingKey=''){
 }
 function saveManualRecipe(){
  const type=manualField('manualRecipeType').value,code=manualField('manualRecipeCode').value.trim(),desc=manualField('manualRecipeDescription').value.trim();
- const pulses=manualField('manualRecipePulses').value.trim(),notes=manualField('manualRecipeNotes').value.trim();
+ const pulses=syncManualColorantRows().trim(),notes=manualField('manualRecipeNotes').value.trim();
  if(!/^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/.test(code)||!desc||/[\r\n]/.test(desc)){manualRecipeFeedback('Código o descripción inválidos. Usá letras, números, punto, guion o guion bajo.',true);return;}
  const parts=pulses.split(/\s*\|\s*|\s*;\s*/).filter(Boolean),parsed=parseTintFormula(pulses);
  if(!parts.length||parsed.length!==parts.length||new Set(parsed.map(x=>x.colorante)).size!==parsed.length||parsed.some(x=>!tintColorantList().includes(x.colorante)||x.pulsos1<=0)){
