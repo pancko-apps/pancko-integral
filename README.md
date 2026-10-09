@@ -1,3 +1,7 @@
+# Pancko Gestión v0.12.35 · Cañada · CC con IDs duplicados aislados
+
+Ver `ENTREGA_v0.12.35_CC_IDS.md`. Backend v0.12.31 sin cambios.
+
 # Pancko Gestión v0.12.34 · Cañada · Acceso a fórmulas en encabezado
 
 Ver `ENTREGA_v0.12.34_BOTON_TINTO.md`. Backend v0.12.31 sin cambios.
