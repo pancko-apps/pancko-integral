@@ -1,3 +1,7 @@
+# Pancko Gestión v0.12.34 · Cañada · Acceso a fórmulas en encabezado
+
+Ver `ENTREGA_v0.12.34_BOTON_TINTO.md`. Backend v0.12.31 sin cambios.
+
 # Pancko Gestión v0.12.33 · Cañada · Orden de Tintométrico y sync visible
 
 Ver `ENTREGA_v0.12.33_TINTO_SYNC.md`. Backend v0.12.31 sin cambios.
