@@ -1,9 +1,9 @@
 {
-  "app": "Pancko Gestión v0.12.36",
+  "app": "Pancko Gestión v0.12.37",
   "articulos": "articulos_tinto_preparado_v10_rustico_local_patch__2026-05-28",
   "recetas": "normal_126_special_107_microcemento_21__2026-10-10",
   "clientes": "clientes_master__2026-05-23",
-  "shell": "0.12.36",
+  "shell": "0.12.37",
   "catalog": "0.11.2",
   "caja": "0.12.30-diagnostics",
   "cuenta_corriente": "0.12.6-central",

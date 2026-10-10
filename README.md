@@ -1,37 +1,26 @@
-# Pancko Gestión v0.12.35 · Cañada · CC con IDs duplicados aislados
+# Pancko Gestión · Cañada · v0.12.37
 
-Ver `ENTREGA_v0.12.35_CC_IDS.md`. Backend v0.12.31 sin cambios.
+## Qué subir
 
-# Pancko Gestión v0.12.34 · Cañada · Acceso a fórmulas en encabezado
+Este ZIP contiene **el frontend completo del repositorio `pancko-integral`**. Descomprimí y subí/reemplazá en la raíz del repo los archivos y carpetas `index.html`, `sw.js`, `manifest.webmanifest`, `assets/` y `data/`, conservando la misma estructura. Incluye el `data/recetas.csv` completo vigente (con Microcemento SPECIAL). No subas sólo los archivos nuevos. No hace falta borrar los datos locales de la PWA. Al actualizar, cerrá y reabrí las pestañas para que el service worker active la nueva versión; verificá v0.12.37 en la app.
 
-Ver `ENTREGA_v0.12.34_BOTON_TINTO.md`. Backend v0.12.31 sin cambios.
+**No subir este ZIP a Worker, Apps Script ni Sheet.** No incluye backend. No modifica sincronización central ni producción de recetas. Publicación manual por Tincho; esta entrega no se publicó.
 
-# Pancko Gestión v0.12.33 · Cañada · Orden de Tintométrico y sync visible
+## Cheques y valores
 
-Ver `ENTREGA_v0.12.33_TINTO_SYNC.md`. Backend v0.12.31 sin cambios.
+Agenda local de cheques físicos y eCheq recibidos o entregados. Alta, edición, cambio de estado, anulación, eliminación confirmada, búsqueda, filtros, vencimientos y copia de resumen. En Cuenta Corriente, un pago con forma Cheque muestra datos adicionales y la opción **Agendar** activada por defecto. Al guardar correctamente el pago se crea el registro local vinculado al ID del movimiento; reintentar un pago con el mismo ID actualiza la misma ficha. El pago conserva su comportamiento actual en Cuenta Corriente. Si falla la agenda, aparece un mensaje y se puede editar el pago para reintentar.
 
-# Pancko Gestión v0.12.32 · Cañada · Editor de fórmulas
+Clave local: `pk_values_checks_v1`. Guarda los datos del valor, importes en centavos, fechas, origen, IDs de Cuenta Corriente y dispositivo. **Sólo existe en el navegador/dispositivo en que se cargó.** No se comparte por Sheet, Worker ni otros dispositivos y borrar los datos del sitio la elimina. Cta Cte sí sigue su sincronización propia. Estados de Cheques no alteran saldos de Cta Cte, Caja ni bancos. La edición de la ficha de Cheques tampoco modifica el pago de origen.
 
-Ver `ENTREGA_v0.12.32_EDITOR_FORMULAS.md`. Backend v0.12.31 sin cambios.
+## Prueba breve
 
-# Pancko Gestión v0.12.31 · Cañada · Recetas propias compartidas
+1. En Cheques y valores, crear físico recibido, físico entregado, eCheq recibido y eCheq entregado; editar importe y vencimiento.
+2. Cambiar a Depositado, Cobrado, Rechazado y Anulado; buscar por contacto/banco y usar filtros Próximos 7 días/Vencidos y Copiar resumen.
+3. En Cuenta Corriente, registrar un pago con Cheque y vencimiento; comprobar que se guarda el pago y aparece la ficha local vinculada. Verificar que Caja no cambia.
+4. Revisar en celular la lista compacta y el formulario. Esta prueba visual y la publicación quedan para el dispositivo de Tincho.
 
-Ver `ENTREGA_v0.12.31_RECETAS_PROPIAS.md` para instalación y pruebas.
+Pruebas automáticas locales: alta de cuatro combinaciones, edición, estados, filtros, copia, enlace de Cta Cte sin duplicado y protección de datos corruptos. Sintaxis de los scripts verificada.
 
-# Pancko Gestión v0.12.30 · Cañada · Diagnóstico y sincronización de Caja
+## Próxima etapa
 
-Ver `ENTREGA_v0.12.30_CAJA_SYNC.md` para respaldo previo, cambios y prueba entre dispositivos.
-
-# Pancko Gestión v0.12.28 · Cañada · Pulido Tintométrico y PWA
-
-Ver `ENTREGA_v0.12.28.md` para cambios, instalación y pruebas.
-
-# Pancko Gestión v0.12.27 · Cañada · Carga de Comandas
-
-ZIP completo del frontend `pancko-integral` para reemplazo manual. `index.html` queda en la raíz del repo. No se publicó desde esta entrega.
-
-En Comandas, Producto y Cantidad forman una sola carga. El buscador prioriza la coincidencia continua usada en Presupuestos y después encuentra fragmentos por palabra. Elegir una sugerencia sólo llena Producto y enfoca Cantidad; Agregar o Enter desde Cantidad crea la línea. X limpia Producto sin alterar la comanda ni la cantidad ya escrita. Se admite texto libre, números, `6x1`, `6*1`, `3x20lt`, `1 caja` y pedidos literales. La lista compacta móvil de v0.12.26 continúa y el editor se abre con un toque.
-
-Los datos previos quedan en `pk_comandas_draft_v1`, `pk_comandas_history_v1`, `pk_comandas_models_v1`; no hay migración. Caja v0.12.25, Presupuestos, Tintométrico, Worker, Apps Script, Sheet, extensión y sincronización mantienen su comportamiento. La actualización de shell/PWA y su número de versión son necesarios para recibir el nuevo archivo de Comandas.
-
-Las pruebas automatizadas cubren las cuatro búsquedas solicitadas, selección sin agregado, foco, cantidades y texto libre, además de los flujos previos. Revisar visualmente en el celular tras publicar; este entorno no puede abrir su instancia local en el navegador de prueba.
+Sincronización central de la agenda; definir rechazo y contra movimiento de deuda; cobro y banco; depósito real; tablero más completo. Ninguna de esas operaciones está activa en v0.12.37.
