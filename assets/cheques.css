@@ -30,3 +30,9 @@
 #ccChequePanel label{display:block;font-size:.8rem}#ccChequePanel .checks-cc-grid input,#ccChequePanel .checks-cc-grid select{width:100%;margin-top:4px}#ccChequePanel .checks-cc-option{display:flex;align-items:center;gap:8px;margin-top:10px}#ccChequePanel .checks-cc-option input{width:auto;margin:0}
 @media(max-width:850px){#chequesScreen .checks-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}#chequesScreen .checks-toolbar{grid-template-columns:1fr 1fr}#chequesScreen .checks-toolbar input{grid-column:1/-1}#chequesScreen .checks-form-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:560px){#chequesScreen .checks-form-grid{grid-template-columns:1fr}#chequesScreen .checks-toolbar{grid-template-columns:1fr 1fr}#chequesScreen .checks-metrics strong{font-size:1rem}#chequesScreen .checks-row-actions .btn{flex:1 1 auto}#ccChequePanel .checks-cc-grid{grid-template-columns:1fr 1fr}}
+#checksPrivate[hidden],#checksLockPanel[hidden],#checksConfirmRow[hidden]{display:none!important}
+#chequesScreen .checks-lock{max-width:520px;margin:25px auto;padding:24px}
+#chequesScreen .checks-lock h1{margin:6px 0 8px}
+#chequesScreen .checks-lock form label{display:block;margin-top:14px;font-weight:700}
+#chequesScreen .checks-lock form input{display:block;width:100%;margin-top:6px;min-height:44px}
+#chequesScreen .checks-lock #checksLockNotice{min-height:1.5em;color:#f5aa7d}

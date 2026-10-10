@@ -1,9 +1,60 @@
-/* Pancko Gestión v0.12.37 · Agenda local de cheques y valores. */
+/* Pancko Gestión v0.12.38 · Agenda local de cheques y valores. */
 'use strict';
 const CHECKS_KEY='pk_values_checks_v1';
+const CHECKS_LOCK_KEY='pk_values_checks_lock_v1';
 const CHECKS_STATES=['Pendiente','En cartera','Aceptado','Depositado','Cobrado / acreditado','Entregado / endosado','Rechazado','Anulado'];
 const CHECKS_CLOSED=new Set(['Cobrado / acreditado','Rechazado','Anulado']);
 let checksEditingId='';
+let checksUnlocked=false,checksUnlockBusy=false,checksLockEpoch=0;
+
+function checksLockConfig(){
+  const raw=localStorage.getItem(CHECKS_LOCK_KEY);if(!raw)return null;
+  try{const config=JSON.parse(raw);if(config.version===1&&/^[0-9a-f]{32}$/.test(config.salt)&&/^[0-9a-f]{64}$/.test(config.hash)&&config.iterations===150000)return config;}
+  catch{}
+  throw new Error('No se pudo leer la configuración de la clave. No se modificó la agenda.');
+}
+async function checksPinHash(pin,salt,iterations){
+  const bytes=Uint8Array.from(salt.match(/../g),x=>parseInt(x,16));
+  const key=await crypto.subtle.importKey('raw',new TextEncoder().encode(pin),'PBKDF2',false,['deriveBits']);
+  const result=await crypto.subtle.deriveBits({name:'PBKDF2',salt:bytes,iterations,hash:'SHA-256'},key,256);
+  return Array.from(new Uint8Array(result),x=>x.toString(16).padStart(2,'0')).join('');
+}
+function checksLockView(){
+  const privatePanel=document.getElementById('checksPrivate'),lockPanel=document.getElementById('checksLockPanel');if(!privatePanel||!lockPanel)return;
+  privatePanel.hidden=!checksUnlocked;lockPanel.hidden=checksUnlocked;
+  if(checksUnlocked)return;
+  try{const setup=!checksLockConfig();document.getElementById('checksConfirmRow').hidden=!setup;document.getElementById('checksPinConfirm').required=setup;
+    document.getElementById('checksLockSubmit').textContent=setup?'Crear clave y abrir':'Entrar';
+    document.getElementById('checksLockIntro').textContent=setup?'Primera vez: creá una clave para ocultar la agenda en este dispositivo.':'Ingresá la clave para ver la agenda de este dispositivo.';
+    document.getElementById('checksLockNotice').textContent='';
+  }catch(e){document.getElementById('checksLockNotice').textContent=e.message;document.getElementById('checksLockSubmit').disabled=true;}
+}
+function checksLock(){
+  checksLockEpoch++;checksUnlocked=false;checksEditingId='';
+  const form=document.getElementById('checksLockForm');if(form)form.reset();
+  const editor=document.getElementById('checksFormPanel');if(editor)editor.hidden=true;
+  for(const id of ['checksList','checksMetrics','checksNotice']){const el=document.getElementById(id);if(el)el.replaceChildren();}
+  checksLockView();
+}
+async function checksUnlockOrSetup(){
+  if(checksUnlockBusy)return;
+  const notice=document.getElementById('checksLockNotice'),submit=document.getElementById('checksLockSubmit'),pin=document.getElementById('checksPin').value;
+  if(!/^[0-9]{6,12}$/.test(pin)){notice.textContent='Ingresá de 6 a 12 números.';return;}
+  const epoch=checksLockEpoch;checksUnlockBusy=true;submit.disabled=true;notice.textContent='Verificando clave…';
+  try{
+    let config=checksLockConfig();
+    if(!config){if(pin!==document.getElementById('checksPinConfirm').value)throw new Error('Las claves no coinciden.');
+      const salt=Array.from(crypto.getRandomValues(new Uint8Array(16)),x=>x.toString(16).padStart(2,'0')).join('');
+      const fresh={version:1,salt,iterations:150000,hash:await checksPinHash(pin,salt,150000)};
+      // Verificamos que el navegador puede conservar la clave antes de abrir la agenda.
+      localStorage.setItem(CHECKS_LOCK_KEY,JSON.stringify(fresh));config=fresh;
+    }else if(await checksPinHash(pin,config.salt,config.iterations)!==config.hash)throw new Error('Clave incorrecta.');
+    if(epoch!==checksLockEpoch)return;
+    checksUnlocked=true;document.getElementById('checksLockForm').reset();checksLockView();checksRender();
+  }catch(e){notice.textContent=e.message||'No se pudo verificar la clave.';}
+  finally{checksUnlockBusy=false;submit.disabled=false;}
+}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')checksLock();});
 
 function checksRead(){
   const raw=localStorage.getItem(CHECKS_KEY);
@@ -24,6 +75,7 @@ function checksNotice(message){const box=document.getElementById('checksNotice')
 function checksField(id){return document.getElementById(id).value.trim();}
 function checksDefaultState(){document.getElementById('checksStatus').value=checksInitialStatus(checksField('checksType'),checksField('checksDirection'));}
 function checksOpenForm(id=''){
+  if(!checksUnlocked)return;
   const item=id?checksRead().find(x=>x.id===id):null;if(id&&!item)return;
   checksEditingId=id;
   const fields={checksContact:item?.cliente_proveedor||'',checksAmount:item?checksMoney(item.importe_cents).replace(/^\$ /,''):'',checksDue:item?.fecha_vencimiento||'',checksType:item?.tipo_valor||'fisico',checksDirection:item?.movimiento||'recibido',checksStatus:item?.estado||'En cartera',checksBank:item?.banco||'',checksNumber:item?.numero_o_id||'',checksIssued:item?.fecha_emision||'',checksHolder:item?.titular||'',checksIssuerCuit:item?.cuit_emisor||'',checksReceiverCuit:item?.cuit_receptor||'',checksNote:item?.observacion||''};
@@ -35,6 +87,7 @@ function checksOpenForm(id=''){
 }
 function checksCloseForm(){checksEditingId='';document.getElementById('checksFormPanel').hidden=true;}
 function checksSaveForm(){
+  if(!checksUnlocked)return;
   try{
     const contact=checksField('checksContact'),amount=checksCents(checksField('checksAmount')),due=checksField('checksDue'),issued=checksField('checksIssued');
     if(!contact||contact.length>160||!Number.isSafeInteger(amount)||amount<=0||!cashValidDate(due))throw new Error('Completá contacto, importe positivo y fecha de vencimiento.');
@@ -48,13 +101,14 @@ function checksSaveForm(){
   }catch(e){checksNotice(e.message);}
 }
 function checksSetStatus(id,status){
+  if(!checksUnlocked)return;
   if(!CHECKS_STATES.includes(status))return;
   try{const items=checksRead(),item=items.find(x=>x.id===id);if(!item)return;
     if(status==='Anulado'&&!confirm('¿Anular este valor? La ficha quedará en la agenda.')){checksRender();return;}
     item.estado=status;item.anulado_at=status==='Anulado'?(item.anulado_at||new Date().toISOString()):null;item.updated_at=new Date().toISOString();checksWrite(items);checksNotice('Estado actualizado. No modifica Cuenta Corriente ni Caja.');checksRender();
   }catch(e){checksNotice(e.message);checksRender();}
 }
-function checksDelete(id){if(!confirm('¿Eliminar definitivamente este valor de la agenda local? No elimina el pago de Cuenta Corriente.'))return;
+function checksDelete(id){if(!checksUnlocked||!confirm('¿Eliminar definitivamente este valor de la agenda local? No elimina el pago de Cuenta Corriente.'))return;
   try{checksWrite(checksRead().filter(x=>x.id!==id));if(checksEditingId===id)checksCloseForm();checksNotice('Valor eliminado de la agenda local.');checksRender();}catch(e){checksNotice(e.message);}
 }
 function checksAlert(item){if(item.estado==='Anulado')return 'void';if(item.estado==='Rechazado')return 'rejected';if(item.estado==='Cobrado / acreditado')return 'paid';if(!checksOpen(item))return 'normal';const n=checksDaysUntil(item.fecha_vencimiento);return n<0?'overdue':n===0?'today':n<=7?'soon':'normal';}
@@ -67,8 +121,9 @@ function checksMatch(item){
   const type=document.getElementById('checksTypeFilter')?.value||'all';if(type==='received'&&item.movimiento!=='recibido'||type==='delivered'&&item.movimiento!=='entregado'||['fisico','echeq'].includes(type)&&item.tipo_valor!==type)return false;
   return true;
 }
-function checksShowQuick(filter){document.getElementById('checksDateFilter').value=filter;checksRender();}
+function checksShowQuick(filter){if(!checksUnlocked)return;document.getElementById('checksDateFilter').value=filter;checksRender();}
 function checksRender(){
+  if(!checksUnlocked)return;
   const list=document.getElementById('checksList'),metrics=document.getElementById('checksMetrics');if(!list||!metrics)return;
   let items;try{items=checksRead();}catch(e){checksNotice(e.message);list.textContent='Agenda no disponible';metrics.textContent='';return;}
   const sum=filter=>items.filter(filter).reduce((n,x)=>n+x.importe_cents,0);
@@ -80,8 +135,8 @@ function checksRender(){
 function checksLine(item){return `${checksDate(item.fecha_vencimiento)} · ${checksMoney(item.importe_cents)} · ${item.cliente_proveedor}${item.banco?' · '+item.banco:''} · ${item.tipo_valor==='echeq'?'eCheq':'Físico'} · ${item.estado}`;}
 function checksSummary(){const items=checksRead(),up=items.filter(x=>checksOpen(x)&&checksDaysUntil(x.fecha_vencimiento)>=0&&checksDaysUntil(x.fecha_vencimiento)<=7).sort((a,b)=>a.fecha_vencimiento.localeCompare(b.fecha_vencimiento)),over=items.filter(x=>checksOpen(x)&&checksDaysUntil(x.fecha_vencimiento)<0).sort((a,b)=>a.fecha_vencimiento.localeCompare(b.fecha_vencimiento));return ['Agenda de cheques y valores','',`Vencen próximos 7 días:`,...(up.length?up.map(checksLine):['Sin valores']),'',`Vencidos pendientes:`,...(over.length?over.map(checksLine):['Sin valores'])].join('\n');}
 async function checksCopy(text){try{await navigator.clipboard.writeText(text);checksNotice('Resumen copiado.');}catch{checksNotice('No se pudo copiar. Revisá el permiso del portapapeles.');}}
-function checksCopySummary(){checksCopy(checksSummary());}
-function checksCopyOne(id){const x=checksRead().find(x=>x.id===id);if(x)checksCopy(checksLine(x));}
+function checksCopySummary(){if(checksUnlocked)checksCopy(checksSummary());}
+function checksCopyOne(id){if(!checksUnlocked)return;const x=checksRead().find(x=>x.id===id);if(x)checksCopy(checksLine(x));}
 
 // La vinculación es local e idempotente por ID del movimiento de Cuenta Corriente.
 function checksFromCC(movement,client,draft){
@@ -118,4 +173,5 @@ ccSaveMovement=function(){
   catch(e){ccNotice('El pago quedó guardado en Cuenta Corriente, pero no se pudo agendar el cheque: '+e.message+'. Editá el pago para reintentar.');}
 };
 const checksPreviousShowScreen=showScreen;
-showScreen=function(id,options){checksPreviousShowScreen(id,options);if(id==='chequesScreen')checksRender();};
+showScreen=function(id,options){if(id!=='chequesScreen')checksLock();checksPreviousShowScreen(id,options);if(id==='chequesScreen'){checksLockView();if(checksUnlocked)checksRender();}};
+checksLockView();
