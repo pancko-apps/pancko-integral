@@ -1,5 +1,5 @@
-/* Pancko Gestión v0.12.35 · Recarga de navegación con cache busting; datos locales intactos. */
-const CACHE_NAME='pancko-gestion-v0.12.35';
+/* Pancko Gestión v0.12.36 · Recarga de navegación con cache busting; datos locales intactos. */
+const CACHE_NAME='pancko-gestion-v0.12.36';
 const APP_ASSETS=['./','./index.html','./manifest.webmanifest','./assets/operational-sync.js','./assets/caja-diagnostics.js','./assets/shared-recipes.js','./assets/icon-192.png','./assets/icon-512.png','./assets/icon-maskable-192.png','./assets/icon-maskable-512.png','./assets/apple-touch-icon.png','./assets/favicon.png','./assets/cc-product-detail.js','./assets/cc-payment-applications.js','./assets/pwa-update.js','./assets/budget-workbench.js','./assets/special-recipes.js','./assets/special-editor.js','./assets/comandas.js','./assets/comandas.css','./assets/budget-workbench.css','./data/version.json','./data/articulos.csv','./data/clientes.csv','./data/recetas.csv'];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE_NAME).then(cache=>cache.addAll(APP_ASSETS.map(path=>new Request(path,{cache:'reload'}))))); // espera cierre de ventanas: no mezcla una página vieja con código nuevo.
 });
